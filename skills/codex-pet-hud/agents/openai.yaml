@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Pet HUD"
+  short_description: "Attach an HP/SP quota HUD to a Codex pet on macOS"
+  default_prompt: "Install or repair the macOS Codex Pet HUD for my active v2 pet, then verify quota and window linkage."

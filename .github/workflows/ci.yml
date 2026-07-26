@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-14
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Swift tests
+        run: swift test --disable-sandbox
+
+      - name: Run shell tests
+        env:
+          CODEX_PET_HUD_TESTING: "1"
+        run: |
+          for test_script in Tests/Shell/*.bats; do
+            bash "$test_script"
+          done
