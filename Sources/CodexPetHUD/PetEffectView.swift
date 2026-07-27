@@ -63,11 +63,13 @@ struct PetEffectView: View {
             movingRight: movingRight
         )
         let selectedFrames = panicFrames(for: selection)
-        let frameProgress = reduceMotion ? 0 : local
-        let frame = animationFrame(
-            progress: frameProgress,
-            frames: selectedFrames
+        let frameIndex = PetEffectAnimation.frameIndex(
+            elapsedTime: date.timeIntervalSinceReferenceDate,
+            framesPerSecond: assets.panicFramesPerSecond,
+            frameCount: selectedFrames.count,
+            reduceMotion: reduceMotion
         )
+        let frame = selectedFrames[frameIndex]
         let spriteSize = layout.localPetFrame.size
         let movingX = reduceMotion ? 0 : x
         let movingY = reduceMotion ? 0 : bounce

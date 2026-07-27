@@ -110,6 +110,11 @@ final class PetEffectManifestTests: XCTestCase {
                     1,
                     "frame \(index) contains detached artwork"
                 )
+                XCTAssertEqual(
+                    visibleChromaResidueCount(in: frameBitmap),
+                    0,
+                    "frame \(index) contains visible green chroma residue"
+                )
             }
             XCTAssertEqual(
                 critical.headAnchor,
@@ -330,6 +335,57 @@ final class PetEffectManifestTests: XCTestCase {
         }
     }
 
+    func testClampsPanicFrameRateToMaximum() throws {
+        try withTemporaryDirectory { directory in
+            try Data([0x89]).write(
+                to: directory.appendingPathComponent("hud-panic.png")
+            )
+            try """
+            {
+              "version": 1,
+              "panic": {
+                "spritesheet": "hud-panic.png",
+                "framesPerSecond": 99
+              }
+            }
+            """.write(
+                to: directory.appendingPathComponent("hud-effects.json"),
+                atomically: true,
+                encoding: .utf8
+            )
+
+            let manifest = try XCTUnwrap(
+                PetEffectManifest.load(directory: directory)
+            )
+
+            XCTAssertEqual(manifest.panic?.framesPerSecond, 24)
+        }
+    }
+
+    func testMissingPanicFrameRateUsesEightFPS() throws {
+        try withTemporaryDirectory { directory in
+            try """
+            {
+              "version": 1,
+              "panic": {
+                "leftEye": [0.42, 0.31],
+                "rightEye": [0.58, 0.31]
+              }
+            }
+            """.write(
+                to: directory.appendingPathComponent("hud-effects.json"),
+                atomically: true,
+                encoding: .utf8
+            )
+
+            let manifest = try XCTUnwrap(
+                PetEffectManifest.load(directory: directory)
+            )
+
+            XCTAssertEqual(manifest.panic?.framesPerSecond, 8)
+        }
+    }
+
     func testReturnsNilWhenMetadataIsMissing() throws {
         try withTemporaryDirectory { directory in
             XCTAssertNil(try PetEffectManifest.load(directory: directory))
@@ -433,5 +489,38 @@ final class PetEffectManifestTests: XCTestCase {
             }
         }
         return true
+    }
+
+    private func visibleChromaResidueCount(
+        in bitmap: NSBitmapImageRep
+    ) -> Int {
+        var count = 0
+        for y in 0..<bitmap.pixelsHigh {
+            for x in 0..<bitmap.pixelsWide {
+                guard let color = bitmap.colorAt(
+                    x: x,
+                    y: y
+                )?.usingColorSpace(.deviceRGB),
+                    color.alphaComponent > 0
+                else {
+                    continue
+                }
+                let red = color.redComponent
+                let green = color.greenComponent
+                let blue = color.blueComponent
+                let exactKey =
+                    red <= 1.0 / 255 &&
+                    green >= 254.0 / 255 &&
+                    blue <= 1.0 / 255
+                let greenDominant =
+                    green >= 0.60 &&
+                    green - red >= 0.25 &&
+                    green - blue >= 0.25
+                if exactKey || greenDominant {
+                    count += 1
+                }
+            }
+        }
+        return count
     }
 }

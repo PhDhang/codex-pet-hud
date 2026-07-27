@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 
 public struct PetEffectLayout: Equatable, Sendable {
     public let panelSize: CGSize
@@ -81,5 +82,24 @@ public enum PetEffectFrameSelection:
         case .runningLeft:
             true
         }
+    }
+}
+
+public enum PetEffectAnimation {
+    public static func frameIndex(
+        elapsedTime: TimeInterval,
+        framesPerSecond: Double,
+        frameCount: Int,
+        reduceMotion: Bool
+    ) -> Int {
+        guard
+            !reduceMotion,
+            framesPerSecond > 0,
+            frameCount > 0
+        else {
+            return 0
+        }
+        let elapsed = max(0, elapsedTime)
+        return Int(elapsed * framesPerSecond) % frameCount
     }
 }

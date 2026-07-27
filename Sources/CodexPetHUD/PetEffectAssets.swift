@@ -5,6 +5,7 @@ struct PetEffectAssets {
     let panicFramesRight: [CGImage]
     let panicFramesLeft: [CGImage]
     let panicCustomFrames: [CGImage]?
+    let panicFramesPerSecond: Double
     let criticalImage: CGImage?
     let failedFrames: [CGImage]
     let headAnchor: NormalizedPoint
@@ -44,6 +45,7 @@ struct PetEffectAssets {
                     columns: panic?.columns ?? 8
                 )
             },
+            panicFramesPerSecond: panic?.framesPerSecond ?? 8,
             criticalImage: critical.flatMap {
                 try? PetAtlas.image(url: $0.imageURL)
             },

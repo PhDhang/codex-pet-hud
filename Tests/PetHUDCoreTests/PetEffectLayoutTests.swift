@@ -188,4 +188,63 @@ final class PetEffectLayoutTests: XCTestCase {
         XCTAssertFalse(movingLeft.mirrorsSprite)
         XCTAssertTrue(movingLeft.mirrorsEyeAnchors)
     }
+
+    func testPanicFrameIndexUsesEightFPSBoundaries() {
+        let samples: [(TimeInterval, Int)] = [
+            (0, 0),
+            (0.124_999, 0),
+            (0.125, 1),
+            (0.249_999, 1),
+            (0.250, 2),
+            (0.999_999, 7),
+            (1.0, 0),
+            (1.125, 1),
+        ]
+
+        for (elapsedTime, expectedIndex) in samples {
+            XCTAssertEqual(
+                PetEffectAnimation.frameIndex(
+                    elapsedTime: elapsedTime,
+                    framesPerSecond: 8,
+                    frameCount: 8,
+                    reduceMotion: false
+                ),
+                expectedIndex,
+                "elapsedTime=\(elapsedTime)"
+            )
+        }
+    }
+
+    func testPanicFrameIndexDoesNotResetWithShuttleLoop() {
+        XCTAssertEqual(
+            PetEffectAnimation.frameIndex(
+                elapsedTime: 1.2,
+                framesPerSecond: 8,
+                frameCount: 8,
+                reduceMotion: false
+            ),
+            1
+        )
+        XCTAssertEqual(
+            PetEffectAnimation.frameIndex(
+                elapsedTime: 2.4,
+                framesPerSecond: 8,
+                frameCount: 8,
+                reduceMotion: false
+            ),
+            3
+        )
+    }
+
+    func testReduceMotionFreezesPanicFrameZero() {
+        XCTAssertEqual(
+            PetEffectAnimation.frameIndex(
+                elapsedTime: 17.875,
+                framesPerSecond: 24,
+                frameCount: 8,
+                reduceMotion: true
+            ),
+            0
+        )
+    }
 }

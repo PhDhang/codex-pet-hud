@@ -107,6 +107,14 @@ grep -F 'assets.panicCustomFrames' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'assets.panicCustomFrames?.count ?? 0' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'let panicFramesPerSecond: Double' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
+grep -F 'panic?.framesPerSecond ?? 8' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
+grep -F 'PetEffectAnimation.frameIndex(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'framesPerSecond: assets.panicFramesPerSecond' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'case .custom' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'if assets.criticalImage == nil {' \
