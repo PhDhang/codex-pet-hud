@@ -34,6 +34,55 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testAmbiguousNamedPresenceCannotReviveRestoredGeometry() {
+        let restored = shellGeometry(
+            id: 176,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        var tracker = PetPresenceTracker(
+            restoredGeometry: restored
+        )
+        let observation = PetWindowLocator.observe(
+            from: [
+                WindowDescriptor(
+                    owner: "ChatGPT",
+                    name: "Codex Pet Composition Surface",
+                    layer: 3,
+                    bounds: CGRect(
+                        x: 0,
+                        y: 0,
+                        width: 768,
+                        height: 912
+                    ),
+                    ownerPID: 1,
+                    windowID: 177
+                ),
+                WindowDescriptor(
+                    owner: "ChatGPT",
+                    name: "Codex Pet Voice Controls Backing",
+                    layer: 3,
+                    bounds: CGRect(
+                        x: 0,
+                        y: 0,
+                        width: 24,
+                        height: 24
+                    ),
+                    ownerPID: 2,
+                    windowID: 178
+                ),
+            ]
+        )
+
+        XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
+        XCTAssertNil(
+            tracker.update(
+                observation: observation,
+                now: Date(timeIntervalSince1970: 100)
+            )
+        )
+    }
+
     func testRestoredGeometryAppearsOnlyWithStablePresence() {
         let restored = shellGeometry(
             id: 77,

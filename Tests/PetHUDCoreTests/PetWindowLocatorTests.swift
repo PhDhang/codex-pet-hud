@@ -168,6 +168,92 @@ final class PetWindowLocatorTests: XCTestCase {
         XCTAssertNil(observation.stablePresencePID)
     }
 
+    func testExactMascotAndNamedProbeFromDifferentPIDsFailClosed() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                WindowDescriptor(
+                    owner: "ChatGPT",
+                    name: PetWindowLocator.exactWindowName,
+                    layer: 2,
+                    bounds: CGRect(
+                        x: 24,
+                        y: 775,
+                        width: 243,
+                        height: 252
+                    ),
+                    ownerPID: 1,
+                    windowID: 300
+                ),
+                descriptor(
+                    name: "Codex Pet Composition Surface",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 301,
+                    ownerPID: 2
+                ),
+            ]
+        )
+
+        XCTAssertNotNil(observation.exactWindow)
+        XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
+    }
+
+    func testNamedAndRedactedSignalsFromDifferentPIDsFailClosed() {
+        let observation = PetWindowLocator.observe(
+            from:
+                [
+                    descriptor(
+                        name: "Codex Pet Activity Stack Backing",
+                        layer: 3,
+                        width: 345,
+                        height: 54,
+                        id: 310,
+                        ownerPID: 1
+                    ),
+                ] +
+                redactedCluster(
+                    ownerPID: 2,
+                    startingID: 320
+                )
+        )
+
+        XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
+    }
+
+    func testNamedAndRedactedSignalsForOnePIDRemainStable() {
+        let observation = PetWindowLocator.observe(
+            from:
+                [
+                    descriptor(
+                        name: "Codex",
+                        layer: 3,
+                        width: 384,
+                        height: 126,
+                        id: 330,
+                        ownerPID: 7
+                    ),
+                    descriptor(
+                        name: "Codex Pet Composition Surface",
+                        layer: 3,
+                        width: 768,
+                        height: 912,
+                        id: 331,
+                        ownerPID: 7
+                    ),
+                ] +
+                redactedCluster(
+                    ownerPID: 7,
+                    startingID: 340
+                )
+        )
+
+        XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(observation.stablePresencePID, 7)
+    }
+
     func testExactMascotEffectWins() {
         let selected = PetWindowLocator.select(
             from: [
@@ -771,6 +857,38 @@ final class PetWindowLocatorTests: XCTestCase {
                 bounds: CGRect(x: 0, y: 0, width: 768, height: 912),
                 ownerPID: 51_007,
                 windowID: 107
+            ),
+        ]
+    }
+
+    private func redactedCluster(
+        ownerPID: Int,
+        startingID: Int
+    ) -> [WindowDescriptor] {
+        [
+            descriptor(
+                name: "",
+                layer: 3,
+                width: 768,
+                height: 912,
+                id: startingID,
+                ownerPID: ownerPID
+            ),
+            descriptor(
+                name: "",
+                layer: 3,
+                width: 24,
+                height: 24,
+                id: startingID + 1,
+                ownerPID: ownerPID
+            ),
+            descriptor(
+                name: "",
+                layer: 3,
+                width: 345,
+                height: 54,
+                id: startingID + 2,
+                ownerPID: ownerPID
             ),
         ]
     }

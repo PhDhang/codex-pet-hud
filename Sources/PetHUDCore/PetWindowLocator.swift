@@ -127,8 +127,7 @@ public enum PetWindowLocator {
     ) -> PetWindowObservation {
         let exactWindow = select(from: windows)
         let stablePresence = stablePresence(
-            in: windows,
-            exactWindow: exactWindow
+            in: windows
         )
         return PetWindowObservation(
             exactWindow: exactWindow,
@@ -274,46 +273,32 @@ public enum PetWindowLocator {
     }
 
     private static func stablePresence(
-        in windows: [WindowDescriptor],
-        exactWindow: WindowDescriptor?
+        in windows: [WindowDescriptor]
     ) -> (isPresent: Bool, ownerPID: Int?) {
-        if
-            let exactWindow,
-            exactWindow.isExactMascotWindow
-        {
-            return (true, exactWindow.ownerPID)
+        var candidatePIDs = Set(
+            windows
+                .filter(\.isExactMascotWindow)
+                .map(\.ownerPID)
+        )
+        candidatePIDs.formUnion(
+            windows
+                .filter(isNamedStableWindow)
+                .map(\.ownerPID)
+        )
+        candidatePIDs.formUnion(
+            titleRedactedIdleShellPIDs(in: windows)
+        )
+        guard candidatePIDs.count == 1,
+              let ownerPID = candidatePIDs.first
+        else {
+            return (false, nil)
         }
-
-        let exactMascots = windows.filter(\.isExactMascotWindow)
-        if !exactMascots.isEmpty {
-            return (
-                true,
-                uniqueOwnerPID(in: exactMascots)
-            )
-        }
-
-        let namedStableWindows = windows.filter {
-            $0.owner == "ChatGPT" &&
-                stableWindowNames.contains($0.name)
-        }
-        if !namedStableWindows.isEmpty {
-            return (
-                true,
-                uniqueOwnerPID(in: namedStableWindows)
-            )
-        }
-
-        if let ownerPID = titleRedactedIdleShellPID(
-            in: windows
-        ) {
-            return (true, ownerPID)
-        }
-        return (false, nil)
+        return (true, ownerPID)
     }
 
-    private static func titleRedactedIdleShellPID(
+    private static func titleRedactedIdleShellPIDs(
         in windows: [WindowDescriptor]
-    ) -> Int? {
+    ) -> Set<Int> {
         let candidates = windows.filter {
             $0.owner == "ChatGPT" &&
                 $0.name.isEmpty &&
@@ -322,7 +307,7 @@ public enum PetWindowLocator {
         let windowsByPID = Dictionary(grouping: candidates) {
             $0.ownerPID
         }
-        let completePIDs = windowsByPID.compactMap {
+        return Set(windowsByPID.compactMap {
             entry -> Int? in
             let (ownerPID, windows) = entry
             guard
@@ -333,21 +318,22 @@ public enum PetWindowLocator {
                 return nil
             }
             return ownerPID
-        }
-        guard completePIDs.count == 1 else {
-            return nil
-        }
-        return completePIDs[0]
+        })
     }
 
-    private static func uniqueOwnerPID(
-        in windows: [WindowDescriptor]
-    ) -> Int? {
-        let ownerPIDs = Set(windows.map(\.ownerPID))
-        guard ownerPIDs.count == 1 else {
-            return nil
+    private static func isNamedStableWindow(
+        _ window: WindowDescriptor
+    ) -> Bool {
+        guard window.owner == "ChatGPT" else {
+            return false
         }
-        return ownerPIDs.first
+        if stableWindowNames.contains(window.name) {
+            return true
+        }
+        return window.name == visualWindowName &&
+            window.layer == 3 &&
+            (80...640).contains(window.bounds.width) &&
+            (60...680).contains(window.bounds.height)
     }
 
     private static func isVoiceControl(
