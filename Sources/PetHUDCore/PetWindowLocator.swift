@@ -35,18 +35,48 @@ public struct WindowDescriptor:
     }
 }
 
+public enum PetVisualGeometrySource:
+    String,
+    Codable,
+    Equatable,
+    Sendable
+{
+    case shellDerived
+    case mascotFallback
+}
+
+public struct PetVisualGeometry:
+    Equatable,
+    Sendable
+{
+    public let window: WindowDescriptor
+    public let source: PetVisualGeometrySource
+
+    public init(
+        window: WindowDescriptor,
+        source: PetVisualGeometrySource
+    ) {
+        self.window = window
+        self.source = source
+    }
+}
+
 public struct PetWindowObservation: Equatable, Sendable {
     public let exactWindow: WindowDescriptor?
-    public let visualWindow: WindowDescriptor?
+    public let visualGeometry: PetVisualGeometry?
     public let hasStablePresence: Bool
+
+    public var visualWindow: WindowDescriptor? {
+        visualGeometry?.window
+    }
 
     public init(
         exactWindow: WindowDescriptor?,
-        visualWindow: WindowDescriptor? = nil,
+        visualGeometry: PetVisualGeometry? = nil,
         hasStablePresence: Bool
     ) {
         self.exactWindow = exactWindow
-        self.visualWindow = visualWindow ?? exactWindow
+        self.visualGeometry = visualGeometry
         self.hasStablePresence = hasStablePresence
     }
 }
@@ -57,6 +87,8 @@ public enum PetWindowLocator {
     public static let visualWindowName = "Codex"
     public static let v2CellAspectRatio: CGFloat =
         192.0 / 208.0
+    public static let mascotFallbackHeightScale: CGFloat =
+        0.5
 
     private static let stableWindowNames: Set<String> = [
         "Codex Pet Composition Surface",
@@ -93,11 +125,11 @@ public enum PetWindowLocator {
         let exactWindow = select(from: windows)
         return PetWindowObservation(
             exactWindow: exactWindow,
-            visualWindow: exactWindow.flatMap {
+            visualGeometry: exactWindow.map {
                 visualWindow(
                     for: $0,
                     in: windows
-                )
+                ) ?? mascotFallbackGeometry(for: $0)
             },
             hasStablePresence: hasStablePresence(in: windows)
         )
@@ -155,7 +187,7 @@ public enum PetWindowLocator {
     private static func visualWindow(
         for mascotWindow: WindowDescriptor,
         in windows: [WindowDescriptor]
-    ) -> WindowDescriptor? {
+    ) -> PetVisualGeometry? {
         let candidates = windows.filter { candidate in
             guard
                 candidate.owner == "ChatGPT",
@@ -185,18 +217,51 @@ public enum PetWindowLocator {
         let shell = candidates[0]
         let visualWidth =
             shell.bounds.height * v2CellAspectRatio
-        return WindowDescriptor(
-            owner: shell.owner,
-            name: shell.name,
-            layer: shell.layer,
-            bounds: CGRect(
-                x: shell.bounds.midX - visualWidth / 2,
-                y: shell.bounds.minY,
-                width: visualWidth,
-                height: shell.bounds.height
+        return PetVisualGeometry(
+            window: WindowDescriptor(
+                owner: shell.owner,
+                name: shell.name,
+                layer: shell.layer,
+                bounds: CGRect(
+                    x: shell.bounds.midX - visualWidth / 2,
+                    y: shell.bounds.minY,
+                    width: visualWidth,
+                    height: shell.bounds.height
+                ),
+                ownerPID: shell.ownerPID,
+                windowID: shell.windowID
             ),
-            ownerPID: shell.ownerPID,
-            windowID: shell.windowID
+            source: .shellDerived
+        )
+    }
+
+    private static func mascotFallbackGeometry(
+        for mascotWindow: WindowDescriptor
+    ) -> PetVisualGeometry {
+        let visualHeight =
+            mascotWindow.bounds.height *
+            mascotFallbackHeightScale
+        let visualWidth =
+            visualHeight * v2CellAspectRatio
+        return PetVisualGeometry(
+            window: WindowDescriptor(
+                owner: mascotWindow.owner,
+                name: mascotWindow.name,
+                layer: mascotWindow.layer,
+                bounds: CGRect(
+                    x:
+                        mascotWindow.bounds.midX -
+                        visualWidth / 2,
+                    y:
+                        mascotWindow.bounds.midY -
+                        visualHeight / 2,
+                    width: visualWidth,
+                    height: visualHeight
+                ),
+                ownerPID: mascotWindow.ownerPID,
+                windowID: mascotWindow.windowID
+            ),
+            source: .mascotFallback
         )
     }
 

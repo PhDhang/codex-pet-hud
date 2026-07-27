@@ -168,6 +168,10 @@ final class PetWindowLocatorTests: XCTestCase {
             CGRect(x: 105, y: 683, width: 249, height: 259)
         )
         let visual = try XCTUnwrap(observation.visualWindow)
+        XCTAssertEqual(
+            observation.visualGeometry?.source,
+            .shellDerived
+        )
         XCTAssertEqual(visual.ownerPID, 51_007)
         XCTAssertEqual(visual.windowID, shell.windowID)
         XCTAssertEqual(visual.bounds.height, 126, accuracy: 0.001)
@@ -211,8 +215,16 @@ final class PetWindowLocatorTests: XCTestCase {
                 from: liveWindowFixture(shell: shell)
             )
             XCTAssertEqual(
-                try XCTUnwrap(observation.visualWindow).bounds,
-                CGRect(x: 105, y: 683, width: 249, height: 259)
+                observation.visualGeometry?.source,
+                .mascotFallback
+            )
+            let visual = try XCTUnwrap(observation.visualWindow)
+            XCTAssertLessThan(visual.bounds.width, 130)
+            XCTAssertLessThan(visual.bounds.height, 140)
+            XCTAssertEqual(
+                visual.bounds.midX,
+                229.5,
+                accuracy: 0.001
             )
         }
     }
@@ -276,10 +288,15 @@ final class PetWindowLocatorTests: XCTestCase {
 
         let observation = PetWindowLocator.observe(from: windows)
 
+        let visual = try XCTUnwrap(observation.visualWindow)
         XCTAssertEqual(
-            try XCTUnwrap(observation.visualWindow),
-            try XCTUnwrap(observation.exactWindow)
+            observation.visualGeometry?.source,
+            .mascotFallback
         )
+        XCTAssertLessThan(visual.bounds.width, 130)
+        XCTAssertLessThan(visual.bounds.height, 140)
+        XCTAssertEqual(visual.bounds.midX, 229.5, accuracy: 0.001)
+        XCTAssertEqual(visual.bounds.midY, 812.5, accuracy: 0.001)
         XCTAssertTrue(observation.hasStablePresence)
     }
 

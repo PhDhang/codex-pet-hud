@@ -5,9 +5,12 @@ import XCTest
 
 final class PetPresenceTrackerTests: XCTestCase {
     func testColdRestoredGeometryStaysHiddenBeforeStablePresence() {
-        let restored = exactWindow(id: 76)
+        let restored = shellGeometry(
+            id: 76,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
         var tracker = PetPresenceTracker(
-            restoredWindow: restored
+            restoredGeometry: restored
         )
         let start = Date(timeIntervalSince1970: 100)
 
@@ -32,9 +35,12 @@ final class PetPresenceTrackerTests: XCTestCase {
     }
 
     func testRestoredGeometryAppearsOnlyWithStablePresence() {
-        let restored = exactWindow(id: 77)
+        let restored = shellGeometry(
+            id: 77,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
         var tracker = PetPresenceTracker(
-            restoredWindow: restored
+            restoredGeometry: restored
         )
         let now = Date(timeIntervalSince1970: 100)
 
@@ -52,12 +58,13 @@ final class PetPresenceTrackerTests: XCTestCase {
 
     func testColdFallbackGeometryConfirmsPresence() {
         var tracker = PetPresenceTracker()
-        let fallback = fallbackWindow(id: 78, x: 24)
+        let fallback = fallbackGeometry(id: 78, x: 24)
 
         XCTAssertEqual(
             tracker.update(
                 observation: .init(
-                    exactWindow: fallback,
+                    exactWindow: fallback.window,
+                    visualGeometry: fallback,
                     hasStablePresence: false
                 ),
                 now: Date(timeIntervalSince1970: 100)
@@ -69,28 +76,34 @@ final class PetPresenceTrackerTests: XCTestCase {
     func testRepeatedFallbackGeometryDoesNotEnterAbsence() {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
+        let initial = shellGeometry(
+            id: 79,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
         _ = tracker.update(
             observation: .init(
                 exactWindow: exactWindow(id: 79),
+                visualGeometry: initial,
                 hasStablePresence: true
             ),
             now: start
         )
 
         for (offset, x) in [(0.5, 30.0), (1.5, 42.0), (2.5, 54.0)] {
-            let fallback = fallbackWindow(
+            let fallback = fallbackGeometry(
                 id: 80,
                 x: CGFloat(x)
             )
             XCTAssertEqual(
                 tracker.update(
                     observation: .init(
-                        exactWindow: fallback,
+                        exactWindow: fallback.window,
+                        visualGeometry: fallback,
                         hasStablePresence: false
                     ),
                     now: start.addingTimeInterval(offset)
                 ),
-                fallback
+                initial
             )
         }
     }
@@ -98,11 +111,11 @@ final class PetPresenceTrackerTests: XCTestCase {
     func testUsesVisualGeometryForMovementAndResize() {
         var tracker = PetPresenceTracker()
         let exact = exactWindow(id: 10)
-        let initialVisual = visualWindow(
+        let initialVisual = shellGeometry(
             id: 11,
             bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
         )
-        let resizedVisual = visualWindow(
+        let resizedVisual = shellGeometry(
             id: 11,
             bounds: CGRect(x: 454, y: 500, width: 192, height: 208)
         )
@@ -112,7 +125,7 @@ final class PetPresenceTrackerTests: XCTestCase {
             tracker.update(
                 observation: .init(
                     exactWindow: exact,
-                    visualWindow: initialVisual,
+                    visualGeometry: initialVisual,
                     hasStablePresence: true
                 ),
                 now: start
@@ -123,7 +136,7 @@ final class PetPresenceTrackerTests: XCTestCase {
             tracker.update(
                 observation: .init(
                     exactWindow: exact,
-                    visualWindow: resizedVisual,
+                    visualGeometry: resizedVisual,
                     hasStablePresence: true
                 ),
                 now: start.addingTimeInterval(0.25)
@@ -132,20 +145,120 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testShellThenFallbackRetainsHighConfidenceGeometry() {
+        var tracker = PetPresenceTracker()
+        let shell = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        let fallback = PetVisualGeometry(
+            window: fallbackWindow(id: 12, x: 300),
+            source: .mascotFallback
+        )
+        let start = Date(timeIntervalSince1970: 100)
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exactWindow(id: 10),
+                    visualGeometry: shell,
+                    hasStablePresence: true
+                ),
+                now: start
+            ),
+            shell
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: fallback.window,
+                    visualGeometry: fallback,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(0.25)
+            ),
+            shell
+        )
+    }
+
+    func testRestoredShellGeometrySurvivesColdFallback() {
+        let restored = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        var tracker = PetPresenceTracker(
+            restoredGeometry: restored
+        )
+        let fallback = PetVisualGeometry(
+            window: fallbackWindow(id: 12, x: 300),
+            source: .mascotFallback
+        )
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: fallback.window,
+                    visualGeometry: fallback,
+                    hasStablePresence: true
+                ),
+                now: Date(timeIntervalSince1970: 100)
+            ),
+            restored
+        )
+    }
+
+    func testReappearingShellImmediatelyReplacesFallback() {
+        var tracker = PetPresenceTracker()
+        let fallback = fallbackGeometry(id: 12, x: 300)
+        let shell = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 454, y: 500, width: 192, height: 208)
+        )
+        let start = Date(timeIntervalSince1970: 100)
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: fallback.window,
+                    visualGeometry: fallback,
+                    hasStablePresence: true
+                ),
+                now: start
+            ),
+            fallback
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exactWindow(id: 10),
+                    visualGeometry: shell,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(0.25)
+            ),
+            shell
+        )
+    }
+
     func testRetainsGeometryWhileIdleShellRemainsPresent() {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
         let exact = exactWindow(id: 10)
+        let shell = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
 
         XCTAssertEqual(
             tracker.update(
                 observation: .init(
                     exactWindow: exact,
+                    visualGeometry: shell,
                     hasStablePresence: true
                 ),
                 now: start
             ),
-            exact
+            shell
         )
         XCTAssertEqual(
             tracker.update(
@@ -155,7 +268,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                 ),
                 now: start.addingTimeInterval(60)
             ),
-            exact
+            shell
         )
     }
 
@@ -163,9 +276,14 @@ final class PetPresenceTrackerTests: XCTestCase {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
         let exact = exactWindow(id: 10)
+        let shell = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
         _ = tracker.update(
             observation: .init(
                 exactWindow: exact,
+                visualGeometry: shell,
                 hasStablePresence: true
             ),
             now: start
@@ -179,7 +297,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                 ),
                 now: start.addingTimeInterval(0.5)
             ),
-            exact
+            shell
         )
         XCTAssertEqual(
             tracker.update(
@@ -189,7 +307,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                 ),
                 now: start.addingTimeInterval(1.5)
             ),
-            exact
+            shell
         )
         XCTAssertNil(
             tracker.update(
@@ -198,6 +316,15 @@ final class PetPresenceTrackerTests: XCTestCase {
                     hasStablePresence: false
                 ),
                 now: start.addingTimeInterval(2.5)
+            )
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(3)
             )
         )
     }
@@ -237,17 +364,30 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
-    private func visualWindow(
+    private func fallbackGeometry(
+        id: Int,
+        x: CGFloat
+    ) -> PetVisualGeometry {
+        PetVisualGeometry(
+            window: fallbackWindow(id: id, x: x),
+            source: .mascotFallback
+        )
+    }
+
+    private func shellGeometry(
         id: Int,
         bounds: CGRect
-    ) -> WindowDescriptor {
-        WindowDescriptor(
-            owner: "ChatGPT",
-            name: "Codex",
-            layer: 3,
-            bounds: bounds,
-            ownerPID: 1,
-            windowID: id
+    ) -> PetVisualGeometry {
+        PetVisualGeometry(
+            window: WindowDescriptor(
+                owner: "ChatGPT",
+                name: "Codex",
+                layer: 3,
+                bounds: bounds,
+                ownerPID: 1,
+                windowID: id
+            ),
+            source: .shellDerived
         )
     }
 }

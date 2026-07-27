@@ -3,17 +3,17 @@ import Foundation
 public struct PetPresenceTracker: Sendable {
     private let requiredAbsentObservations: Int
     private let requiredAbsentDuration: TimeInterval
-    private var lastGeometry: WindowDescriptor?
+    private var lastGeometry: PetVisualGeometry?
     private var hasConfirmedPresence = false
     private var absenceStartedAt: Date?
     private var absentObservationCount = 0
 
     public init(
-        restoredWindow: WindowDescriptor? = nil,
+        restoredGeometry: PetVisualGeometry? = nil,
         requiredAbsentObservations: Int = 3,
         requiredAbsentDuration: TimeInterval = 2
     ) {
-        lastGeometry = restoredWindow
+        lastGeometry = restoredGeometry
         self.requiredAbsentObservations =
             requiredAbsentObservations
         self.requiredAbsentDuration =
@@ -23,12 +23,17 @@ public struct PetPresenceTracker: Sendable {
     public mutating func update(
         observation: PetWindowObservation,
         now: Date
-    ) -> WindowDescriptor? {
-        if let visualWindow = observation.visualWindow {
-            lastGeometry = visualWindow
+    ) -> PetVisualGeometry? {
+        if let candidate = observation.visualGeometry {
+            let retainsShell =
+                lastGeometry?.source == .shellDerived &&
+                candidate.source == .mascotFallback
+            if !retainsShell {
+                lastGeometry = candidate
+            }
         }
         if
-            observation.visualWindow != nil ||
+            observation.visualGeometry != nil ||
             observation.hasStablePresence
         {
             hasConfirmedPresence = true
@@ -55,6 +60,7 @@ public struct PetPresenceTracker: Sendable {
             absenceStartedAt = nil
             absentObservationCount = 0
             lastGeometry = nil
+            hasConfirmedPresence = false
             return nil
         }
         return lastGeometry

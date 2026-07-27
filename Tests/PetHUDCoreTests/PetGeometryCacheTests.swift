@@ -10,18 +10,23 @@ final class PetGeometryCacheTests: XCTestCase {
                 "pet-geometry.json"
             )
             let cache = PetGeometryCache(url: url)
-            let record = PetGeometryRecord(
-                window: exactWindow(id: 42),
-                updatedAt: Date(timeIntervalSince1970: 123)
+            let geometry = shellGeometry(
+                id: 42
             )
 
-            try cache.save(record)
+            XCTAssertTrue(
+                try cache.save(
+                    geometry,
+                    updatedAt: Date(timeIntervalSince1970: 123)
+                )
+            )
 
             let loaded = try XCTUnwrap(cache.load())
-            XCTAssertEqual(loaded.window.bounds, record.window.bounds)
-            XCTAssertEqual(loaded.window.ownerPID, record.window.ownerPID)
-            XCTAssertEqual(loaded.window.windowID, record.window.windowID)
-            XCTAssertEqual(loaded.updatedAt, record.updatedAt)
+            XCTAssertEqual(loaded.geometry, geometry)
+            XCTAssertEqual(
+                loaded.updatedAt,
+                Date(timeIntervalSince1970: 123)
+            )
             let attributes =
                 try FileManager.default.attributesOfItem(
                     atPath: url.path
@@ -40,15 +45,22 @@ final class PetGeometryCacheTests: XCTestCase {
                     "pet-geometry.json"
                 )
             )
-            let record = PetGeometryRecord(
-                window: exactWindow(
-                    id: 43,
-                    bounds: CGRect(x: 5_000, y: 5_000, width: 100, height: 100)
-                ),
-                updatedAt: Date(timeIntervalSince1970: 123)
+            let geometry = shellGeometry(
+                id: 43,
+                bounds: CGRect(
+                    x: 5_000,
+                    y: 5_000,
+                    width: 100,
+                    height: 100
+                )
             )
 
-            try cache.save(record)
+            XCTAssertTrue(
+                try cache.save(
+                    geometry,
+                    updatedAt: Date(timeIntervalSince1970: 123)
+                )
+            )
 
             XCTAssertNil(
                 try cache.load(
@@ -60,58 +72,184 @@ final class PetGeometryCacheTests: XCTestCase {
         }
     }
 
-    func testPersistsOnlyRestorableGeometryFields() throws {
+    func testPersistsCurrentVersionAndShellSource() throws {
         try withTemporaryDirectory { directory in
             let url = directory.appendingPathComponent(
                 "pet-geometry.json"
             )
-            let record = PetGeometryRecord(
-                window: exactWindow(id: 44),
-                updatedAt: Date(timeIntervalSince1970: 123)
-            )
+            let cache = PetGeometryCache(url: url)
+            let geometry = shellGeometry(id: 44)
 
-            try PetGeometryCache(url: url).save(record)
+            XCTAssertTrue(
+                try cache.save(
+                    geometry,
+                    updatedAt: Date(timeIntervalSince1970: 123)
+                )
+            )
 
             let json = try String(
                 contentsOf: url,
                 encoding: .utf8
             )
-            XCTAssertTrue(json.contains("\"bounds\""))
-            XCTAssertTrue(json.contains("\"ownerPID\""))
-            XCTAssertTrue(json.contains("\"windowID\""))
+            XCTAssertTrue(json.contains("\"version\" : 1"))
+            XCTAssertTrue(
+                json.contains("\"source\" : \"shellDerived\"")
+            )
             XCTAssertFalse(json.contains("\"owner\""))
             XCTAssertFalse(json.contains("\"name\""))
             XCTAssertFalse(json.contains("\"layer\""))
             XCTAssertEqual(
-                try PetGeometryCache(url: url).load()?.window.bounds,
-                record.window.bounds
+                try cache.load()?.geometry,
+                geometry
             )
         }
     }
 
-    func testLoadsLegacyWindowDescriptorCache() throws {
+    func testInvalidatesLegacyUnversionedGeometry() throws {
         struct LegacyRecord: Encodable {
-            let window: WindowDescriptor
+            let bounds: CGRect
+            let ownerPID: Int
             let updatedAt: Date
+            let windowID: Int
         }
 
         try withTemporaryDirectory { directory in
             let url = directory.appendingPathComponent(
                 "pet-geometry.json"
             )
-            let window = exactWindow(id: 45)
             let legacy = LegacyRecord(
-                window: window,
-                updatedAt: Date(timeIntervalSince1970: 123)
+                bounds: CGRect(
+                    x: 105,
+                    y: 683,
+                    width: 249,
+                    height: 259
+                ),
+                ownerPID: 51_007,
+                updatedAt: Date(timeIntervalSince1970: 123),
+                windowID: 101
             )
             try JSONEncoder().encode(legacy).write(to: url)
 
-            let record = try XCTUnwrap(
-                PetGeometryCache(url: url).load()
+            XCTAssertThrowsError(
+                try PetGeometryCache(url: url).load()
+            ) { error in
+                XCTAssertEqual(
+                    error as? PetGeometryCacheError,
+                    .legacyUnversioned
+                )
+            }
+        }
+    }
+
+    func testRejectsUnknownFutureGeometryVersion() throws {
+        struct FutureRecord: Encodable {
+            let version: Int
+            let source: String
+            let bounds: CGRect
+            let ownerPID: Int
+            let updatedAt: Date
+            let windowID: Int
+        }
+
+        try withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent(
+                "pet-geometry.json"
             )
-            XCTAssertEqual(record.window.bounds, window.bounds)
-            XCTAssertEqual(record.window.ownerPID, window.ownerPID)
-            XCTAssertEqual(record.window.windowID, window.windowID)
+            let future = FutureRecord(
+                version: 2,
+                source: "shellDerived",
+                bounds: CGRect(
+                    x: 185.85,
+                    y: 749,
+                    width: 116.31,
+                    height: 126
+                ),
+                ownerPID: 51_007,
+                updatedAt: Date(timeIntervalSince1970: 123),
+                windowID: 102
+            )
+            try JSONEncoder().encode(future).write(to: url)
+
+            XCTAssertThrowsError(
+                try PetGeometryCache(url: url).load()
+            ) { error in
+                XCTAssertEqual(
+                    error as? PetGeometryCacheError,
+                    .unsupportedVersion(2)
+                )
+            }
+        }
+    }
+
+    func testFallbackNeverPersistsOrOverwritesShellGeometry() throws {
+        try withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent(
+                "pet-geometry.json"
+            )
+            let cache = PetGeometryCache(url: url)
+            let shell = shellGeometry(id: 45)
+            let fallback = PetVisualGeometry(
+                window: exactWindow(
+                    id: 43,
+                    bounds: CGRect(
+                        x: 180,
+                        y: 749,
+                        width: 119,
+                        height: 129
+                    )
+                ),
+                source: .mascotFallback
+            )
+
+            XCTAssertTrue(
+                try cache.save(
+                    shell,
+                    updatedAt: Date(timeIntervalSince1970: 123)
+                )
+            )
+            XCTAssertFalse(
+                try cache.save(
+                    fallback,
+                    updatedAt: Date(timeIntervalSince1970: 124)
+                )
+            )
+
+            let loaded = try XCTUnwrap(cache.load())
+            XCTAssertEqual(loaded.geometry, shell)
+            XCTAssertEqual(
+                loaded.updatedAt,
+                Date(timeIntervalSince1970: 123)
+            )
+        }
+    }
+
+    func testFallbackDoesNotCreateFreshCache() throws {
+        try withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent(
+                "pet-geometry.json"
+            )
+            let fallback = PetVisualGeometry(
+                window: exactWindow(
+                    id: 46,
+                    bounds: CGRect(
+                        x: 180,
+                        y: 749,
+                        width: 119,
+                        height: 129
+                    )
+                ),
+                source: .mascotFallback
+            )
+
+            XCTAssertFalse(
+                try PetGeometryCache(url: url).save(
+                    fallback,
+                    updatedAt: Date(timeIntervalSince1970: 123)
+                )
+            )
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: url.path)
+            )
         }
     }
 
@@ -131,6 +269,28 @@ final class PetGeometryCacheTests: XCTestCase {
             bounds: bounds,
             ownerPID: 1,
             windowID: id
+        )
+    }
+
+    private func shellGeometry(
+        id: Int,
+        bounds: CGRect = CGRect(
+            x: 185.85,
+            y: 749,
+            width: 116.31,
+            height: 126
+        )
+    ) -> PetVisualGeometry {
+        PetVisualGeometry(
+            window: WindowDescriptor(
+                owner: "ChatGPT",
+                name: PetWindowLocator.visualWindowName,
+                layer: 3,
+                bounds: bounds,
+                ownerPID: 51_007,
+                windowID: id
+            ),
+            source: .shellDerived
         )
     }
 }

@@ -107,9 +107,9 @@ final class PetHUDCoordinator {
         )
         let restored = try? geometryCache.load(
             intersecting: Self.currentDisplays().map(\.cgBounds)
-        )?.window
+        )?.geometry
         presenceTracker = PetPresenceTracker(
-            restoredWindow: restored
+            restoredGeometry: restored
         )
 
         let configuredPetURL = configuration.petPath.map {
@@ -211,20 +211,23 @@ final class PetHUDCoordinator {
         let now = Date()
         let observation =
             PetWindowLocator.currentObservation()
-        if let visualWindow = observation.visualWindow {
-            try? geometryCache.save(
-                PetGeometryRecord(
-                    window: visualWindow,
-                    updatedAt: now
-                )
+        if
+            let visualGeometry = observation.visualGeometry,
+            visualGeometry.source == .shellDerived
+        {
+            _ = try? geometryCache.save(
+                visualGeometry,
+                updatedAt: now
             )
         }
-        let petWindow = presenceTracker.update(
+        let petGeometry = presenceTracker.update(
             observation: observation,
             now: now
         )
         render(
-            model.reduce(.petWindowChanged(petWindow))
+            model.reduce(
+                .petWindowChanged(petGeometry?.window)
+            )
         )
     }
 
