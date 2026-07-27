@@ -25,6 +25,7 @@ final class PetWindowLocatorTests: XCTestCase {
 
         XCTAssertNil(observation.exactWindow)
         XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(observation.stablePresencePID, 1)
     }
 
     func testUnrelatedChatGPTWindowDoesNotReportPetPresence() {
@@ -73,6 +74,66 @@ final class PetWindowLocatorTests: XCTestCase {
 
         XCTAssertNil(observation.exactWindow)
         XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(observation.stablePresencePID, 1)
+    }
+
+    func testTitleRedactedIdleShellRejectsTwoCompletePIDClusters() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 183,
+                    ownerPID: 1
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 24,
+                    height: 24,
+                    id: 184,
+                    ownerPID: 1
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 345,
+                    height: 54,
+                    id: 185,
+                    ownerPID: 1
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 283,
+                    ownerPID: 2
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 24,
+                    height: 24,
+                    id: 284,
+                    ownerPID: 2
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 345,
+                    height: 54,
+                    id: 285,
+                    ownerPID: 2
+                ),
+            ]
+        )
+
+        XCTAssertNil(observation.exactWindow)
+        XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
     }
 
     func testTitleRedactedIdleShellRejectsCrossProcessCluster() {
@@ -104,6 +165,7 @@ final class PetWindowLocatorTests: XCTestCase {
         )
 
         XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
     }
 
     func testExactMascotEffectWins() {

@@ -56,6 +56,28 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testRestoredGeometryRejectsStablePresencePIDMismatch() {
+        let restored = shellGeometry(
+            id: 177,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126),
+            ownerPID: 1
+        )
+        var tracker = PetPresenceTracker(
+            restoredGeometry: restored
+        )
+
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: true,
+                    stablePresencePID: 2
+                ),
+                now: Date(timeIntervalSince1970: 100)
+            )
+        )
+    }
+
     func testColdFallbackGeometryConfirmsPresence() {
         var tracker = PetPresenceTracker()
         let fallback = fallbackGeometry(id: 78, x: 24)
@@ -272,6 +294,36 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testRetainedGeometryRejectsStablePresencePIDMismatch() {
+        var tracker = PetPresenceTracker()
+        let start = Date(timeIntervalSince1970: 100)
+        let shell = shellGeometry(
+            id: 111,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126),
+            ownerPID: 1
+        )
+        _ = tracker.update(
+            observation: .init(
+                exactWindow: exactWindow(id: 110),
+                visualGeometry: shell,
+                hasStablePresence: true,
+                stablePresencePID: 1
+            ),
+            now: start
+        )
+
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: true,
+                    stablePresencePID: 2
+                ),
+                now: start.addingTimeInterval(60)
+            )
+        )
+    }
+
     func testRequiresThreeMissingObservationsAcrossTwoSeconds() {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
@@ -376,7 +428,8 @@ final class PetPresenceTrackerTests: XCTestCase {
 
     private func shellGeometry(
         id: Int,
-        bounds: CGRect
+        bounds: CGRect,
+        ownerPID: Int = 1
     ) -> PetVisualGeometry {
         PetVisualGeometry(
             window: WindowDescriptor(
@@ -384,7 +437,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                 name: "Codex",
                 layer: 3,
                 bounds: bounds,
-                ownerPID: 1,
+                ownerPID: ownerPID,
                 windowID: id
             ),
             source: .shellDerived

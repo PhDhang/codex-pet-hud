@@ -24,6 +24,18 @@ public struct PetPresenceTracker: Sendable {
         observation: PetWindowObservation,
         now: Date
     ) -> PetVisualGeometry? {
+        let observedPID =
+            observation.visualGeometry?.window.ownerPID ??
+            observation.stablePresencePID ??
+            observation.exactWindow?.ownerPID
+        if
+            let observedPID,
+            let retainedPID = lastGeometry?.window.ownerPID,
+            retainedPID != observedPID
+        {
+            lastGeometry = nil
+        }
+
         if let candidate = observation.visualGeometry {
             let retainsShell =
                 lastGeometry?.source == .shellDerived &&
