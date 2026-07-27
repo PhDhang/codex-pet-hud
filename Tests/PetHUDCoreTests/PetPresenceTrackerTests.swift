@@ -74,6 +74,35 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testCompatibilityTrackerDoesNotRetainFallbackWindow() {
+        var tracker = PetWindowTracker(graceInterval: 1.5)
+        let start = Date(timeIntervalSince1970: 100)
+        let fallback = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "",
+            layer: 2,
+            bounds: CGRect(
+                x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: 1,
+            windowID: 20
+        )
+
+        XCTAssertEqual(
+            tracker.update(observed: fallback, now: start),
+            fallback
+        )
+        XCTAssertNil(
+            tracker.update(
+                observed: nil,
+                now: start.addingTimeInterval(0.2)
+            )
+        )
+    }
+
     private func exactWindow(id: Int) -> WindowDescriptor {
         WindowDescriptor(
             owner: "ChatGPT",
