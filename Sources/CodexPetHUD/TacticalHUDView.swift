@@ -3,45 +3,49 @@ import SwiftUI
 
 struct TacticalHUDView: View {
     let data: HUDPresentationData
+    let frameSize: CGSize
     @Environment(\.accessibilityReduceMotion)
     private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 6) {
-            meterRow(
-                label: "HP",
-                trailing: data.hpText
-            ) {
-                GeometryReader { geometry in
-                    Capsule()
-                        .fill(Color.black.opacity(0.72))
-                        .overlay(alignment: .leading) {
-                            Capsule()
-                                .fill(hpColor)
-                                .frame(
-                                    width:
-                                        geometry.size.width *
-                                        data.hpFraction
-                                )
-                        }
+        ZStack {
+            tacticalBackground
+            VStack(spacing: 6) {
+                meterRow(
+                    label: "HP",
+                    trailing: data.hpText
+                ) {
+                    GeometryReader { geometry in
+                        Capsule()
+                            .fill(Color.black.opacity(0.72))
+                            .overlay(alignment: .leading) {
+                                Capsule()
+                                    .fill(hpColor)
+                                    .frame(
+                                        width:
+                                            geometry.size.width *
+                                            data.hpFraction
+                                    )
+                            }
+                    }
+                    .frame(height: 9)
                 }
-                .frame(height: 9)
-            }
-            meterRow(
-                label: "SP",
-                trailing: data.resetText.uppercased()
-            ) {
-                HStack(spacing: 4) {
-                    ForEach(0..<7, id: \.self) { index in
-                        FlameCellView(
-                            isLit: index < data.spCellsLit
-                        )
-                        .frame(width: 15, height: 19)
+                meterRow(
+                    label: "SP",
+                    trailing: data.resetText.uppercased(),
+                    accessibilityValue: spAccessibilityValue
+                ) {
+                    HStack(spacing: 4) {
+                        ForEach(0..<7, id: \.self) { index in
+                            FlameCellView(
+                                isLit: index < data.spCellsLit
+                            )
+                            .frame(width: 15, height: 19)
+                            .accessibilityHidden(true)
+                        }
                     }
                 }
-            }
-            if data.band == .critical {
-                Text("EXHAUSTED · SIGNAL CRITICAL")
+                Text(data.statusLabel)
                     .font(
                         .system(
                             size: 8,
@@ -50,12 +54,21 @@ struct TacticalHUDView: View {
                         )
                     )
                     .tracking(1.4)
-                    .foregroundStyle(Color.red)
+                    .foregroundStyle(
+                        data.band == .critical
+                            ? Color.red
+                            : Color.cyan
+                    )
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .frame(
+                width: PanelGeometry.tacticalHUDContentDesignSize.width,
+                height: PanelGeometry.tacticalHUDContentDesignSize.height
+            )
+            .scaleEffect(contentScale)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(tacticalBackground)
+        .frame(width: frameSize.width, height: frameSize.height)
         .allowsHitTesting(false)
         .animation(
             reduceMotion ? nil : .easeInOut(duration: 0.8),
@@ -63,9 +76,21 @@ struct TacticalHUDView: View {
         )
     }
 
+    private var contentScale: CGFloat {
+        PanelGeometry.tacticalHUDContentScale(
+            for: CGRect(origin: .zero, size: frameSize)
+        )
+    }
+
+    private var spAccessibilityValue: String {
+        "\(data.spCellsLit) of 7 elapsed; reset in " +
+            data.resetText
+    }
+
     private func meterRow<Content: View>(
         label: String,
         trailing: String,
+        accessibilityValue: String? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
         HStack(spacing: 7) {
@@ -89,6 +114,9 @@ struct TacticalHUDView: View {
                 design: .monospaced
             )
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(accessibilityValue ?? trailing)
     }
 
     private var tacticalBackground: some View {

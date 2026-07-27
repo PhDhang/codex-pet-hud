@@ -14,7 +14,10 @@ final class TacticalHUDPanelController {
             now: Date()
         )
         hostingView = NSHostingView(
-            rootView: TacticalHUDView(data: initial)
+            rootView: TacticalHUDView(
+                data: initial,
+                frameSize: .zero
+            )
         )
         panel = ClickThroughPanel(
             contentRect: CGRect(
@@ -32,7 +35,10 @@ final class TacticalHUDPanelController {
         frame: CGRect,
         data: HUDPresentationData
     ) {
-        hostingView.rootView = TacticalHUDView(data: data)
+        hostingView.rootView = TacticalHUDView(
+            data: data,
+            frameSize: frame.size
+        )
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
     }

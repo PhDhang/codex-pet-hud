@@ -13,3 +13,21 @@ grep -F 'struct FlameCellView' \
   "$ROOT/Sources/CodexPetHUD/FlameCellView.swift"
 grep -F 'ForEach(0..<7' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'frameSize: frame.size' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
+grep -F 'PanelGeometry.tacticalHUDContentScale' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'data.statusLabel' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F '.accessibilityElement(children: .combine)' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F '.accessibilityHidden(true)' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'of 7 elapsed; reset in' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'accessibilityValue: String?' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'accessibilityValue: spAccessibilityValue' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F '.accessibilityValue(accessibilityValue ?? trailing)' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
