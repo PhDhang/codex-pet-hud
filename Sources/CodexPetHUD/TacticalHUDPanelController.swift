@@ -47,3 +47,34 @@ final class TacticalHUDPanelController {
         panel.orderOut(nil)
     }
 }
+
+@MainActor
+final class ClickThroughPanel: NSPanel {
+    init(contentRect: CGRect) {
+        super.init(
+            contentRect: contentRect,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = false
+        ignoresMouseEvents = true
+        level = .floating
+        collectionBehavior = [
+            .canJoinAllSpaces,
+            .fullScreenAuxiliary,
+        ]
+        hidesOnDeactivate = false
+        isReleasedWhenClosed = false
+    }
+
+    override var canBecomeKey: Bool {
+        false
+    }
+
+    override var canBecomeMain: Bool {
+        false
+    }
+}

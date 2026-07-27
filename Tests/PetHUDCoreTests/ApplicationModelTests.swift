@@ -41,6 +41,21 @@ final class ApplicationModelTests: XCTestCase {
         )
     }
 
+    func testSameGeometryKeepsHUDVisibleAcrossQuotaTicks() {
+        var model = ApplicationModel()
+        _ = model.reduce(.petWindowChanged(petWindow))
+        _ = model.reduce(.quotaLoaded(snapshot(remaining: 93)))
+
+        let presentation = model.reduce(
+            .clockTick(
+                Date(timeIntervalSince1970: 10_060)
+            )
+        )
+
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.petWindow, petWindow)
+    }
+
     func testCriticalQuotaShowsCriticalDistress() {
         var model = ApplicationModel()
         _ = model.reduce(.petWindowChanged(petWindow))

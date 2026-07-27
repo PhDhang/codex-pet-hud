@@ -40,15 +40,16 @@ final class PetHUDCoordinator {
     private let provider: WhamUsageClient
     private let cache: SnapshotCache
     private let manifest: PetManifest?
-    private let neutralImage: CGImage?
     private let mockSnapshot: QuotaSnapshot?
-    private let lifePodController =
-        LifePodPanelController()
-    private let criticalController =
-        CriticalPanelController()
+    private let tacticalHUDController =
+        TacticalHUDPanelController()
+    private let petEffectController =
+        PetEffectPanelController()
+    private let geometryCache: PetGeometryCache
+    private let effectAssets: PetEffectAssets?
 
     private var model = ApplicationModel(now: Date())
-    private var petWindowTracker = PetWindowTracker()
+    private var presenceTracker: PetPresenceTracker
     private var windowTimer: Timer?
     private var freshnessTimer: Timer?
     private var quotaTimer: Timer?
@@ -68,6 +69,15 @@ final class PetHUDCoordinator {
             url: configURL,
             homeDirectory: home
         )
+        let applicationSupport = home
+            .appendingPathComponent(
+                "Library/Application Support",
+                isDirectory: true
+            )
+            .appendingPathComponent(
+                "CodexPetHUD",
+                isDirectory: true
+            )
 
         let codexHome: URL
         if let configuredHome =
@@ -86,16 +96,20 @@ final class PetHUDCoordinator {
             )
         )
         cache = SnapshotCache(
-            url: home
-                .appendingPathComponent(
-                    "Library/Application Support",
-                    isDirectory: true
-                )
-                .appendingPathComponent(
-                    "CodexPetHUD",
-                    isDirectory: true
-                )
-                .appendingPathComponent("snapshot.json")
+            url: applicationSupport.appendingPathComponent(
+                "snapshot.json"
+            )
+        )
+        geometryCache = PetGeometryCache(
+            url: applicationSupport.appendingPathComponent(
+                "pet-geometry.json"
+            )
+        )
+        let restored = try? geometryCache.load(
+            intersecting: Self.currentDisplays().map(\.cgBounds)
+        )?.window
+        presenceTracker = PetPresenceTracker(
+            restoredWindow: restored
         )
 
         let configuredPetURL = configuration.petPath.map {
@@ -108,9 +122,9 @@ final class PetHUDCoordinator {
                 isDirectory: true
             )
         )
-        neutralImage = manifest.flatMap {
-            try? PetAtlas.neutralImage(manifest: $0)
-        }
+        effectAssets = manifest.flatMap(
+            PetEffectAssets.load(manifest:)
+        )
         self.mockSnapshot = mockSnapshot
     }
 
@@ -193,16 +207,24 @@ final class PetHUDCoordinator {
     }
 
     private func updatePetWindow() {
-        let petWindow = petWindowTracker.update(
-            observed: PetWindowLocator.currentWindow(),
-            now: Date()
-        )
-        let presentation = model.reduce(
-            .petWindowChanged(
-                petWindow
+        let now = Date()
+        let observation =
+            PetWindowLocator.currentObservation()
+        if let exact = observation.exactWindow {
+            try? geometryCache.save(
+                PetGeometryRecord(
+                    window: exact,
+                    updatedAt: now
+                )
             )
+        }
+        let petWindow = presenceTracker.update(
+            observation: observation,
+            now: now
         )
-        render(presentation)
+        render(
+            model.reduce(.petWindowChanged(petWindow))
+        )
     }
 
     private func render(
@@ -210,18 +232,18 @@ final class PetHUDCoordinator {
     ) {
         lastPresentation = presentation
         guard
-            presentation.showNameplate,
+            presentation.showHUD,
             let petWindow = presentation.petWindow
         else {
-            lifePodController.hide()
-            criticalController.hide()
+            tacticalHUDController.hide()
+            petEffectController.hide()
             return
         }
 
         let displays = Self.currentDisplays()
         guard
-            let lifePodFrame =
-                PanelGeometry.lifePodFrame(
+            let tacticalHUDFrame =
+                PanelGeometry.tacticalHUDFrame(
                     pet: petWindow.bounds,
                     displays: displays,
                     scale: configuration.podScale,
@@ -231,8 +253,8 @@ final class PetHUDCoordinator {
                     ),
                 )
         else {
-            lifePodController.hide()
-            criticalController.hide()
+            tacticalHUDController.hide()
+            petEffectController.hide()
             return
         }
 
@@ -242,26 +264,34 @@ final class PetHUDCoordinator {
             now: Date()
         )
 
+        tacticalHUDController.show(
+            frame: tacticalHUDFrame,
+            data: viewData
+        )
+
         if
-            presentation.showCriticalEffect,
-            let criticalFrame =
-                PanelGeometry.criticalFrame(
+            presentation.distressState != .normal,
+            let effectAssets,
+            let petEffectFrame =
+                PanelGeometry.petEffectFrame(
+                    pet: petWindow.bounds,
+                    displays: displays
+                ),
+            let appKitPetFrame =
+                PanelGeometry.appKitPetFrame(
                     pet: petWindow.bounds,
                     displays: displays
                 )
         {
-            criticalController.show(
-                frame: criticalFrame,
-                petImage: neutralImage
+            petEffectController.show(
+                frame: petEffectFrame,
+                petFrame: appKitPetFrame,
+                state: presentation.distressState,
+                assets: effectAssets
             )
         } else {
-            criticalController.hide()
+            petEffectController.hide()
         }
-
-        lifePodController.show(
-            frame: lifePodFrame,
-            data: viewData
-        )
     }
 
     private static func currentDisplays()
