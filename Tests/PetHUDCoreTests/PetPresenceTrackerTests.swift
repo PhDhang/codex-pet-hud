@@ -1,0 +1,92 @@
+import CoreGraphics
+import Foundation
+import XCTest
+@testable import PetHUDCore
+
+final class PetPresenceTrackerTests: XCTestCase {
+    func testRetainsGeometryWhileIdleShellRemainsPresent() {
+        var tracker = PetPresenceTracker()
+        let start = Date(timeIntervalSince1970: 100)
+        let exact = exactWindow(id: 10)
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exact,
+                    hasStablePresence: true
+                ),
+                now: start
+            ),
+            exact
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(60)
+            ),
+            exact
+        )
+    }
+
+    func testRequiresThreeMissingObservationsAcrossTwoSeconds() {
+        var tracker = PetPresenceTracker()
+        let start = Date(timeIntervalSince1970: 100)
+        let exact = exactWindow(id: 10)
+        _ = tracker.update(
+            observation: .init(
+                exactWindow: exact,
+                hasStablePresence: true
+            ),
+            now: start
+        )
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: false
+                ),
+                now: start.addingTimeInterval(0.5)
+            ),
+            exact
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: false
+                ),
+                now: start.addingTimeInterval(1.5)
+            ),
+            exact
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: false
+                ),
+                now: start.addingTimeInterval(2.5)
+            )
+        )
+    }
+
+    private func exactWindow(id: Int) -> WindowDescriptor {
+        WindowDescriptor(
+            owner: "ChatGPT",
+            name: PetWindowLocator.exactWindowName,
+            layer: 2,
+            bounds: CGRect(
+                x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: 1,
+            windowID: id
+        )
+    }
+}

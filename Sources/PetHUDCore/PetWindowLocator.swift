@@ -31,11 +31,34 @@ public struct WindowDescriptor: Equatable, Sendable {
     }
 }
 
+public struct PetWindowObservation: Equatable, Sendable {
+    public let exactWindow: WindowDescriptor?
+    public let hasStablePresence: Bool
+
+    public init(
+        exactWindow: WindowDescriptor?,
+        hasStablePresence: Bool
+    ) {
+        self.exactWindow = exactWindow
+        self.hasStablePresence = hasStablePresence
+    }
+}
+
 public enum PetWindowLocator {
     public static let exactWindowName =
         "Codex Pet Mascot Effect"
 
+    private static let stableWindowNames: Set<String> = [
+        "Codex Pet Composition Surface",
+        "Codex Pet Voice Controls Backing",
+        "Codex Pet Activity Stack Backing",
+    ]
+
     public static func currentWindow() -> WindowDescriptor? {
+        currentObservation().exactWindow
+    }
+
+    public static func currentObservation() -> PetWindowObservation {
         let options: CGWindowListOption = [
             .optionOnScreenOnly,
             .excludeDesktopElements,
@@ -46,9 +69,21 @@ public enum PetWindowLocator {
                 kCGNullWindowID
             ) as? [[String: Any]]
         else {
-            return nil
+            return PetWindowObservation(
+                exactWindow: nil,
+                hasStablePresence: false
+            )
         }
-        return select(from: rows.compactMap(descriptor(from:)))
+        return observe(from: rows.compactMap(descriptor(from:)))
+    }
+
+    public static func observe(
+        from windows: [WindowDescriptor]
+    ) -> PetWindowObservation {
+        PetWindowObservation(
+            exactWindow: select(from: windows),
+            hasStablePresence: hasStablePresence(in: windows)
+        )
     }
 
     public static func select(
@@ -98,6 +133,55 @@ public enum PetWindowLocator {
             return nil
         }
         return fallback[0]
+    }
+
+    private static func hasStablePresence(
+        in windows: [WindowDescriptor]
+    ) -> Bool {
+        windows.contains { window in
+            window.isExactMascotWindow ||
+                (window.owner == "ChatGPT" &&
+                    stableWindowNames.contains(window.name))
+        } || hasTitleRedactedIdleShell(in: windows)
+    }
+
+    private static func hasTitleRedactedIdleShell(
+        in windows: [WindowDescriptor]
+    ) -> Bool {
+        let candidates = windows.filter {
+            $0.owner == "ChatGPT" &&
+                $0.name.isEmpty &&
+                $0.layer == 3
+        }
+        let windowsByPID = Dictionary(grouping: candidates) {
+            $0.ownerPID
+        }
+        return windowsByPID.values.contains { windows in
+            windows.contains(where: isVoiceControl) &&
+                windows.contains(where: isCompositionSurface) &&
+                windows.contains(where: isActivityStack)
+        }
+    }
+
+    private static func isVoiceControl(
+        _ window: WindowDescriptor
+    ) -> Bool {
+        (20...32).contains(window.bounds.width) &&
+            (20...32).contains(window.bounds.height)
+    }
+
+    private static func isCompositionSurface(
+        _ window: WindowDescriptor
+    ) -> Bool {
+        (480...1_200).contains(window.bounds.width) &&
+            (480...1_400).contains(window.bounds.height)
+    }
+
+    private static func isActivityStack(
+        _ window: WindowDescriptor
+    ) -> Bool {
+        (180...500).contains(window.bounds.width) &&
+            (30...90).contains(window.bounds.height)
     }
 
     private static func descriptor(

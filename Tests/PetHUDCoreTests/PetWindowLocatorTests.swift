@@ -3,6 +3,109 @@ import XCTest
 @testable import PetHUDCore
 
 final class PetWindowLocatorTests: XCTestCase {
+    func testIdleShellReportsPresenceWithoutExactGeometry() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "Codex Pet Composition Surface",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 80
+                ),
+                descriptor(
+                    name: "Codex Pet Voice Controls Backing",
+                    layer: 3,
+                    width: 24,
+                    height: 24,
+                    id: 81
+                ),
+            ]
+        )
+
+        XCTAssertNil(observation.exactWindow)
+        XCTAssertTrue(observation.hasStablePresence)
+    }
+
+    func testUnrelatedChatGPTWindowDoesNotReportPetPresence() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "ChatGPT",
+                    layer: 0,
+                    width: 1200,
+                    height: 800,
+                    id: 82
+                ),
+            ]
+        )
+
+        XCTAssertNil(observation.exactWindow)
+        XCTAssertFalse(observation.hasStablePresence)
+    }
+
+    func testTitleRedactedIdleShellNeedsCompanionCluster() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 83
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 24,
+                    height: 24,
+                    id: 84
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 345,
+                    height: 54,
+                    id: 85
+                ),
+            ]
+        )
+
+        XCTAssertNil(observation.exactWindow)
+        XCTAssertTrue(observation.hasStablePresence)
+    }
+
+    func testTitleRedactedIdleShellRejectsCrossProcessCluster() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 86
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 24,
+                    height: 24,
+                    id: 87,
+                    ownerPID: 2
+                ),
+                descriptor(
+                    name: "",
+                    layer: 3,
+                    width: 345,
+                    height: 54,
+                    id: 88
+                ),
+            ]
+        )
+
+        XCTAssertFalse(observation.hasStablePresence)
+    }
+
     func testExactMascotEffectWins() {
         let selected = PetWindowLocator.select(
             from: [
@@ -380,6 +483,29 @@ final class PetWindowLocatorTests: XCTestCase {
                 y: y,
                 width: 24,
                 height: 24
+            ),
+            ownerPID: ownerPID,
+            windowID: id
+        )
+    }
+
+    private func descriptor(
+        name: String,
+        layer: Int,
+        width: CGFloat,
+        height: CGFloat,
+        id: Int,
+        ownerPID: Int = 1
+    ) -> WindowDescriptor {
+        WindowDescriptor(
+            owner: "ChatGPT",
+            name: name,
+            layer: layer,
+            bounds: CGRect(
+                x: 0,
+                y: 0,
+                width: width,
+                height: height
             ),
             ownerPID: ownerPID,
             windowID: id
