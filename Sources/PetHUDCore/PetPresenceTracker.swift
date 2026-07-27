@@ -4,6 +4,7 @@ public struct PetPresenceTracker: Sendable {
     private let requiredAbsentObservations: Int
     private let requiredAbsentDuration: TimeInterval
     private var lastGeometry: WindowDescriptor?
+    private var hasConfirmedPresence = false
     private var absenceStartedAt: Date?
     private var absentObservationCount = 0
 
@@ -27,9 +28,14 @@ public struct PetPresenceTracker: Sendable {
             lastGeometry = exact
         }
         if observation.hasStablePresence {
+            hasConfirmedPresence = true
             absenceStartedAt = nil
             absentObservationCount = 0
             return lastGeometry
+        }
+
+        guard hasConfirmedPresence else {
+            return nil
         }
 
         if absenceStartedAt == nil {

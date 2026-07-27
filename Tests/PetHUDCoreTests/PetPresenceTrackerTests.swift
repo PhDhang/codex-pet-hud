@@ -4,6 +4,33 @@ import XCTest
 @testable import PetHUDCore
 
 final class PetPresenceTrackerTests: XCTestCase {
+    func testColdRestoredGeometryStaysHiddenBeforeStablePresence() {
+        let restored = exactWindow(id: 76)
+        var tracker = PetPresenceTracker(
+            restoredWindow: restored
+        )
+        let start = Date(timeIntervalSince1970: 100)
+
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: false
+                ),
+                now: start
+            )
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: false
+                ),
+                now: start.addingTimeInterval(1)
+            )
+        )
+    }
+
     func testRestoredGeometryAppearsOnlyWithStablePresence() {
         let restored = exactWindow(id: 77)
         var tracker = PetPresenceTracker(
