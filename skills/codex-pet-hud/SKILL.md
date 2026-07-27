@@ -1,99 +1,122 @@
 ---
 name: codex-pet-hud
-description: Use when a macOS Codex v2 pet needs a live quota HUD, HP/SP bars, weekly usage and reset status, critical low-quota effects, source installation, repair, diagnostics, or safe removal.
+description: Use when a macOS 14 Codex v2 pet needs a live tactical quota HUD, idle-presence diagnostics, HP/SP bars, panic or critical effects, source installation, repair, or safe removal.
 ---
 
 # Codex Pet HUD
 
 ## Overview
 
-Install and verify the source-built macOS companion that surrounds the live
-Codex pet with a proportional HP/SP ring life pod. Keep credentials local,
-fail closed on ambiguous windows, and prove linkage with redacted diagnostics.
+Install and verify the macOS companion that centers a tactical HP and seven-flame
+SP HUD above one selected Codex v2 pet. Keep credentials local, fail closed on
+ambiguous windows or assets, and use redacted diagnostics.
 
 ## Safety Rules
 
 - Read `${CODEX_HOME:-$HOME/.codex}/auth.json` only through the app.
 - Never print tokens, account IDs, emails, cookies, or raw provider responses.
 - Never read browser cookies or request Accessibility or Screen Recording.
-- Prefer the exact `Codex Pet Mascot Effect` title. When LaunchAgent hides
-  window titles, accept only one plausible empty-title mascot that contains a
-  same PID, layer-3, `20...32` point voice control; hide on ambiguity.
-- Build and test before installing.
+- Select exactly one v2 pet; do not guess when checks find multiple candidates.
+- Prefer `Codex Pet Mascot Effect`. With title-redacted LaunchAgent windows,
+  require same-PID companion evidence including a layer-3 `20...32` point voice
+  control; hide on ambiguity.
+- Build and test before installing or copying assets.
 
 ## Workflow
 
-1. Run `scripts/check-prerequisites.sh`.
-2. If it reports more than one v2 pet, ask the user to select one exact pet directory.
-3. Resolve the repository source:
-   - Inside the project repository, use its root directly.
-   - From an installed Skill, use the bundled public repository by default.
-   - Honor `CODEX_PET_HUD_REPO_URL` or `--repo` when the user supplies a fork.
-4. Run repository tests:
+1. Require macOS 14 and validate prerequisites:
+
+```bash
+scripts/check-prerequisites.sh
+```
+
+If more than one v2 pet is reported, ask the user to choose one exact pet
+directory. Resolve source from the project root, bundled public repository,
+`CODEX_PET_HUD_REPO_URL`, or an explicit `--repo` fork.
+
+2. Run Swift and shell tests before installation:
 
 ```bash
 swift test --disable-sandbox
+for test_script in Tests/Shell/*.bats; do
+  bash "$test_script"
+done
 ```
 
-5. Build and install from the repository:
+3. Build and install:
 
 ```bash
 scripts/build-app.sh
 scripts/install.sh --pet-path "$PET_PATH"
 ```
 
-6. For remote source installation:
+For remote source installation:
 
 ```bash
-skills/codex-pet-hud/scripts/install-from-source.sh \
-  --ref main \
-  --pet-path "$PET_PATH"
+skills/codex-pet-hud/scripts/install-from-source.sh --ref main --pet-path "$PET_PATH"
 ```
 
-7. Verify without exposing credentials:
+4. Diagnose without exposing credentials:
 
 ```bash
-"$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" \
-  --diagnose
+"$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" --diagnose
 ```
 
-Require `configuration=ok`, `pet=found`, `petWindow=found`, and `provider=reachable`. Exit code `5` means the Codex pet overlay is closed; open it and retry.
+Require `configuration=ok`, `pet=found`, `petWindow=found`, and
+`provider=reachable`. Exit `5` means the pet overlay is closed. Stable presence
+keeps the tactical HUD visible while the task is idle.
 
-8. Confirm visible linkage: move and resize the pet. The life pod must remain
-centered around it and recover after the resize recreates the mascot window.
-Use a fixture when live quota is unavailable:
+5. Verify idle linkage: with no active task, move and resize the pet. The tactical
+HUD stays centered and follows movement, then recovers after mascot reconstruction.
+It hides only after three absent observations spanning at least two seconds.
 
-```bash
-"$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" \
-  --mock "$SOURCE_ROOT/Fixtures/critical.json"
-```
-
-## Ring Alignment
+## Tactical Alignment
 
 Edit `~/.config/codex-pet-hud/config.json`, then restart the LaunchAgent:
 
-- `podScale`: ring size relative to the pet, `1.0...1.8`; use `1.10` close,
-  `1.14` default, or `1.22` roomy.
-- `podOffsetX`: horizontal points, `-300...300`; positive moves right.
-- `podOffsetY`: vertical points, `-300...300`; positive moves up.
+- `podScale`: tactical HUD size, `0.65...1.6`; use `0.90` compact, `1.14`
+  default, or `1.35` roomy.
+- `podOffsetX`: `-300...300` points; positive moves right.
+- `podOffsetY`: `-300...300` points; positive moves up.
 
 ```bash
 launchctl kickstart -k gui/$(id -u)/com.codex-pet-hud.agent
 ```
 
-Run `--diagnose`, resize the pet, and require `petWindow=found`. Missing ring
-keys use defaults; legacy `nameplateOffset` is accepted but does not move the
-ring.
+Missing keys use defaults; legacy `nameplateOffset` does not move the tactical HUD.
 
-## Pet Art
+## HP, Flame, Panic, and Critical States
 
-Use the existing v2 atlas for the universal critical clone. For a custom downed animation or a new pet, **REQUIRED SUB-SKILL:** Use `hatch-pet`; do not generate imagery in this Skill.
+HP is weekly quota. Seven SP flame cells show elapsed reset progress: lit
+red/orange/yellow, unlit blue/cyan/ice-blue. Fresh `4–9%` quota enables a compact
+spiral-eye panic run. Fresh `≤3%` quota enables critical art, which clears only
+above `5%`. Stale or missing data never enables panic or critical effects.
+
+## Optional Pet Effects
+
+Use the existing v2 atlas for generic panic and critical fallbacks. For custom
+prone critical art or a new pet, **REQUIRED SUB-SKILL:** Use `hatch-pet`; do not
+generate or rotate artwork in this Skill.
+
+Copy optional effects only after validating the selected pet path and image:
+
+```bash
+test -d "$PET_PATH"
+test -f Examples/yicha/hud-critical.png
+test -f Examples/yicha/hud-effects.json
+cp Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png"
+cp Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json"
+```
+
+Yicha is an example only. `hud-effects.json` must keep relative asset paths
+inside the selected pet directory; malformed metadata, missing images, and unsafe
+paths fall back safely without hiding the HUD.
 
 ## Repair and Rollback
 
-- Rebuild after upstream Codex window or usage-payload changes.
-- Read `references/troubleshooting.md` only when diagnostics or installation fails.
-- Remove app and LaunchAgent while retaining settings:
+- Read `references/troubleshooting.md` only when diagnostics, idle presence, or
+  installation fails.
+- Keep settings while removing the app and LaunchAgent:
 
 ```bash
 scripts/uninstall.sh
@@ -107,6 +130,6 @@ scripts/uninstall.sh --purge
 
 ## Bundled Tools
 
-- `scripts/check-prerequisites.sh`: inspect macOS, Swift, auth presence, and v2 pets without secrets.
-- `scripts/install-from-source.sh`: clone, test, build, install, and diagnose a pinned source ref.
+- `scripts/check-prerequisites.sh`: inspect macOS, Swift, auth presence, and v2 pets.
+- `scripts/install-from-source.sh`: clone, test, build, install, and diagnose a ref.
 - `references/troubleshooting.md`: exit codes and targeted recovery steps.

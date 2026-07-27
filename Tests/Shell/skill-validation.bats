@@ -21,6 +21,10 @@ for keyword in pet HUD quota HP SP macOS; do
   grep -i "$keyword" "$SKILL/SKILL.md" >/dev/null
 done
 
+for keyword in tactical flame panic idle critical; do
+  grep -i "$keyword" "$SKILL/SKILL.md" >/dev/null
+done
+
 for setting in podScale podOffsetX podOffsetY; do
   grep -F "$setting" "$SKILL/SKILL.md" >/dev/null
 done

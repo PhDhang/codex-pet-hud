@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.0-rc.1] - 2026-07-27
+
+### Added
+
+- Tactical HP and seven-flame SP bars in a compact tactical dual-bar HUD.
+- Stable idle presence tracking and persisted safe geometry for task-free pet states.
+- Compact spiral-eye panic state for fresh low quota.
+- Custom per-pet prone critical art with a generic v2 failed-animation fallback.
+- Optional, validated per-pet effect manifests and the Yicha example assets.
+
+### Changed
+
+- Smaller `podScale` support, clamped to `0.65...1.6`.
+
 ## [0.2.0-rc.1] - 2026-07-27
 
 ### Added
