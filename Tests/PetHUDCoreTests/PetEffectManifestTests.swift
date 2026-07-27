@@ -55,13 +55,20 @@ final class PetEffectManifestTests: XCTestCase {
             XCTAssertEqual(critical.scale, 1.0)
             XCTAssertGreaterThan(image.size.width, 0)
             XCTAssertGreaterThan(image.size.height, 0)
-            let artifactRow = 27
-            for x in 84...107 {
-                XCTAssertEqual(
-                    bitmap.colorAt(x: x, y: artifactRow)?.alphaComponent,
-                    0
-                )
+            XCTAssertEqual(bitmap.pixelsWide, 192)
+            XCTAssertEqual(bitmap.pixelsHigh, 208)
+            for artifactRow in 27...28 {
+                for x in 84...107 {
+                    XCTAssertEqual(
+                        bitmap.colorAt(
+                            x: x,
+                            y: artifactRow
+                        )?.alphaComponent,
+                        0
+                    )
+                }
             }
+            XCTAssertEqual(visibleComponentCount(in: bitmap), 1)
         }
     }
 
@@ -264,5 +271,69 @@ final class PetEffectManifestTests: XCTestCase {
         try withTemporaryDirectory { directory in
             XCTAssertNil(try PetEffectManifest.load(directory: directory))
         }
+    }
+
+    private func visibleComponentCount(
+        in bitmap: NSBitmapImageRep
+    ) -> Int {
+        let width = bitmap.pixelsWide
+        let height = bitmap.pixelsHigh
+        var visited = Array(
+            repeating: false,
+            count: width * height
+        )
+        var componentCount = 0
+
+        for y in 0..<height {
+            for x in 0..<width {
+                let start = y * width + x
+                guard !visited[start],
+                      (bitmap.colorAt(
+                        x: x,
+                        y: y
+                      )?.alphaComponent ?? 0) > 0
+                else {
+                    continue
+                }
+
+                componentCount += 1
+                var queue = [(x, y)]
+                var cursor = 0
+                visited[start] = true
+
+                while cursor < queue.count {
+                    let (currentX, currentY) = queue[cursor]
+                    cursor += 1
+
+                    for (nextX, nextY) in [
+                        (currentX - 1, currentY),
+                        (currentX + 1, currentY),
+                        (currentX, currentY - 1),
+                        (currentX, currentY + 1),
+                    ] {
+                        guard nextX >= 0,
+                              nextX < width,
+                              nextY >= 0,
+                              nextY < height
+                        else {
+                            continue
+                        }
+                        let next = nextY * width + nextX
+                        guard !visited[next],
+                              (bitmap.colorAt(
+                                x: nextX,
+                                y: nextY
+                              )?.alphaComponent ?? 0) > 0
+                        else {
+                            continue
+                        }
+                        visited[next] = true
+                        queue.append((nextX, nextY))
+                    }
+                }
+            }
+        }
+
+        return componentCount
     }
 }
