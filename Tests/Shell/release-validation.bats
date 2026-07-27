@@ -85,3 +85,19 @@ done
 grep -F 'Yicha ships `hud-panic.png`' README.md
 grep -F 'cp -n Examples/yicha/hud-panic.png' README.md
 grep -F 'test -f Examples/yicha/hud-panic.png' README.md
+if grep -F 'docs/screenshots/tactical-hud-critical.png' README.md; then
+  printf 'README still references the obsolete critical screenshot.\n' >&2
+  exit 1
+fi
+grep -F \
+  '![Tracked Yicha critical asset](Examples/yicha/hud-critical.png)' \
+  README.md
+grep -F \
+  'Live panic and critical screenshots will be recaptured before release.' \
+  README.md
+grep -F \
+  'Only high-confidence shell-derived geometry is cached.' \
+  docs/architecture.md
+grep -F \
+  'Mascot fallback geometry is transient and is never persisted.' \
+  docs/architecture.md

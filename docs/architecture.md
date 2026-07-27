@@ -42,11 +42,14 @@ flames; lit count equals the elapsed seventh of the weekly reset window.
 `PetWindowLocator` uses `Codex Pet Mascot Effect` for exact geometry. During
 idle periods, `Codex Pet Composition Surface`, `Codex Pet Voice Controls
 Backing`, and `Codex Pet Activity Stack Backing` confirm stable presence. A
-title-redacted fallback requires matching ChatGPT owner, PID, layer, size, and
-companion evidence.
+title-redacted fallback requires exactly one complete matching ChatGPT owner,
+PID, layer, size, and companion cluster; multiple complete PID clusters fail
+closed.
 
-Every exact observation updates `PetGeometryCache`. Cached geometry restores
-only when stable presence exists and bounds intersect a current display.
+Only high-confidence shell-derived geometry is cached.
+Mascot fallback geometry is transient and is never persisted.
+Cached geometry restores only when stable presence identifies the matching PID
+and bounds intersect a current display.
 `PetPresenceTracker` retains geometry through idle and resize transitions and
 hides panels only after three absent observations spanning two seconds. It fails
 closed when no safe current or cached geometry is available.

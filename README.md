@@ -6,14 +6,18 @@ task. HP shows weekly quota remaining; seven SP flames show reset progress.
 
 ![Healthy tactical HUD](docs/screenshots/tactical-hud.png)
 
-| Panic | Critical |
+| Panic preview | Tracked Yicha critical asset |
 | --- | --- |
-| ![Panic pet effect](docs/screenshots/tactical-hud-panic.png) | ![Critical pet effect](docs/screenshots/tactical-hud-critical.png) |
+| ![Panic pet effect](docs/screenshots/tactical-hud-panic.png) | ![Tracked Yicha critical asset](Examples/yicha/hud-critical.png) |
+
+The critical image is the current prone integrated-eye Yicha asset, not a live
+HUD screenshot. Live panic and critical screenshots will be recaptured before release.
 
 ## Tactical HUD
 
-Snapshots whose age is `≤300s` are fresh and show the rounded weekly HP
-percentage. Bands are `>90%` emerald, `51–90%` green, `10–50%` amber, `4–9%`
+Snapshots whose age is `≤300s` are fresh and show the raw weekly HP percentage,
+using one decimal only for non-integral values. Bands are `>90%` emerald,
+`51–90%` green, `10–50%` amber, `4–9%`
 red, and `≤3%` bright red. At an age of `>300s` and `≤1800s`, the last values
 remain with `STALE` and never drive effects.
 At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
@@ -35,10 +39,13 @@ Missing or invalid effect assets fall back without hiding the tactical HUD.
 ## Idle Presence and Alignment
 
 Exact mascot observations refresh pet geometry. Stable Codex companion windows
-keep the HUD present while the task is idle. The local geometry cache retains
-only last-safe bounds, PID, window ID, and timestamp; it restores geometry only
-when the pet remains present on a connected display. Both panels hide only after
-three missing observations spanning at least two seconds.
+keep the HUD present while the task is idle. Title-redacted presence requires one
+complete same-PID companion cluster and fails closed when multiple complete
+clusters exist. The local geometry cache retains only high-confidence
+shell-derived bounds, PID, window ID, and timestamp; mascot fallback geometry is
+transient. Cached geometry restores only for matching stable presence on a
+connected display. Both panels hide only after three missing observations
+spanning at least two seconds.
 
 The HUD centers above the pet. `podScale`, `podOffsetX`, and `podOffsetY`
 remain compatible; `podScale` is clamped to `0.65...1.6`. Positive X moves
