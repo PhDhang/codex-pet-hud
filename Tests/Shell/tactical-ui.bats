@@ -125,3 +125,15 @@ grep -F 'if assets.criticalImage == nil {' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 ! grep -F '.rotationEffect(.degrees(76))' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+
+test -x "$ROOT/scripts/capture-hud.sh"
+grep -F 'let tacticalName = "Codex Pet HUD Tactical"' \
+  "$ROOT/scripts/capture-hud.sh"
+grep -F 'let effectName = "Codex Pet HUD Pet Effect"' \
+  "$ROOT/scripts/capture-hud.sh"
+grep -F 'guard tacticalRects.count == 1 else {' \
+  "$ROOT/scripts/capture-hud.sh"
+grep -F 'guard effectRects.count <= 1 else {' \
+  "$ROOT/scripts/capture-hud.sh"
+grep -F 'let rects = tacticalRects + effectRects' \
+  "$ROOT/scripts/capture-hud.sh"
