@@ -7,6 +7,7 @@ public struct PetEffectLayout: Equatable, Sendable {
     public let panelSize: CGSize
     public let localPetFrame: CGRect
     public let localEffectFrame: CGRect
+    public let nativePetCoverFrame: CGRect
     public let travel: CGFloat
     public let leftTravel: CGFloat
     public let rightTravel: CGFloat
@@ -29,6 +30,18 @@ public struct PetEffectLayout: Equatable, Sendable {
         panelSize = panelFrame.size
         self.localPetFrame = localPetFrame
         self.travel = travel
+        let desiredCoverFrame = CGRect(
+            x: localPetFrame.midX - petFrame.width * 1.10 / 2,
+            y: localPetFrame.midY - petFrame.height * 1.08 / 2,
+            width: petFrame.width * 1.10,
+            height: petFrame.height * 1.08
+        )
+        let clippedCoverFrame = desiredCoverFrame
+            .intersection(panelBounds)
+        nativePetCoverFrame =
+            clippedCoverFrame.isNull
+                ? .zero
+                : clippedCoverFrame
         leftTravel = min(
             travel,
             max(0, localPetFrame.minX)

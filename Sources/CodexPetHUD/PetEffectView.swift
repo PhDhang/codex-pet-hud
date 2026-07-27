@@ -81,7 +81,8 @@ struct PetEffectView: View {
 
         return ZStack {
             nativePetCover(
-                frame: layout.localPetFrame,
+                frame: layout.nativePetCoverFrame,
+                nativeFrame: layout.localPetFrame,
                 state: .panic
             )
 
@@ -149,7 +150,8 @@ struct PetEffectView: View {
         )
         return ZStack {
             nativePetCover(
-                frame: layout.localPetFrame,
+                frame: layout.nativePetCoverFrame,
+                nativeFrame: layout.localPetFrame,
                 state: .critical
             )
 
@@ -195,6 +197,7 @@ struct PetEffectView: View {
 
     private func nativePetCover(
         frame: CGRect,
+        nativeFrame: CGRect,
         state: PetDistressState
     ) -> some View {
         let accent =
@@ -207,7 +210,11 @@ struct PetEffectView: View {
             blue: 0.11
         )
         let cornerRadius =
-            min(frame.width, frame.height) * 0.14
+            min(nativeFrame.width, nativeFrame.height) * 0.14
+        let nativeCenter = CGPoint(
+            x: nativeFrame.midX - frame.minX,
+            y: nativeFrame.midY - frame.minY
+        )
 
         return ZStack {
             Ellipse()
@@ -223,12 +230,19 @@ struct PetEffectView: View {
                         center: .center,
                         startRadius: 0,
                         endRadius:
-                            max(frame.width, frame.height) * 0.58
+                            max(
+                                nativeFrame.width,
+                                nativeFrame.height
+                            ) * 0.58
                     )
                 )
                 .frame(
-                    width: frame.width * 1.10,
-                    height: frame.height * 1.06
+                    width: nativeFrame.width * 1.10,
+                    height: nativeFrame.height * 1.06
+                )
+                .position(
+                    x: nativeCenter.x,
+                    y: nativeCenter.y
                 )
 
             RoundedRectangle(
@@ -250,36 +264,45 @@ struct PetEffectView: View {
                                 center: .center,
                                 startRadius:
                                     min(
-                                        frame.width,
-                                        frame.height
+                                        nativeFrame.width,
+                                        nativeFrame.height
                                     ) * 0.22,
                                 endRadius:
                                     max(
-                                        frame.width,
-                                        frame.height
+                                        nativeFrame.width,
+                                        nativeFrame.height
                                     ) * 0.72
                             )
                         )
                 }
                 .frame(
-                    width: frame.width * 1.08,
-                    height: frame.height * 1.08
+                    width: nativeFrame.width * 1.08,
+                    height: nativeFrame.height * 1.08
+                )
+                .position(
+                    x: nativeCenter.x,
+                    y: nativeCenter.y
                 )
 
             Capsule()
-                .stroke(
+                .strokeBorder(
                     accent.opacity(0.68),
                     lineWidth: 1
                 )
                 .frame(
-                    width: frame.width * 0.90,
-                    height: frame.height
+                    width: nativeFrame.width * 0.90,
+                    height: nativeFrame.height
+                )
+                .position(
+                    x: nativeCenter.x,
+                    y: nativeCenter.y
                 )
         }
-            .shadow(
-                color: accent.opacity(0.62),
-                radius: 10
+            .frame(
+                width: frame.width,
+                height: frame.height
             )
+            .clipped()
             .position(
                 x: frame.midX,
                 y: frame.midY

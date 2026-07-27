@@ -270,6 +270,16 @@ final class PanelGeometryTests: XCTestCase {
                 sample.name
             )
             XCTAssertTrue(
+                localBounds.contains(layout.nativePetCoverFrame),
+                sample.name
+            )
+            XCTAssertTrue(
+                layout.nativePetCoverFrame.contains(
+                    layout.localPetFrame.intersection(localBounds)
+                ),
+                sample.name
+            )
+            XCTAssertTrue(
                 localBounds.contains(leftPanicFrame),
                 sample.name
             )
@@ -358,6 +368,12 @@ final class PanelGeometryTests: XCTestCase {
 
         XCTAssertEqual(panel, smallDisplay.appKitFrame)
         XCTAssertTrue(localBounds.contains(layout.localEffectFrame))
+        XCTAssertTrue(localBounds.contains(layout.nativePetCoverFrame))
+        XCTAssertTrue(
+            layout.nativePetCoverFrame.contains(
+                layout.localPetFrame.intersection(localBounds)
+            )
+        )
         XCTAssertTrue(localBounds.contains(critical))
         XCTAssertLessThanOrEqual(critical.width, panel.width)
         XCTAssertLessThanOrEqual(critical.height, panel.height)

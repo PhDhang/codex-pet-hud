@@ -120,6 +120,26 @@ final class PetEffectLayoutTests: XCTestCase {
             visualSize.height * 1.10,
             accuracy: 0.001
         )
+        XCTAssertEqual(
+            layout.nativePetCoverFrame.width,
+            visualSize.width * 1.10,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.nativePetCoverFrame.height,
+            visualSize.height * 1.08,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.nativePetCoverFrame.midX,
+            layout.localPetFrame.midX,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.nativePetCoverFrame.midY,
+            layout.localPetFrame.midY,
+            accuracy: 0.001
+        )
     }
 
     func testLiveVisualFrameControlsTravelAndSpriteBounds() {
@@ -152,6 +172,59 @@ final class PetEffectLayoutTests: XCTestCase {
             layout.localEffectFrame.width,
             visualWidth * 1.36,
             accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.nativePetCoverFrame.width,
+            visualFrame.width * 1.10,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.nativePetCoverFrame.maxY,
+            panelFrame.height,
+            accuracy: 0.001
+        )
+        XCTAssertTrue(
+            CGRect(
+                origin: .zero,
+                size: layout.panelSize
+            ).contains(layout.nativePetCoverFrame)
+        )
+        XCTAssertTrue(
+            layout.nativePetCoverFrame.contains(
+                layout.localPetFrame
+            )
+        )
+    }
+
+    func testNativePetCoverClipsOnlyOffPanelEnvelope() {
+        let layout = PetEffectLayout(
+            panelFrame: CGRect(
+                x: 0,
+                y: 0,
+                width: 90,
+                height: 90
+            ),
+            petFrame: CGRect(
+                x: -20,
+                y: -20,
+                width: 116.3,
+                height: 126
+            )
+        )
+        let panelBounds = CGRect(
+            origin: .zero,
+            size: layout.panelSize
+        )
+        let visibleNativePet = layout.localPetFrame
+            .intersection(panelBounds)
+
+        XCTAssertEqual(layout.nativePetCoverFrame.minX, 0)
+        XCTAssertEqual(layout.nativePetCoverFrame.minY, 0)
+        XCTAssertTrue(
+            panelBounds.contains(layout.nativePetCoverFrame)
+        )
+        XCTAssertTrue(
+            layout.nativePetCoverFrame.contains(visibleNativePet)
         )
     }
 

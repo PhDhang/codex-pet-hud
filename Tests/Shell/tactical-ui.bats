@@ -92,6 +92,17 @@ grep -F 'height: layout.panelSize.height' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'nativePetCover(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'frame: layout.nativePetCoverFrame' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'nativeFrame: layout.localPetFrame' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F '.clipped()' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+if grep -F '.shadow(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
+  printf 'Native pet cover glow must remain inside its modeled frame.\n' >&2
+  exit 1
+fi
 grep -F 'RadialGradient(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'Ellipse()' \
