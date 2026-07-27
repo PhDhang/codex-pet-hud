@@ -80,12 +80,6 @@ struct PetEffectView: View {
         let movingY = reduceMotion ? 0 : bounce
 
         return ZStack {
-            nativePetCover(
-                frame: layout.nativePetCoverFrame,
-                nativeFrame: layout.localPetFrame,
-                state: .panic
-            )
-
             Image(
                 decorative: frame,
                 scale: 1,
@@ -153,12 +147,6 @@ struct PetEffectView: View {
             reduceMotion: reduceMotion
         )
         return ZStack {
-            nativePetCover(
-                frame: layout.nativePetCoverFrame,
-                nativeFrame: layout.localPetFrame,
-                state: .critical
-            )
-
             Image(
                 decorative: image,
                 scale: 1,
@@ -268,120 +256,6 @@ struct PetEffectView: View {
         case .runningLeft:
             return assets.panicFramesLeft
         }
-    }
-
-    private func nativePetCover(
-        frame: CGRect,
-        nativeFrame: CGRect,
-        state: PetDistressState
-    ) -> some View {
-        let accent =
-            state == .critical
-                ? Color(red: 1, green: 0.12, blue: 0.18)
-                : Color(red: 0.62, green: 0.18, blue: 0.92)
-        let core = Color(
-            red: 0.075,
-            green: 0.018,
-            blue: 0.11
-        )
-        let cornerRadius =
-            min(nativeFrame.width, nativeFrame.height) * 0.14
-        let nativeCenter = CGPoint(
-            x: nativeFrame.midX - frame.minX,
-            y: nativeFrame.midY - frame.minY
-        )
-
-        return ZStack {
-            Ellipse()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            core,
-                            core.opacity(0.98),
-                            accent.opacity(0.78),
-                            accent.opacity(0.22),
-                            .clear,
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius:
-                            max(
-                                nativeFrame.width,
-                                nativeFrame.height
-                            ) * 0.58
-                    )
-                )
-                .frame(
-                    width: nativeFrame.width * 1.10,
-                    height: nativeFrame.height * 1.06
-                )
-                .position(
-                    x: nativeCenter.x,
-                    y: nativeCenter.y
-                )
-
-            RoundedRectangle(
-                cornerRadius: cornerRadius,
-                style: .continuous
-            )
-                .fill(core)
-                .overlay {
-                    RoundedRectangle(
-                        cornerRadius: cornerRadius,
-                        style: .continuous
-                    )
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    .clear,
-                                    accent.opacity(0.42),
-                                ],
-                                center: .center,
-                                startRadius:
-                                    min(
-                                        nativeFrame.width,
-                                        nativeFrame.height
-                                    ) * 0.22,
-                                endRadius:
-                                    max(
-                                        nativeFrame.width,
-                                        nativeFrame.height
-                                    ) * 0.72
-                            )
-                        )
-                }
-                .frame(
-                    width: nativeFrame.width * 1.08,
-                    height: nativeFrame.height * 1.08
-                )
-                .position(
-                    x: nativeCenter.x,
-                    y: nativeCenter.y
-                )
-
-            Capsule()
-                .strokeBorder(
-                    accent.opacity(0.68),
-                    lineWidth: 1
-                )
-                .frame(
-                    width: nativeFrame.width * 0.90,
-                    height: nativeFrame.height
-                )
-                .position(
-                    x: nativeCenter.x,
-                    y: nativeCenter.y
-                )
-        }
-            .frame(
-                width: frame.width,
-                height: frame.height
-            )
-            .clipped()
-            .position(
-                x: frame.midX,
-                y: frame.midY
-            )
     }
 
     private func genericCriticalHeadAura(

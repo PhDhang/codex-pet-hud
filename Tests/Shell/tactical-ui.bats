@@ -136,27 +136,11 @@ grep -F 'width: layout.panelSize.width' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'height: layout.panelSize.height' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'nativePetCover(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'frame: layout.nativePetCoverFrame' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'nativeFrame: layout.localPetFrame' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F '.clipped()' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-if grep -F '.shadow(' \
+if grep -E 'nativePetCover|Ellipse[(][)]|RoundedRectangle[(]|Capsule[(]' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
-  printf 'Native pet cover glow must remain inside its modeled frame.\n' >&2
+  printf 'Pet replacement layers must remain fully transparent.\n' >&2
   exit 1
 fi
-grep -F 'RadialGradient(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'Ellipse()' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'Capsule()' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'RoundedRectangle(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'genericCriticalHeadAura(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 if grep -F 'Rectangle()' \
