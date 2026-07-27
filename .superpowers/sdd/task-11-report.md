@@ -44,6 +44,8 @@ Verification completed: 2026-07-27 19:32 CST
     `fix: center shell-sized effects on mascot`
 12. `155dccae7e58cab5bbe70726310c5507ded7f39d`
     `fix: raise pet replacement above mascot`
+13. `a8e5756c247e80565df45a13f3bb7caf23549050`
+    `test: enforce injected click-through panel level`
 
 ## Strict TDD Evidence
 
@@ -262,3 +264,27 @@ The root cause was a shared `ClickThroughPanel` initializer that assigned
   `305c256c688197c0b53d3f5ce9b00df585d04a57` exited `0` before commit.
 - No GUI application, persistent install, publish, branch push, pull request,
   tag, or release was performed for this fix.
+
+## Reviewer Follow-Up: Initializer-Level Window Contract
+
+Verification completed: 2026-07-27 19:45 CST
+
+The original z-order contract checked only the effect and tactical call-site
+arguments. It could not detect an initializer that ignored the injected level
+or reset it later.
+
+- The shell contract now extracts the `ClickThroughPanel` initializer body,
+  requires `self.level = level`, and rejects hard-coded `.floating` or
+  `.statusBar` assignment inside that initializer.
+- RED (ignored injection): temporarily replacing `self.level = level` with
+  `self.level = .floating` made `bash Tests/Shell/tactical-ui.bats` exit `1`
+  at the injected-assignment contract.
+- RED (post-assignment reset): temporarily adding `self.level = .floating`
+  after the injected assignment made the same command exit `1` with
+  `Click-through panel must not reset its injected window level.`
+- GREEN: restoring the single injected assignment made the focused tactical
+  shell contract exit `0`.
+- `swift test --disable-sandbox`: `141` tests, `0` failures, exit `0`.
+- All seven `Tests/Shell/*.bats` suites completed with exit `0`, including
+  signed build and isolated install-cycle validation.
+- `git diff --check` passed before the test commit.
