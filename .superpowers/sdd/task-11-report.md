@@ -48,6 +48,8 @@ Verification completed: 2026-07-27 19:32 CST
     `test: enforce injected click-through panel level`
 14. `220af232950505c5026a0a92e5a486ced760eabe`
     `test: prevent click-through panel level resets`
+15. `2252534e456b78e3269bf4f8952a1d98cbe89770`
+    `test: count click-through panel level assignments`
 
 ## Strict TDD Evidence
 
@@ -310,3 +312,24 @@ as `NSWindow.Level.floating` could bypass it.
 - All seven `Tests/Shell/*.bats` suites passed, including the isolated source
   install suite and its `141` Swift tests; `git diff --check` passed before
   the test commit.
+
+## Reviewer Follow-Up: Same-Line Assignment Bypass
+
+Verification completed: 2026-07-27 19:52 CST
+
+The previous structural check counted matching lines, allowing two assignments
+on one semicolon-separated line to appear as one assignment.
+
+- The contract now uses `grep -o` to count every `(self.)?level =` token in
+  the extracted initializer, requiring exactly one occurrence. A Perl
+  extraction removes whitespace and requires the sole assignment to equal
+  `self.level=level`.
+- RED: separate-line `self.level = .floating` and
+  `self.level = NSWindow.Level.floating` resets each fail the token count.
+- RED: `self.level = level; self.level = NSWindow.Level.floating` on one line
+  also fails the token count.
+- GREEN: restoring only `self.level = level` makes the focused tactical shell
+  contract exit `0`.
+- All seven `Tests/Shell/*.bats` suites passed, including signed build,
+  temporary-home install cycle, and the isolated source-install suite with
+  `141` Swift tests; `git diff --check` passed before the test commit.
