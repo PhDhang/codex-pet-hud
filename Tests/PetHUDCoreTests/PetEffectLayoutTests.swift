@@ -41,6 +41,39 @@ final class PetEffectLayoutTests: XCTestCase {
         XCTAssertEqual(layout.travel, 28, accuracy: 0.001)
     }
 
+    func testLiveVisualFrameControlsTravelAndSpriteBounds() {
+        let visualWidth: CGFloat = 126 * 192 / 208
+        let visualFrame = CGRect(
+            x: 244 - visualWidth / 2,
+            y: 205,
+            width: visualWidth,
+            height: 126
+        )
+        let travel = visualWidth * 0.18
+        let panelFrame = CGRect(
+            x: visualFrame.midX - visualWidth * 1.36 / 2,
+            y: visualFrame.minY,
+            width: visualWidth * 1.36,
+            height: visualFrame.height * 1.10
+        )
+
+        let layout = PetEffectLayout(
+            panelFrame: panelFrame,
+            petFrame: visualFrame
+        )
+
+        XCTAssertEqual(layout.travel, travel, accuracy: 0.001)
+        XCTAssertEqual(
+            layout.localPetFrame.size,
+            visualFrame.size
+        )
+        XCTAssertEqual(
+            layout.localEffectFrame.width,
+            visualWidth * 1.36,
+            accuracy: 0.001
+        )
+    }
+
     func testClampedEdgePanelKeepsOriginalPetLocalCenter() {
         let layout = PetEffectLayout(
             panelFrame: CGRect(

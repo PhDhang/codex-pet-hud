@@ -37,13 +37,16 @@ public struct WindowDescriptor:
 
 public struct PetWindowObservation: Equatable, Sendable {
     public let exactWindow: WindowDescriptor?
+    public let visualWindow: WindowDescriptor?
     public let hasStablePresence: Bool
 
     public init(
         exactWindow: WindowDescriptor?,
+        visualWindow: WindowDescriptor? = nil,
         hasStablePresence: Bool
     ) {
         self.exactWindow = exactWindow
+        self.visualWindow = visualWindow ?? exactWindow
         self.hasStablePresence = hasStablePresence
     }
 }
@@ -51,6 +54,9 @@ public struct PetWindowObservation: Equatable, Sendable {
 public enum PetWindowLocator {
     public static let exactWindowName =
         "Codex Pet Mascot Effect"
+    public static let visualWindowName = "Codex"
+    public static let v2CellAspectRatio: CGFloat =
+        192.0 / 208.0
 
     private static let stableWindowNames: Set<String> = [
         "Codex Pet Composition Surface",
@@ -59,7 +65,7 @@ public enum PetWindowLocator {
     ]
 
     public static func currentWindow() -> WindowDescriptor? {
-        currentObservation().exactWindow
+        currentObservation().visualWindow
     }
 
     public static func currentObservation() -> PetWindowObservation {
@@ -84,8 +90,15 @@ public enum PetWindowLocator {
     public static func observe(
         from windows: [WindowDescriptor]
     ) -> PetWindowObservation {
-        PetWindowObservation(
-            exactWindow: select(from: windows),
+        let exactWindow = select(from: windows)
+        return PetWindowObservation(
+            exactWindow: exactWindow,
+            visualWindow: exactWindow.flatMap {
+                visualWindow(
+                    for: $0,
+                    in: windows
+                )
+            },
             hasStablePresence: hasStablePresence(in: windows)
         )
     }
@@ -137,6 +150,54 @@ public enum PetWindowLocator {
             return nil
         }
         return fallback[0]
+    }
+
+    private static func visualWindow(
+        for mascotWindow: WindowDescriptor,
+        in windows: [WindowDescriptor]
+    ) -> WindowDescriptor? {
+        let candidates = windows.filter { candidate in
+            guard
+                candidate.owner == "ChatGPT",
+                candidate.name == visualWindowName,
+                candidate.layer == 3,
+                candidate.ownerPID == mascotWindow.ownerPID,
+                (80...640).contains(candidate.bounds.width),
+                (60...680).contains(candidate.bounds.height),
+                candidate.bounds.intersects(mascotWindow.bounds),
+                mascotWindow.bounds.contains(
+                    CGPoint(
+                        x: candidate.bounds.midX,
+                        y: candidate.bounds.midY
+                    )
+                )
+            else {
+                return false
+            }
+            let visualWidth =
+                candidate.bounds.height * v2CellAspectRatio
+            return visualWidth <= candidate.bounds.width
+        }
+        guard candidates.count == 1 else {
+            return nil
+        }
+
+        let shell = candidates[0]
+        let visualWidth =
+            shell.bounds.height * v2CellAspectRatio
+        return WindowDescriptor(
+            owner: shell.owner,
+            name: shell.name,
+            layer: shell.layer,
+            bounds: CGRect(
+                x: shell.bounds.midX - visualWidth / 2,
+                y: shell.bounds.minY,
+                width: visualWidth,
+                height: shell.bounds.height
+            ),
+            ownerPID: shell.ownerPID,
+            windowID: shell.windowID
+        )
     }
 
     private static func hasStablePresence(

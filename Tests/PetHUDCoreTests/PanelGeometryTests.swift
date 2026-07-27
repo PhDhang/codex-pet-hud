@@ -39,6 +39,41 @@ final class PanelGeometryTests: XCTestCase {
         XCTAssertGreaterThan(frame.minY, 305)
     }
 
+    func testLiveVisualFrameProducesCompactDefaultHUDAndEffect() throws {
+        let visualPet = CGRect(
+            x: 244 - (126 * 192 / 208) / 2,
+            y: 749,
+            width: 126 * 192 / 208,
+            height: 126
+        )
+
+        let hud = try XCTUnwrap(
+            PanelGeometry.tacticalHUDFrame(
+                pet: visualPet,
+                displays: [display],
+                scale: 1.14,
+                offset: .zero
+            )
+        )
+        let effect = try XCTUnwrap(
+            PanelGeometry.petEffectFrame(
+                pet: visualPet,
+                displays: [display]
+            )
+        )
+
+        XCTAssertEqual(hud.width, 239.4, accuracy: 0.001)
+        XCTAssertEqual(hud.midX, 244, accuracy: 0.001)
+        XCTAssertEqual(hud.minY, 339, accuracy: 0.001)
+        XCTAssertEqual(
+            effect.width,
+            visualPet.width * 1.36,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(effect.height, 138.6, accuracy: 0.001)
+        XCTAssertEqual(effect.midX, 244, accuracy: 0.001)
+    }
+
     func testTacticalHUDPreservesOffsetsAfterResize() throws {
         let small = try XCTUnwrap(
             PanelGeometry.tacticalHUDFrame(

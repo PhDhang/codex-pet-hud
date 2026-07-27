@@ -18,6 +18,7 @@ if grep -F "Task { @MainActor" "$SOURCE"; then
 fi
 
 grep -F 'PetWindowLocator.currentObservation()' "$SOURCE"
+grep -F 'observation.visualWindow' "$SOURCE"
 grep -F 'PetPresenceTracker' "$SOURCE"
 grep -F 'PetGeometryCache' "$SOURCE"
 grep -F 'TacticalHUDPanelController' "$SOURCE"

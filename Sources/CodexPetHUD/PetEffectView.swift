@@ -8,11 +8,6 @@ struct PetEffectView: View {
     let layout: PetEffectLayout
     @Environment(\.accessibilityReduceMotion)
     private var reduceMotion
-    private let nativePetMaskColor = Color(
-        red: 0.035,
-        green: 0.012,
-        blue: 0.025
-    )
 
     var body: some View {
         TimelineView(.animation) { timeline in
@@ -79,7 +74,10 @@ struct PetEffectView: View {
         let spiralAngle = reduceMotion ? 0 : progress * 720
 
         return ZStack {
-            nativePetMask(frame: layout.localPetFrame)
+            nativePetAura(
+                frame: layout.localPetFrame,
+                state: .panic
+            )
 
             ZStack {
                 Image(
@@ -173,7 +171,10 @@ struct PetEffectView: View {
         let radiusY = min(imageSize.height * 0.12, 24)
 
         return ZStack {
-            nativePetMask(frame: layout.localPetFrame)
+            nativePetAura(
+                frame: layout.localPetFrame,
+                state: .critical
+            )
 
             Image(
                 decorative: image,
@@ -271,25 +272,59 @@ struct PetEffectView: View {
         }
     }
 
-    private func nativePetMask(
-        frame: CGRect
+    private func nativePetAura(
+        frame: CGRect,
+        state: PetDistressState
     ) -> some View {
-        Rectangle()
-            .fill(nativePetMaskColor)
-            .overlay {
-                Rectangle()
-                    .stroke(
-                        Color.red.opacity(0.42),
-                        lineWidth: 1
+        let accent =
+            state == .critical
+                ? Color(red: 1, green: 0.12, blue: 0.18)
+                : Color(red: 0.62, green: 0.18, blue: 0.92)
+        let core = Color(
+            red: 0.075,
+            green: 0.018,
+            blue: 0.11
+        )
+
+        return ZStack {
+            Ellipse()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            core.opacity(0.98),
+                            core.opacity(0.96),
+                            accent.opacity(0.78),
+                            accent.opacity(0.22),
+                            .clear,
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius:
+                            max(frame.width, frame.height) * 0.58
                     )
-            }
+                )
+                .frame(
+                    width: frame.width * 1.10,
+                    height: frame.height * 1.06
+                )
+
+            Capsule()
+                .fill(core.opacity(0.94))
+                .overlay {
+                    Capsule()
+                        .stroke(
+                            accent.opacity(0.58),
+                            lineWidth: 1
+                        )
+                }
+                .frame(
+                    width: frame.width * 0.88,
+                    height: frame.height * 0.98
+                )
+        }
             .shadow(
-                color: Color.black.opacity(0.72),
-                radius: 8
-            )
-            .frame(
-                width: frame.width,
-                height: frame.height
+                color: accent.opacity(0.62),
+                radius: 10
             )
             .position(
                 x: frame.midX,

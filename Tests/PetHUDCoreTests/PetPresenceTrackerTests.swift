@@ -95,6 +95,43 @@ final class PetPresenceTrackerTests: XCTestCase {
         }
     }
 
+    func testUsesVisualGeometryForMovementAndResize() {
+        var tracker = PetPresenceTracker()
+        let exact = exactWindow(id: 10)
+        let initialVisual = visualWindow(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        let resizedVisual = visualWindow(
+            id: 11,
+            bounds: CGRect(x: 454, y: 500, width: 192, height: 208)
+        )
+        let start = Date(timeIntervalSince1970: 100)
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exact,
+                    visualWindow: initialVisual,
+                    hasStablePresence: true
+                ),
+                now: start
+            ),
+            initialVisual
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exact,
+                    visualWindow: resizedVisual,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(0.25)
+            ),
+            resizedVisual
+        )
+    }
+
     func testRetainsGeometryWhileIdleShellRemainsPresent() {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
@@ -195,6 +232,20 @@ final class PetPresenceTrackerTests: XCTestCase {
                 width: 243,
                 height: 252
             ),
+            ownerPID: 1,
+            windowID: id
+        )
+    }
+
+    private func visualWindow(
+        id: Int,
+        bounds: CGRect
+    ) -> WindowDescriptor {
+        WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 3,
+            bounds: bounds,
             ownerPID: 1,
             windowID: id
         )

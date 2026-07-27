@@ -24,11 +24,11 @@ public struct PetPresenceTracker: Sendable {
         observation: PetWindowObservation,
         now: Date
     ) -> WindowDescriptor? {
-        if let exact = observation.exactWindow {
-            lastGeometry = exact
+        if let visualWindow = observation.visualWindow {
+            lastGeometry = visualWindow
         }
         if
-            observation.exactWindow != nil ||
+            observation.visualWindow != nil ||
             observation.hasStablePresence
         {
             hasConfirmedPresence = true

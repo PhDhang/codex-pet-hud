@@ -74,10 +74,19 @@ grep -F 'width: layout.panelSize.width' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'height: layout.panelSize.height' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'nativePetMask(frame: layout.localPetFrame)' \
+grep -F 'nativePetAura(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F '.fill(nativePetMaskColor)' \
+grep -F 'RadialGradient(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'Ellipse()' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'Capsule()' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+if grep -F 'Rectangle()' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
+  printf 'Pet effect still uses a rectangular native-pet mask.\n' >&2
+  exit 1
+fi
 grep -F 'assets.panicCustomFrames' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 ! grep -F '.rotationEffect(.degrees(76))' \

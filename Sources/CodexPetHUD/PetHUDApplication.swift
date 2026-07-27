@@ -211,10 +211,10 @@ final class PetHUDCoordinator {
         let now = Date()
         let observation =
             PetWindowLocator.currentObservation()
-        if let exact = observation.exactWindow {
+        if let visualWindow = observation.visualWindow {
             try? geometryCache.save(
                 PetGeometryRecord(
-                    window: exact,
+                    window: visualWindow,
                     updatedAt: now
                 )
             )

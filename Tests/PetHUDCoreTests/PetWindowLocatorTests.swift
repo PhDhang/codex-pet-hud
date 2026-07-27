@@ -145,6 +145,144 @@ final class PetWindowLocatorTests: XCTestCase {
         XCTAssertEqual(selected?.windowID, 11)
     }
 
+    func testLiveWindowFixtureDerivesVisualPetFrameFromCodexShell() throws {
+        let shell = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 3,
+            bounds: CGRect(
+                x: 52,
+                y: 749,
+                width: 384,
+                height: 126
+            ),
+            ownerPID: 51_007,
+            windowID: 102
+        )
+        let observation = PetWindowLocator.observe(
+            from: liveWindowFixture(shell: shell)
+        )
+
+        XCTAssertEqual(
+            observation.exactWindow?.bounds,
+            CGRect(x: 105, y: 683, width: 249, height: 259)
+        )
+        let visual = try XCTUnwrap(observation.visualWindow)
+        XCTAssertEqual(visual.ownerPID, 51_007)
+        XCTAssertEqual(visual.windowID, shell.windowID)
+        XCTAssertEqual(visual.bounds.height, 126, accuracy: 0.001)
+        XCTAssertEqual(
+            visual.bounds.width,
+            126 * 192 / 208,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            visual.bounds.midX,
+            shell.bounds.midX,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            visual.bounds.midY,
+            shell.bounds.midY,
+            accuracy: 0.001
+        )
+    }
+
+    func testVisualShellMustShareMascotPIDAndUseLayerThree() throws {
+        let differentPID = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 3,
+            bounds: CGRect(x: 52, y: 749, width: 384, height: 126),
+            ownerPID: 51_008,
+            windowID: 103
+        )
+        let mainWindow = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 0,
+            bounds: CGRect(x: 52, y: 749, width: 384, height: 126),
+            ownerPID: 51_007,
+            windowID: 104
+        )
+
+        for shell in [differentPID, mainWindow] {
+            let observation = PetWindowLocator.observe(
+                from: liveWindowFixture(shell: shell)
+            )
+            XCTAssertEqual(
+                try XCTUnwrap(observation.visualWindow).bounds,
+                CGRect(x: 105, y: 683, width: 249, height: 259)
+            )
+        }
+    }
+
+    func testVisualPetFrameTracksShellMovementAndResize() throws {
+        let initialShell = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 3,
+            bounds: CGRect(x: 52, y: 749, width: 384, height: 126),
+            ownerPID: 51_007,
+            windowID: 102
+        )
+        let resizedShell = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 3,
+            bounds: CGRect(x: 300, y: 500, width: 500, height: 208),
+            ownerPID: 51_007,
+            windowID: 102
+        )
+
+        let initial = try XCTUnwrap(
+            PetWindowLocator.observe(
+                from: liveWindowFixture(shell: initialShell)
+            ).visualWindow
+        )
+        let resized = try XCTUnwrap(
+            PetWindowLocator.observe(
+                from: liveWindowFixture(
+                    shell: resizedShell,
+                    mascotBounds: CGRect(
+                        x: 410,
+                        y: 450,
+                        width: 280,
+                        height: 310
+                    )
+                )
+            ).visualWindow
+        )
+
+        XCTAssertEqual(initial.bounds.midX, 244, accuracy: 0.001)
+        XCTAssertEqual(initial.bounds.height, 126, accuracy: 0.001)
+        XCTAssertEqual(resized.bounds.midX, 550, accuracy: 0.001)
+        XCTAssertEqual(resized.bounds.midY, 604, accuracy: 0.001)
+        XCTAssertEqual(resized.bounds.width, 192, accuracy: 0.001)
+        XCTAssertEqual(resized.bounds.height, 208, accuracy: 0.001)
+    }
+
+    func testMascotBoundsRemainVisualFallbackWithoutShell() throws {
+        let windows = liveWindowFixture(
+            shell: WindowDescriptor(
+                owner: "Other",
+                name: "Codex",
+                layer: 3,
+                bounds: CGRect(x: 52, y: 749, width: 384, height: 126),
+                ownerPID: 51_007,
+                windowID: 102
+            )
+        )
+
+        let observation = PetWindowLocator.observe(from: windows)
+
+        XCTAssertEqual(
+            try XCTUnwrap(observation.visualWindow),
+            try XCTUnwrap(observation.exactWindow)
+        )
+        XCTAssertTrue(observation.hasStablePresence)
+    }
+
     func testExactMascotMatchesAfterLargeResize() {
         let resized = WindowDescriptor(
             owner: "ChatGPT",
@@ -510,5 +648,51 @@ final class PetWindowLocatorTests: XCTestCase {
             ownerPID: ownerPID,
             windowID: id
         )
+    }
+
+    private func liveWindowFixture(
+        shell: WindowDescriptor,
+        mascotBounds: CGRect = CGRect(
+            x: 105,
+            y: 683,
+            width: 249,
+            height: 259
+        )
+    ) -> [WindowDescriptor] {
+        [
+            WindowDescriptor(
+                owner: "ChatGPT",
+                name: PetWindowLocator.exactWindowName,
+                layer: 2,
+                bounds: mascotBounds,
+                ownerPID: 51_007,
+                windowID: 101
+            ),
+            shell,
+            WindowDescriptor(
+                owner: "ChatGPT",
+                name: "Codex Pet Voice Controls Backing",
+                layer: 3,
+                bounds: CGRect(x: 220, y: 760, width: 24, height: 24),
+                ownerPID: 51_007,
+                windowID: 105
+            ),
+            WindowDescriptor(
+                owner: "ChatGPT",
+                name: "Codex Pet Activity Stack Backing",
+                layer: 3,
+                bounds: CGRect(x: 0, y: 0, width: 345, height: 54),
+                ownerPID: 51_007,
+                windowID: 106
+            ),
+            WindowDescriptor(
+                owner: "ChatGPT",
+                name: "Codex Pet Composition Surface",
+                layer: 3,
+                bounds: CGRect(x: 0, y: 0, width: 768, height: 912),
+                ownerPID: 51_007,
+                windowID: 107
+            ),
+        ]
     }
 }
