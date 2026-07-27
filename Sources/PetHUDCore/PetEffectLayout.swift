@@ -62,4 +62,24 @@ public enum PetEffectFrameSelection:
         }
         return movingRight ? .runningRight : .runningLeft
     }
+
+    public var mirrorsSprite: Bool {
+        switch self {
+        case let .custom(mirrored):
+            mirrored
+        case .runningRight, .runningLeft:
+            false
+        }
+    }
+
+    public var mirrorsEyeAnchors: Bool {
+        switch self {
+        case let .custom(mirrored):
+            mirrored
+        case .runningRight:
+            false
+        case .runningLeft:
+            true
+        }
+    }
 }

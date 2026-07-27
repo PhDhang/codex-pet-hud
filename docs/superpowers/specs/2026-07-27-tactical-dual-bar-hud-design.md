@@ -108,7 +108,11 @@ Motion limits:
 - Loop duration: approximately `2.4s`.
 - Turn at each endpoint by switching animation family, not by rotating the full image.
 
-Yicha uses an optional custom panic strip so the running frames have open spiral eyes. Generic v2 pets fall back to their standard left/right running frames with procedural spiral-eye overlays positioned by metadata or safe default anchors.
+Yicha currently reuses her open-eye standard v2 running-right and running-left
+rows with calibrated procedural spiral-eye overlays. A custom panic strip
+remains optional. Generic v2 pets use their standard directional running rows
+with procedural spiral-eye overlays positioned by metadata or safe default
+anchors.
 
 ### Critical
 

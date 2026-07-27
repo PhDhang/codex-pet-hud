@@ -1,8 +1,8 @@
 {
   "version": 1,
   "panic": {
-    "leftEye": [0.42, 0.31],
-    "rightEye": [0.58, 0.31],
+    "leftEye": [0.58, 0.41],
+    "rightEye": [0.74, 0.41],
     "eyeScale": 0.88
   },
   "critical": {

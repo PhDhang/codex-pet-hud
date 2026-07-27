@@ -67,11 +67,11 @@ struct PetEffectView: View {
                 assets.panicCustomFrames?.count ?? 0,
             movingRight: movingRight
         )
-        let selected = panicFrames(for: selection)
+        let selectedFrames = panicFrames(for: selection)
         let frameProgress = reduceMotion ? 0 : local
         let frame = animationFrame(
             progress: frameProgress,
-            frames: selected.frames
+            frames: selectedFrames
         )
         let spriteSize = layout.localPetFrame.size
         let movingX = reduceMotion ? 0 : x
@@ -91,19 +91,19 @@ struct PetEffectView: View {
                 .interpolation(.none)
                 .scaledToFit()
                 .scaleEffect(
-                    x: selected.mirrored ? -1 : 1,
+                    x: selection.mirrorsSprite ? -1 : 1,
                     y: 1
                 )
                 spiralEye(
                     at: assets.leftEye,
                     in: spriteSize,
-                    mirrored: selected.mirrored,
+                    mirrored: selection.mirrorsEyeAnchors,
                     rotation: spiralAngle
                 )
                 spiralEye(
                     at: assets.rightEye,
                     in: spriteSize,
-                    mirrored: selected.mirrored,
+                    mirrored: selection.mirrorsEyeAnchors,
                     rotation: -spiralAngle
                 )
             }
@@ -259,18 +259,15 @@ struct PetEffectView: View {
 
     private func panicFrames(
         for selection: PetEffectFrameSelection
-    ) -> (frames: [CGImage], mirrored: Bool) {
+    ) -> [CGImage] {
         switch selection {
-        case let .custom(mirrored):
-            return (
-                assets.panicCustomFrames ??
-                    assets.panicFramesRight,
-                mirrored
-            )
+        case .custom:
+            return assets.panicCustomFrames ??
+                assets.panicFramesRight
         case .runningRight:
-            return (assets.panicFramesRight, false)
+            return assets.panicFramesRight
         case .runningLeft:
-            return (assets.panicFramesLeft, false)
+            return assets.panicFramesLeft
         }
     }
 

@@ -30,17 +30,22 @@ final class PetEffectManifestTests: XCTestCase {
             let image = try XCTUnwrap(
                 NSImage(contentsOf: critical.imageURL)
             )
+            let bitmap = try XCTUnwrap(
+                NSBitmapImageRep(
+                    data: Data(contentsOf: critical.imageURL)
+                )
+            )
 
             XCTAssertNil(panic.spritesheetURL)
             XCTAssertEqual(panic.columns, 8)
             XCTAssertEqual(panic.framesPerSecond, 8)
             XCTAssertEqual(
                 panic.leftEye,
-                NormalizedPoint(x: 0.42, y: 0.31)
+                NormalizedPoint(x: 0.58, y: 0.41)
             )
             XCTAssertEqual(
                 panic.rightEye,
-                NormalizedPoint(x: 0.58, y: 0.31)
+                NormalizedPoint(x: 0.74, y: 0.41)
             )
             XCTAssertEqual(panic.eyeScale, 0.88)
             XCTAssertEqual(
@@ -50,6 +55,13 @@ final class PetEffectManifestTests: XCTestCase {
             XCTAssertEqual(critical.scale, 1.0)
             XCTAssertGreaterThan(image.size.width, 0)
             XCTAssertGreaterThan(image.size.height, 0)
+            let artifactRow = 27
+            for x in 84...107 {
+                XCTAssertEqual(
+                    bitmap.colorAt(x: x, y: artifactRow)?.alphaComponent,
+                    0
+                )
+            }
         }
     }
 

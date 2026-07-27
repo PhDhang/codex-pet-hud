@@ -121,36 +121,38 @@ final class PetEffectLayoutTests: XCTestCase {
     }
 
     func testCustomPanicFramesTakePriorityAndMirrorLeft() {
-        XCTAssertEqual(
-            PetEffectFrameSelection.panic(
-                customFrameCount: 8,
-                movingRight: true
-            ),
-            .custom(mirrored: false)
+        let movingRight = PetEffectFrameSelection.panic(
+            customFrameCount: 8,
+            movingRight: true
         )
-        XCTAssertEqual(
-            PetEffectFrameSelection.panic(
-                customFrameCount: 8,
-                movingRight: false
-            ),
-            .custom(mirrored: true)
+        let movingLeft = PetEffectFrameSelection.panic(
+            customFrameCount: 8,
+            movingRight: false
         )
+
+        XCTAssertEqual(movingRight, .custom(mirrored: false))
+        XCTAssertFalse(movingRight.mirrorsSprite)
+        XCTAssertFalse(movingRight.mirrorsEyeAnchors)
+        XCTAssertEqual(movingLeft, .custom(mirrored: true))
+        XCTAssertTrue(movingLeft.mirrorsSprite)
+        XCTAssertTrue(movingLeft.mirrorsEyeAnchors)
     }
 
     func testPanicFallbackPreservesV2DirectionRows() {
-        XCTAssertEqual(
-            PetEffectFrameSelection.panic(
-                customFrameCount: 0,
-                movingRight: true
-            ),
-            .runningRight
+        let movingRight = PetEffectFrameSelection.panic(
+            customFrameCount: 0,
+            movingRight: true
         )
-        XCTAssertEqual(
-            PetEffectFrameSelection.panic(
-                customFrameCount: 0,
-                movingRight: false
-            ),
-            .runningLeft
+        let movingLeft = PetEffectFrameSelection.panic(
+            customFrameCount: 0,
+            movingRight: false
         )
+
+        XCTAssertEqual(movingRight, .runningRight)
+        XCTAssertFalse(movingRight.mirrorsSprite)
+        XCTAssertFalse(movingRight.mirrorsEyeAnchors)
+        XCTAssertEqual(movingLeft, .runningLeft)
+        XCTAssertFalse(movingLeft.mirrorsSprite)
+        XCTAssertTrue(movingLeft.mirrorsEyeAnchors)
     }
 }
