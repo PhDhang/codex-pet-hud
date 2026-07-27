@@ -147,4 +147,34 @@ final class PanelGeometryTests: XCTestCase {
         XCTAssertTrue(smallDisplay.appKitFrame.contains(tactical))
         XCTAssertTrue(smallDisplay.appKitFrame.contains(effect))
     }
+
+    func testFramesUseOriginalPetDisplayWhenDisplaysAreVerticallyStacked() throws {
+        let upperDisplay = DisplayDescriptor(
+            cgBounds: CGRect(x: 0, y: 0, width: 1920, height: 1080),
+            appKitFrame: CGRect(x: 0, y: 900, width: 1920, height: 1080)
+        )
+        let lowerDisplay = DisplayDescriptor(
+            cgBounds: CGRect(x: 0, y: 1080, width: 1920, height: 900),
+            appKitFrame: CGRect(x: 0, y: 0, width: 1920, height: 900)
+        )
+        let pet = CGRect(x: 300, y: 1200, width: 240, height: 250)
+
+        let tactical = try XCTUnwrap(
+            PanelGeometry.tacticalHUDFrame(
+                pet: pet,
+                displays: [upperDisplay, lowerDisplay],
+                scale: 1,
+                offset: .zero
+            )
+        )
+        let effect = try XCTUnwrap(
+            PanelGeometry.petEffectFrame(
+                pet: pet,
+                displays: [upperDisplay, lowerDisplay]
+            )
+        )
+
+        XCTAssertTrue(lowerDisplay.appKitFrame.contains(tactical))
+        XCTAssertTrue(lowerDisplay.appKitFrame.contains(effect))
+    }
 }

@@ -25,6 +25,13 @@ public enum PanelGeometry {
             return nil
         }
 
+        return appKitPetFrame(pet: pet, on: display)
+    }
+
+    private static func appKitPetFrame(
+        pet: CGRect,
+        on display: DisplayDescriptor
+    ) -> CGRect {
         let localX = pet.minX - display.cgBounds.minX
         let localY = pet.minY - display.cgBounds.minY
         return CGRect(
@@ -75,12 +82,13 @@ public enum PanelGeometry {
         scale: CGFloat,
         offset: CGPoint
     ) -> CGRect? {
-        guard let appKitPet = appKitPetFrame(
-            pet: pet,
-            displays: displays
+        guard let display = display(
+            containingMostOf: pet,
+            from: displays
         ) else {
             return nil
         }
+        let appKitPet = appKitPetFrame(pet: pet, on: display)
 
         let width = min(
             360,
@@ -94,22 +102,20 @@ public enum PanelGeometry {
             width: width,
             height: height
         )
-        return clamp(
-            frame,
-            to: displayContaining(appKitPet, displays: displays)
-        )
+        return clamp(frame, to: display.appKitFrame)
     }
 
     public static func petEffectFrame(
         pet: CGRect,
         displays: [DisplayDescriptor]
     ) -> CGRect? {
-        guard let appKitPet = appKitPetFrame(
-            pet: pet,
-            displays: displays
+        guard let display = display(
+            containingMostOf: pet,
+            from: displays
         ) else {
             return nil
         }
+        let appKitPet = appKitPetFrame(pet: pet, on: display)
 
         let travel = min(appKitPet.width * 0.18, 28)
         let width = max(
@@ -123,23 +129,7 @@ public enum PanelGeometry {
             width: width,
             height: height
         )
-        return clamp(
-            frame,
-            to: displayContaining(appKitPet, displays: displays)
-        )
-    }
-
-    private static func displayContaining(
-        _ rect: CGRect,
-        displays: [DisplayDescriptor]
-    ) -> CGRect? {
-        guard let display = display(
-            containingMostOf: rect,
-            from: displays
-        ) else {
-            return nil
-        }
-        return display.appKitFrame
+        return clamp(frame, to: display.appKitFrame)
     }
 
     private static func clamp(
