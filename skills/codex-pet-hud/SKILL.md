@@ -7,14 +7,18 @@ description: Use when a macOS Codex v2 pet needs a live quota HUD, HP/SP bars, w
 
 ## Overview
 
-Install and verify the source-built macOS companion that anchors a Dungeon Nameplate to the live Codex pet. Keep credentials local, fail closed on ambiguous windows, and prove linkage with redacted diagnostics.
+Install and verify the source-built macOS companion that surrounds the live
+Codex pet with a proportional HP/SP ring life pod. Keep credentials local,
+fail closed on ambiguous windows, and prove linkage with redacted diagnostics.
 
 ## Safety Rules
 
 - Read `${CODEX_HOME:-$HOME/.codex}/auth.json` only through the app.
 - Never print tokens, account IDs, emails, cookies, or raw provider responses.
 - Never read browser cookies or request Accessibility or Screen Recording.
-- Attach only to `Codex Pet Mascot Effect`; hide on ambiguity.
+- Prefer the exact `Codex Pet Mascot Effect` title. When LaunchAgent hides
+  window titles, accept only one plausible empty-title mascot that contains a
+  same PID, layer-3, `20...32` point voice control; hide on ambiguity.
 - Build and test before installing.
 
 ## Workflow
@@ -55,12 +59,31 @@ skills/codex-pet-hud/scripts/install-from-source.sh \
 
 Require `configuration=ok`, `pet=found`, `petWindow=found`, and `provider=reachable`. Exit code `5` means the Codex pet overlay is closed; open it and retry.
 
-8. Confirm visible linkage: the nameplate must remain centered above the pet after moving the pet. Use a fixture when live quota is unavailable:
+8. Confirm visible linkage: move and resize the pet. The life pod must remain
+centered around it and recover after the resize recreates the mascot window.
+Use a fixture when live quota is unavailable:
 
 ```bash
 "$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" \
   --mock "$SOURCE_ROOT/Fixtures/critical.json"
 ```
+
+## Ring Alignment
+
+Edit `~/.config/codex-pet-hud/config.json`, then restart the LaunchAgent:
+
+- `podScale`: ring size relative to the pet, `1.0...1.8`; use `1.10` close,
+  `1.14` default, or `1.22` roomy.
+- `podOffsetX`: horizontal points, `-300...300`; positive moves right.
+- `podOffsetY`: vertical points, `-300...300`; positive moves up.
+
+```bash
+launchctl kickstart -k gui/$(id -u)/com.codex-pet-hud.agent
+```
+
+Run `--diagnose`, resize the pet, and require `petWindow=found`. Missing ring
+keys use defaults; legacy `nameplateOffset` is accepted but does not move the
+ring.
 
 ## Pet Art
 

@@ -35,32 +35,31 @@ public enum PanelGeometry {
         )
     }
 
-    public static func nameplateFrame(
+    public static func lifePodFrame(
         pet: CGRect,
         displays: [DisplayDescriptor],
-        nameplateSize: CGSize,
-        offset: CGFloat
+        scale: CGFloat,
+        offset: CGPoint
     ) -> CGRect? {
         guard
-            let display = display(
-                containingMostOf: pet,
-                from: displays
-            ),
             let appKitPet = appKitPetFrame(
                 pet: pet,
-                displays: [display]
+                displays: displays
             )
         else {
             return nil
         }
 
-        let proposed = CGRect(
-            x: appKitPet.midX - nameplateSize.width / 2,
-            y: appKitPet.maxY + offset,
-            width: nameplateSize.width,
-            height: nameplateSize.height
+        let size = CGSize(
+            width: appKitPet.width * scale,
+            height: appKitPet.height * scale
         )
-        return clamp(proposed, inside: display.appKitFrame)
+        return CGRect(
+            x: appKitPet.midX - size.width / 2 + offset.x,
+            y: appKitPet.midY - size.height / 2 + offset.y,
+            width: size.width,
+            height: size.height
+        )
     }
 
     public static func criticalFrame(
@@ -86,23 +85,6 @@ public enum PanelGeometry {
             .0
     }
 
-    private static func clamp(
-        _ rect: CGRect,
-        inside bounds: CGRect
-    ) -> CGRect {
-        let x = min(
-            max(rect.minX, bounds.minX),
-            max(bounds.minX, bounds.maxX - rect.width)
-        )
-        let y = min(
-            max(rect.minY, bounds.minY),
-            max(bounds.minY, bounds.maxY - rect.height)
-        )
-        return CGRect(
-            origin: CGPoint(x: x, y: y),
-            size: rect.size
-        )
-    }
 }
 
 private extension CGRect {

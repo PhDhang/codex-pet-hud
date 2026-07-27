@@ -20,6 +20,8 @@ done
 test ! -e docs/superpowers
 
 grep -F 'macOS 14' README.md
+grep -F 'Version 0.2.0' README.md
+grep -F 'ring life pod' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml
 grep -F 'Tests/Shell/' .github/workflows/ci.yml

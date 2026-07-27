@@ -10,9 +10,18 @@
 | 4 | Provider or network failure | Retry once; inspect only redacted stderr |
 | 5 | Pet window not found | Open the Codex pet overlay and retry |
 
-## HUD Does Not Follow
+## Life Pod Does Not Follow
 
-Run `--diagnose`. If `petWindow` is missing while the pet is visible, inspect on-screen ChatGPT window names with Core Graphics. Update only `PetWindowLocator.exactWindowName` after confirming the upstream name changed.
+Run `--diagnose`. If `petWindow` is missing while the pet is visible, inspect
+on-screen ChatGPT window metadata with Core Graphics. LaunchAgent may redact
+window titles, so the fallback requires exactly one plausible empty-title
+mascot containing a same-PID, layer-3, `20...32` point voice control. If titles
+remain visible, update `PetWindowLocator.exactWindowName` only after confirming
+the upstream name changed.
+
+If the ring is visible but misaligned, adjust `podScale`, `podOffsetX`, and
+`podOffsetY`, restart the LaunchAgent, then resize the pet again. The ring
+should return within one polling interval after resize completes.
 
 ## Quota Is Offline
 
@@ -20,7 +29,7 @@ Confirm Codex itself can display usage. Do not copy tokens into logs or issue re
 
 ## Critical Clone Is Missing
 
-The HP/SP nameplate remains functional when sprite extraction fails. Confirm:
+The HP/SP life pod remains functional when sprite extraction fails. Confirm:
 
 - `spriteVersionNumber` is `2`.
 - The spritesheet exists inside the pet directory.

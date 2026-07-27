@@ -21,38 +21,39 @@ final class PanelGeometryTests: XCTestCase {
         XCTAssertEqual(converted, CGRect(x: 24, y: 53, width: 243, height: 252))
     }
 
-    func testCentersNameplateAbovePet() throws {
-        let pet = CGRect(x: 24, y: 775, width: 243, height: 252)
+    func testLifePodScalesAroundPetCenter() throws {
+        let pet = CGRect(x: 24, y: 775, width: 200, height: 250)
 
         let frame = try XCTUnwrap(
-            PanelGeometry.nameplateFrame(
+            PanelGeometry.lifePodFrame(
                 pet: pet,
                 displays: [display],
-                nameplateSize: CGSize(width: 280, height: 92),
-                offset: 10
+                scale: 1.2,
+                offset: .zero
             )
         )
 
-        XCTAssertEqual(frame.origin.x, 5.5, accuracy: 0.001)
-        XCTAssertEqual(frame.origin.y, 315, accuracy: 0.001)
-        XCTAssertEqual(frame.size, CGSize(width: 280, height: 92))
+        XCTAssertEqual(frame.size, CGSize(width: 240, height: 300))
+        XCTAssertEqual(frame.midX, 124, accuracy: 0.001)
+        XCTAssertEqual(frame.midY, 180, accuracy: 0.001)
     }
 
-    func testNameplateClampsInsideDisplay() throws {
-        let pet = CGRect(x: 0, y: 1, width: 180, height: 180)
+    func testLifePodAppliesOffsetsWithoutBreakingScale() throws {
+        let pet = CGRect(x: 24, y: 775, width: 200, height: 250)
 
         let frame = try XCTUnwrap(
-            PanelGeometry.nameplateFrame(
+            PanelGeometry.lifePodFrame(
                 pet: pet,
                 displays: [display],
-                nameplateSize: CGSize(width: 280, height: 92),
-                offset: 10
+                scale: 1.14,
+                offset: CGPoint(x: 17, y: -23)
             )
         )
 
-        XCTAssertGreaterThanOrEqual(frame.minX, display.appKitFrame.minX)
-        XCTAssertLessThanOrEqual(frame.maxX, display.appKitFrame.maxX)
-        XCTAssertLessThanOrEqual(frame.maxY, display.appKitFrame.maxY)
+        XCTAssertEqual(frame.midX, 141, accuracy: 0.001)
+        XCTAssertEqual(frame.midY, 157, accuracy: 0.001)
+        XCTAssertEqual(frame.size.width, 228, accuracy: 0.001)
+        XCTAssertEqual(frame.size.height, 285, accuracy: 0.001)
     }
 
     func testChoosesDisplayWithLargestIntersection() throws {

@@ -12,7 +12,7 @@ AppKit executable.
    `QuotaSnapshot`.
 4. `ApplicationModel` derives healthy, warning, low, critical, stale, offline,
    and authentication states.
-5. `DungeonNameplateView` renders HP and SP without receiving credentials or
+5. `LifePodView` renders HP and SP without receiving credentials or
    raw provider data.
 6. `SnapshotCache` stores only the normalized quota snapshot for graceful
    stale-state rendering.
@@ -23,15 +23,20 @@ AppKit executable.
 exact ChatGPT-owned `Codex Pet Mascot Effect` window. A conservative fallback
 is accepted only when exactly one plausible candidate exists.
 
+`PetWindowTracker` retains the last exact mascot window for 1.5 seconds while
+Codex reconstructs the window during a resize. Fallback windows are never
+retained across a missing sample.
+
 `PanelGeometry` converts CoreGraphics top-left coordinates to AppKit
-coordinates, selects the display with the largest intersection, centers the
-nameplate above the pet, and clamps it to the visible display.
+coordinates, selects the display with the largest intersection, and expands
+the life-pod frame proportionally around the pet center.
 
 The panels are transparent, click-through, accessory-level windows:
 
-- The nameplate window sits above the pet with a configurable offset.
+- The life-pod window surrounds the pet using configurable scale and X/Y
+  offsets.
 - The critical-effect window exactly overlays the pet bounds.
-- Both windows hide when the pet window cannot be identified safely.
+- Both windows hide after the exact-window grace period expires.
 
 No Accessibility or Screen Recording permission is required.
 
@@ -45,4 +50,5 @@ HUD works with any valid v2 pet without modifying the original pet files.
 
 The source installer creates a per-user LaunchAgent. The application refreshes
 quota no more frequently than every five minutes and samples the pet window
-frequently enough to follow movement without modifying the Codex process.
+from the main RunLoop common modes frequently enough to follow movement and
+resize events without modifying the Codex process.

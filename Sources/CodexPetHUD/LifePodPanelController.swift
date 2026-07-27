@@ -3,9 +3,9 @@ import PetHUDCore
 import SwiftUI
 
 @MainActor
-final class NameplatePanelController {
+final class LifePodPanelController {
     private let panel: NSPanel
-    private let hostingView: NSHostingView<DungeonNameplateView>
+    private let hostingView: NSHostingView<LifePodView>
 
     init() {
         let initial = HUDPresentationData.make(
@@ -14,15 +14,17 @@ final class NameplatePanelController {
             now: Date()
         )
         hostingView = NSHostingView(
-            rootView: DungeonNameplateView(data: initial)
+            rootView: LifePodView(data: initial)
         )
         panel = ClickThroughPanel(
             contentRect: CGRect(
-                origin: .zero,
-                size: CGSize(width: 280, height: 92)
+                x: 0,
+                y: 0,
+                width: 1,
+                height: 1
             )
         )
-        panel.title = "Codex Pet HUD Nameplate"
+        panel.title = "Codex Pet HUD Life Pod"
         panel.contentView = hostingView
     }
 
@@ -30,9 +32,7 @@ final class NameplatePanelController {
         frame: CGRect,
         data: HUDPresentationData
     ) {
-        hostingView.rootView = DungeonNameplateView(
-            data: data
-        )
+        hostingView.rootView = LifePodView(data: data)
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
     }
@@ -59,7 +59,6 @@ final class ClickThroughPanel: NSPanel {
         collectionBehavior = [
             .canJoinAllSpaces,
             .fullScreenAuxiliary,
-            .stationary,
         ]
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
@@ -73,4 +72,3 @@ final class ClickThroughPanel: NSPanel {
         false
     }
 }
-

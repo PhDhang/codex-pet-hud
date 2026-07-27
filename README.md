@@ -1,22 +1,25 @@
 # Codex Pet HUD
 
 Codex Pet HUD is a native macOS companion for Codex v2 pets. It follows the
-live pet window and renders a compact Dungeon Nameplate with weekly quota and
-reset-cycle status.
+live pet window and renders a proportional ring life pod with weekly quota
+and reset-cycle status.
 
-![Dungeon Nameplate showing weekly HP and reset SP](docs/screenshots/dungeon-nameplate.png)
+![Ring life pod showing weekly HP and reset SP](docs/screenshots/ring-life-pod.png)
 
 ## Features
 
-- **HP bar:** shows remaining weekly Codex quota as a percentage.
+- **HP ring:** shows remaining weekly Codex quota as a colored outer arc and
+  numeric percentage.
 - **Quota colors:** emerald above 90%, amber through the middle range, and red
   below 10%.
-- **SP bar:** seven cells visualize progress toward the weekly reset. Seven
+- **SP cells:** seven lower-arc cells visualize progress toward the weekly reset. Seven
   days remaining starts empty; two days remaining lights five cells.
 - **Critical state:** at 3% remaining or less, a darkened pet clone, stars, and
   circling birds indicate an exhausted character.
 - **Live attachment:** tracks the exact `Codex Pet Mascot Effect` window and
-  hides safely if the match is missing or ambiguous.
+  follows moves, resizes, and temporary window reconstruction.
+- **Proportional layout:** scales from the current pet dimensions and supports
+  independent scale and X/Y alignment adjustments.
 - **Local-first:** reads Codex authentication locally, sends one read-only
   quota request, and never reads browser cookies.
 - **Reusable Skill:** includes a Codex Skill for prerequisite checks, source
@@ -24,9 +27,9 @@ reset-cycle status.
 
 ### Critical State
 
-| Exhausted nameplate | Downed pet effect |
+| Exhausted life pod | Downed pet effect |
 | --- | --- |
-| ![Exhausted HP nameplate](docs/screenshots/dungeon-critical-nameplate.png) | ![Downed pet with circling birds](docs/screenshots/dungeon-critical-effect.png) |
+| ![Exhausted HP life pod](docs/screenshots/ring-life-pod-critical.png) | ![Downed pet with circling birds](docs/screenshots/dungeon-critical-effect.png) |
 
 ## Requirements
 
@@ -64,13 +67,22 @@ Settings live at `$HOME/.config/codex-pet-hud/config.json`:
   "petPath": "~/.codex/pets/YOUR_PET",
   "refreshIntervalSeconds": 300,
   "criticalThresholdPercent": 3,
-  "nameplateOffset": 10,
+  "podScale": 1.14,
+  "podOffsetX": 0,
+  "podOffsetY": 0,
   "launchAtLogin": true
 }
 ```
 
 Refresh intervals shorter than five minutes are clamped. Critical thresholds
-are limited to 0–10%, and the vertical offset is limited to ±100 points.
+are limited to 0–10%. `podScale` is relative to the current pet size and is
+limited to `1.0...1.8`; `podOffsetX` and `podOffsetY` move the ring by up to
+±300 points without resizing the pet. Positive X moves right and positive Y
+moves up. Try `1.10` for a close ring, `1.14` for the default, or `1.22` for
+more breathing room.
+
+Existing configuration files continue working when these keys are absent.
+The legacy `nameplateOffset` key remains accepted but does not move the ring.
 
 ## Install The Skill
 
@@ -112,7 +124,7 @@ the data-flow and credential policy.
 
 ## Status
 
-Version 0.1.0 targets macOS only. This is an independent community project,
+Version 0.2.0 targets macOS only. This is an independent community project,
 not an official OpenAI product. The quota endpoint and Codex pet window title
 are implementation details that may change.
 

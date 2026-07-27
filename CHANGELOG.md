@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.0-rc.1] - 2026-07-27
+
+### Added
+
+- Proportional ring life pod with an HP arc and seven lower-arc SP cells.
+- Configurable `podScale`, `podOffsetX`, and `podOffsetY` alignment controls.
+
+### Fixed
+
+- Pet resizing no longer leaves the HUD hidden after mascot-window reconstruction.
+- Polling now remains active in AppKit resize and event-tracking modes.
+
 ## [0.1.0] - 2026-07-27
 
 ### Added

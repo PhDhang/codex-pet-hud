@@ -27,6 +27,9 @@ test -x "$INSTALLED_APP/Contents/MacOS/CodexPetHUD"
 test -f "$CONFIG"
 test -f "$PLIST"
 grep -F "\"petPath\": \"$PET\"" "$CONFIG"
+grep -F '"podScale": 1.14' "$CONFIG"
+grep -F '"podOffsetX": 0' "$CONFIG"
+grep -F '"podOffsetY": 0' "$CONFIG"
 grep -F "$INSTALLED_APP/Contents/MacOS/CodexPetHUD" "$PLIST"
 
 HOME="$TEST_HOME" CODEX_PET_HUD_TESTING=1 \
@@ -40,4 +43,3 @@ HOME="$TEST_HOME" CODEX_PET_HUD_TESTING=1 \
   scripts/uninstall.sh --purge
 
 test ! -e "$CONFIG"
-

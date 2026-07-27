@@ -42,12 +42,13 @@ final class PetHUDCoordinator {
     private let manifest: PetManifest?
     private let neutralImage: CGImage?
     private let mockSnapshot: QuotaSnapshot?
-    private let nameplateController =
-        NameplatePanelController()
+    private let lifePodController =
+        LifePodPanelController()
     private let criticalController =
         CriticalPanelController()
 
     private var model = ApplicationModel(now: Date())
+    private var petWindowTracker = PetWindowTracker()
     private var windowTimer: Timer?
     private var freshnessTimer: Timer?
     private var quotaTimer: Timer?
@@ -123,19 +124,22 @@ final class PetHUDCoordinator {
         }
 
         updatePetWindow()
-        windowTimer = Timer.scheduledTimer(
-            withTimeInterval: 0.25,
+        let windowTimer = Timer(
+            timeInterval: 0.25,
             repeats: true
         ) { [weak self] _ in
-            Task { @MainActor [weak self] in
+            MainActor.assumeIsolated {
                 self?.updatePetWindow()
             }
         }
-        freshnessTimer = Timer.scheduledTimer(
-            withTimeInterval: 60,
+        RunLoop.main.add(windowTimer, forMode: .common)
+        self.windowTimer = windowTimer
+
+        let freshnessTimer = Timer(
+            timeInterval: 60,
             repeats: true
         ) { [weak self] _ in
-            Task { @MainActor [weak self] in
+            MainActor.assumeIsolated {
                 guard let self else {
                     return
                 }
@@ -144,20 +148,24 @@ final class PetHUDCoordinator {
                 )
             }
         }
+        RunLoop.main.add(freshnessTimer, forMode: .common)
+        self.freshnessTimer = freshnessTimer
 
         guard mockSnapshot == nil else {
             return
         }
         refreshQuota()
-        quotaTimer = Timer.scheduledTimer(
-            withTimeInterval:
+        let quotaTimer = Timer(
+            timeInterval:
                 configuration.refreshIntervalSeconds,
             repeats: true
         ) { [weak self] _ in
-            Task { @MainActor [weak self] in
+            MainActor.assumeIsolated {
                 self?.refreshQuota()
             }
         }
+        RunLoop.main.add(quotaTimer, forMode: .common)
+        self.quotaTimer = quotaTimer
     }
 
     private func refreshQuota() {
@@ -185,9 +193,13 @@ final class PetHUDCoordinator {
     }
 
     private func updatePetWindow() {
+        let petWindow = petWindowTracker.update(
+            observed: PetWindowLocator.currentWindow(),
+            now: Date()
+        )
         let presentation = model.reduce(
             .petWindowChanged(
-                PetWindowLocator.currentWindow()
+                petWindow
             )
         )
         render(presentation)
@@ -201,25 +213,25 @@ final class PetHUDCoordinator {
             presentation.showNameplate,
             let petWindow = presentation.petWindow
         else {
-            nameplateController.hide()
+            lifePodController.hide()
             criticalController.hide()
             return
         }
 
         let displays = Self.currentDisplays()
         guard
-            let nameplateFrame =
-                PanelGeometry.nameplateFrame(
+            let lifePodFrame =
+                PanelGeometry.lifePodFrame(
                     pet: petWindow.bounds,
                     displays: displays,
-                    nameplateSize: CGSize(
-                        width: 280,
-                        height: 92
+                    scale: configuration.podScale,
+                    offset: CGPoint(
+                        x: configuration.podOffsetX,
+                        y: configuration.podOffsetY
                     ),
-                    offset: configuration.nameplateOffset
                 )
         else {
-            nameplateController.hide()
+            lifePodController.hide()
             criticalController.hide()
             return
         }
@@ -229,25 +241,26 @@ final class PetHUDCoordinator {
             state: presentation.hudState,
             now: Date()
         )
-        nameplateController.show(
-            frame: nameplateFrame,
-            data: viewData
-        )
 
-        guard
+        if
             presentation.showCriticalEffect,
             let criticalFrame =
                 PanelGeometry.criticalFrame(
                     pet: petWindow.bounds,
                     displays: displays
                 )
-        else {
+        {
+            criticalController.show(
+                frame: criticalFrame,
+                petImage: neutralImage
+            )
+        } else {
             criticalController.hide()
-            return
         }
-        criticalController.show(
-            frame: criticalFrame,
-            petImage: neutralImage
+
+        lifePodController.show(
+            frame: lifePodFrame,
+            data: viewData
         )
     }
 

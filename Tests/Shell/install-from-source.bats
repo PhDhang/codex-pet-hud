@@ -22,7 +22,11 @@ CODEX_PET_HUD_TESTING=1 \
     --destination "$DESTINATION"
 
 test -x "$TEST_HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD"
-test -f "$TEST_HOME/.config/codex-pet-hud/config.json"
+CONFIG="$TEST_HOME/.config/codex-pet-hud/config.json"
+test -f "$CONFIG"
+grep -F '"podScale": 1.14' "$CONFIG"
+grep -F '"podOffsetX": 0' "$CONFIG"
+grep -F '"podOffsetY": 0' "$CONFIG"
 test "$(
   git -C "$DESTINATION" rev-parse HEAD
 )" = "$(

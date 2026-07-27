@@ -18,6 +18,9 @@ public struct AppConfiguration: Codable, Equatable, Sendable {
     public var refreshIntervalSeconds: TimeInterval
     public var criticalThresholdPercent: Double
     public var nameplateOffset: Double
+    public var podScale: Double
+    public var podOffsetX: Double
+    public var podOffsetY: Double
     public var launchAtLogin: Bool
 
     public static let defaults = AppConfiguration(
@@ -25,6 +28,9 @@ public struct AppConfiguration: Codable, Equatable, Sendable {
         refreshIntervalSeconds: 300,
         criticalThresholdPercent: 3,
         nameplateOffset: 10,
+        podScale: 1.14,
+        podOffsetX: 0,
+        podOffsetY: 0,
         launchAtLogin: true
     )
 
@@ -33,6 +39,9 @@ public struct AppConfiguration: Codable, Equatable, Sendable {
         let refreshIntervalSeconds: TimeInterval?
         let criticalThresholdPercent: Double?
         let nameplateOffset: Double?
+        let podScale: Double?
+        let podOffsetX: Double?
+        let podOffsetY: Double?
         let launchAtLogin: Bool?
     }
 
@@ -84,6 +93,29 @@ public struct AppConfiguration: Codable, Equatable, Sendable {
                         defaults.nameplateOffset
                 )
             ),
+            podScale: min(
+                1.8,
+                max(
+                    1.0,
+                    document.podScale ?? defaults.podScale
+                )
+            ),
+            podOffsetX: min(
+                300,
+                max(
+                    -300,
+                    document.podOffsetX ??
+                        defaults.podOffsetX
+                )
+            ),
+            podOffsetY: min(
+                300,
+                max(
+                    -300,
+                    document.podOffsetY ??
+                        defaults.podOffsetY
+                )
+            ),
             launchAtLogin:
                 document.launchAtLogin ?? defaults.launchAtLogin
         )
@@ -110,4 +142,3 @@ public struct AppConfiguration: Codable, Equatable, Sendable {
             .path
     }
 }
-

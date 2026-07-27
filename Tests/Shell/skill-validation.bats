@@ -21,6 +21,13 @@ for keyword in pet HUD quota HP SP macOS; do
   grep -i "$keyword" "$SKILL/SKILL.md" >/dev/null
 done
 
+for setting in podScale podOffsetX podOffsetY; do
+  grep -F "$setting" "$SKILL/SKILL.md" >/dev/null
+done
+grep -i 'resize' "$SKILL/SKILL.md" >/dev/null
+grep -F 'same PID' "$SKILL/SKILL.md" >/dev/null
+grep -F '20...32' "$SKILL/references/troubleshooting.md" >/dev/null
+
 if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2
   exit 1

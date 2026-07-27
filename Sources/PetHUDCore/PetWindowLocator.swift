@@ -24,6 +24,11 @@ public struct WindowDescriptor: Equatable, Sendable {
         self.ownerPID = ownerPID
         self.windowID = windowID
     }
+
+    public var isExactMascotWindow: Bool {
+        owner == "ChatGPT" &&
+            name == PetWindowLocator.exactWindowName
+    }
 }
 
 public enum PetWindowLocator {
@@ -60,11 +65,34 @@ public enum PetWindowLocator {
             return nil
         }
 
-        let fallback = windows.filter {
+        let voiceControls = windows.filter {
             $0.owner == "ChatGPT" &&
-                (2...3).contains($0.layer) &&
-                (160...320).contains($0.bounds.width) &&
-                (160...340).contains($0.bounds.height)
+                $0.layer == 3 &&
+                (20...32).contains($0.bounds.width) &&
+                (20...32).contains($0.bounds.height)
+        }
+        let fallback = windows.filter { candidate in
+            guard
+                candidate.owner == "ChatGPT",
+                candidate.name.isEmpty,
+                candidate.layer == 2,
+                (120...640).contains(candidate.bounds.width),
+                (120...680).contains(candidate.bounds.height)
+            else {
+                return false
+            }
+            let aspectRatio =
+                candidate.bounds.width /
+                candidate.bounds.height
+            guard
+                (0.90...1.05).contains(aspectRatio)
+            else {
+                return false
+            }
+            return voiceControls.contains { control in
+                control.ownerPID == candidate.ownerPID &&
+                    candidate.bounds.contains(control.bounds)
+            }
         }
         guard fallback.count == 1 else {
             return nil
@@ -118,4 +146,3 @@ public enum PetWindowLocator {
         return nil
     }
 }
-

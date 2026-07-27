@@ -74,7 +74,9 @@ if [ -n "$PET_PATH" ]; then
     "  \"petPath\": \"$PET_PATH\"," \
     '  "refreshIntervalSeconds": 300,' \
     '  "criticalThresholdPercent": 3,' \
-    '  "nameplateOffset": 10,' \
+    '  "podScale": 1.14,' \
+    '  "podOffsetX": 0,' \
+    '  "podOffsetY": 0,' \
     '  "launchAtLogin": true' \
     '}' > "$CONFIG_TEMP"
 else
@@ -82,7 +84,9 @@ else
     '{' \
     '  "refreshIntervalSeconds": 300,' \
     '  "criticalThresholdPercent": 3,' \
-    '  "nameplateOffset": 10,' \
+    '  "podScale": 1.14,' \
+    '  "podOffsetX": 0,' \
+    '  "podOffsetY": 0,' \
     '  "launchAtLogin": true' \
     '}' > "$CONFIG_TEMP"
 fi
@@ -119,4 +123,3 @@ fi
 
 printf 'Installed %s\n' "$APP_DESTINATION"
 printf 'Configuration: %s\n' "$CONFIG"
-

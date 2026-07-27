@@ -24,6 +24,9 @@ final class AppConfigurationTests: XCTestCase {
                   "refreshIntervalSeconds": 5,
                   "criticalThresholdPercent": 40,
                   "nameplateOffset": -500,
+                  "podScale": 9,
+                  "podOffsetX": -900,
+                  "podOffsetY": 900,
                   "launchAtLogin": false
                 }
                 """.utf8
@@ -49,7 +52,33 @@ final class AppConfigurationTests: XCTestCase {
                 10
             )
             XCTAssertEqual(configuration.nameplateOffset, -100)
+            XCTAssertEqual(configuration.podScale, 1.8)
+            XCTAssertEqual(configuration.podOffsetX, -300)
+            XCTAssertEqual(configuration.podOffsetY, 300)
             XCTAssertFalse(configuration.launchAtLogin)
+        }
+    }
+
+    func testMissingPodSettingsUseProportionalDefaults() throws {
+        try withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("config.json")
+            try Data(
+                """
+                {
+                  "nameplateOffset": 42
+                }
+                """.utf8
+            ).write(to: url)
+
+            let configuration = try AppConfiguration.load(
+                url: url,
+                homeDirectory: directory
+            )
+
+            XCTAssertEqual(configuration.podScale, 1.14)
+            XCTAssertEqual(configuration.podOffsetX, 0)
+            XCTAssertEqual(configuration.podOffsetY, 0)
+            XCTAssertEqual(configuration.nameplateOffset, 42)
         }
     }
 
@@ -75,4 +104,3 @@ final class AppConfigurationTests: XCTestCase {
         }
     }
 }
-
