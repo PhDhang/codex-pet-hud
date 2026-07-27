@@ -55,9 +55,17 @@ grep -F 'level: .floating' \
 PANEL_INITIALIZER="$(sed -n \
   '/final class ClickThroughPanel: NSPanel {/,/override var canBecomeKey/p' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift")"
-printf '%s\n' "$PANEL_INITIALIZER" | grep -F 'self.level = level'
-if printf '%s\n' "$PANEL_INITIALIZER" | grep -E 'level = \.'; then
-  printf 'Click-through panel must not reset its injected window level.\n' >&2
+LEVEL_ASSIGNMENTS="$(printf '%s\n' "$PANEL_INITIALIZER" | \
+  grep -E '^[[:space:]]*([[:alnum:]_]+[.])*level[[:space:]]*=' || true)"
+LEVEL_ASSIGNMENT_COUNT="$(printf '%s\n' "$LEVEL_ASSIGNMENTS" | grep -c . || true)"
+if [ "$LEVEL_ASSIGNMENT_COUNT" -ne 1 ]; then
+  printf 'Click-through panel must assign its window level exactly once.\n' >&2
+  exit 1
+fi
+NORMALIZED_LEVEL_ASSIGNMENT="$(printf '%s\n' "$LEVEL_ASSIGNMENTS" | \
+  sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+if [ "$NORMALIZED_LEVEL_ASSIGNMENT" != 'self.level = level' ]; then
+  printf 'Click-through panel must apply its injected window level.\n' >&2
   exit 1
 fi
 if grep -F 'Text("🌀")' \
