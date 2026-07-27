@@ -82,27 +82,40 @@ public struct PetEffectLayout: Equatable, Sendable {
             origin: .zero,
             size: panelSize
         )
+        let center = CGPoint(
+            x: localPetFrame.midX,
+            y: localPetFrame.midY
+        )
+        let centeredBounds = CGSize(
+            width: max(
+                0,
+                2 * min(
+                    center.x - panelBounds.minX,
+                    panelBounds.maxX - center.x
+                )
+            ),
+            height: max(
+                0,
+                2 * min(
+                    center.y - panelBounds.minY,
+                    panelBounds.maxY - center.y
+                )
+            )
+        )
         let containmentScale = min(
             1,
-            panelBounds.width / desiredSize.width,
-            panelBounds.height / desiredSize.height
+            centeredBounds.width / desiredSize.width,
+            centeredBounds.height / desiredSize.height
         )
         let containedSize = CGSize(
             width: desiredSize.width * containmentScale,
             height: desiredSize.height * containmentScale
         )
-        return Self.containedFrame(
-            CGRect(
-                x:
-                    localPetFrame.midX -
-                    containedSize.width / 2,
-                y:
-                    localPetFrame.midY -
-                    containedSize.height / 2,
-                width: containedSize.width,
-                height: containedSize.height
-            ),
-            in: panelBounds
+        return CGRect(
+            x: center.x - containedSize.width / 2,
+            y: center.y - containedSize.height / 2,
+            width: containedSize.width,
+            height: containedSize.height
         )
     }
 

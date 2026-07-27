@@ -278,15 +278,28 @@ final class PanelGeometryTests: XCTestCase {
                 sample.name
             )
             for scale in [1.0, 2.0] {
+                let critical = layout.criticalImageFrame(
+                    imageSize: CGSize(width: 192, height: 208),
+                    scale: scale
+                )
                 XCTAssertTrue(
-                    localBounds.contains(
-                        layout.criticalImageFrame(
-                            imageSize: CGSize(width: 192, height: 208),
-                            scale: scale
-                        )
-                    ),
+                    localBounds.contains(critical),
                     "\(sample.name) scale=\(scale)"
                 )
+                if scale == 2 {
+                    XCTAssertEqual(
+                        critical.midX,
+                        layout.localPetFrame.midX,
+                        accuracy: 0.001,
+                        sample.name
+                    )
+                    XCTAssertEqual(
+                        critical.midY,
+                        layout.localPetFrame.midY,
+                        accuracy: 0.001,
+                        sample.name
+                    )
+                }
             }
 
             if sample.name == "left" {

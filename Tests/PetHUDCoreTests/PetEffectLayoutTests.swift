@@ -105,6 +105,21 @@ final class PetEffectLayoutTests: XCTestCase {
             scaleOne.height * 2,
             accuracy: 0.001
         )
+        XCTAssertEqual(
+            scaleTwo.midX,
+            layout.localPetFrame.midX,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            scaleTwo.midY,
+            layout.localPetFrame.midY,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            scaleOne.height,
+            visualSize.height * 1.10,
+            accuracy: 0.001
+        )
     }
 
     func testLiveVisualFrameControlsTravelAndSpriteBounds() {
