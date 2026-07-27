@@ -52,6 +52,14 @@ grep -F 'level: .statusBar' \
   "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
 grep -F 'level: .floating' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
+PANEL_INITIALIZER="$(sed -n \
+  '/final class ClickThroughPanel: NSPanel {/,/override var canBecomeKey/p' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift")"
+printf '%s\n' "$PANEL_INITIALIZER" | grep -F 'self.level = level'
+if printf '%s\n' "$PANEL_INITIALIZER" | grep -E 'level = \.'; then
+  printf 'Click-through panel must not reset its injected window level.\n' >&2
+  exit 1
+fi
 if grep -F 'Text("🌀")' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
   printf 'Pet replacement must not paste spiral emoji over sprite eyes.\n' >&2
