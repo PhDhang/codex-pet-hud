@@ -63,8 +63,9 @@ public struct HUDPresentationData: Equatable, Sendable {
         statusLabel: String,
         now: Date
     ) -> HUDPresentationData {
-        let remainingPercent =
+        let remainingPercent = HPPrecision.canonical(
             snapshot.weekly.remainingPercent
+        )
         let secondsRemaining = max(
             0,
             snapshot.weekly.resetAt.timeIntervalSince(now)

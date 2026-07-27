@@ -17,7 +17,9 @@ public enum PetDistressState:
         guard case let .quota(snapshot, _) = hudState else {
             return .normal
         }
-        let remaining = snapshot.weekly.remainingPercent
+        let remaining = HPPrecision.canonical(
+            snapshot.weekly.remainingPercent
+        )
         if remaining <= 3 {
             return .critical
         }

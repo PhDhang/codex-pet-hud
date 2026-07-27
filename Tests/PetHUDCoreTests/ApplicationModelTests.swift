@@ -150,6 +150,23 @@ final class ApplicationModelTests: XCTestCase {
         )
     }
 
+    func testCriticalHysteresisUsesCanonicalTenths() {
+        var model = ApplicationModel()
+        _ = model.reduce(.petWindowChanged(petWindow))
+        _ = model.reduce(.quotaLoaded(snapshot(remaining: 2.99)))
+
+        XCTAssertEqual(
+            model.reduce(.quotaLoaded(snapshot(remaining: 5.09)))
+                .distressState,
+            .critical
+        )
+        XCTAssertEqual(
+            model.reduce(.quotaLoaded(snapshot(remaining: 5.19)))
+                .distressState,
+            .panic
+        )
+    }
+
     func testStaleQuotaClearsDistressEffectButKeepsHUD() {
         let now = Date(timeIntervalSince1970: 20_000)
         var model = ApplicationModel(now: now)

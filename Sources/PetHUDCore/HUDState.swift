@@ -17,7 +17,7 @@ public enum HUDState: Equatable, Sendable {
     public static func band(
         forRemainingPercent value: Double
     ) -> HPBand {
-        switch value {
+        switch HPPrecision.canonical(value) {
         case ...3:
             return .critical
         case ..<10:

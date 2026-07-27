@@ -167,6 +167,67 @@ final class HUDPresentationDataTests: XCTestCase {
         }
     }
 
+    func testNearBoundaryHPUsesCanonicalBandDistressBarAndLabel() {
+        let samples: [
+            (
+                raw: Double,
+                canonical: Double,
+                label: String,
+                band: HPBand,
+                distress: PetDistressState
+            )
+        ] = [
+            (3.04, 3, "3%", .critical, .critical),
+            (3.99, 3.9, "3.9%", .low, .panic),
+            (4.09, 4, "4%", .low, .panic),
+            (9.96, 9.9, "9.9%", .low, .panic),
+            (10.09, 10, "10%", .warning, .normal),
+            (50.09, 50, "50%", .warning, .normal),
+            (50.99, 50.9, "50.9%", .normal, .normal),
+            (51.09, 51, "51%", .normal, .normal),
+            (90.09, 90, "90%", .normal, .normal),
+            (90.99, 90.9, "90.9%", .healthy, .normal),
+            (91.09, 91, "91%", .healthy, .normal),
+            (99.96, 99.9, "99.9%", .healthy, .normal),
+            (100.04, 100, "100%", .healthy, .normal),
+        ]
+
+        for sample in samples {
+            let snapshot = snapshot(remaining: sample.raw)
+            let state = HUDState.evaluate(
+                snapshot: snapshot,
+                now: snapshot.fetchedAt
+            )
+            let data = HUDPresentationData.make(
+                petName: "Pet",
+                state: state,
+                now: snapshot.fetchedAt
+            )
+
+            XCTAssertEqual(
+                snapshot.weekly.remainingPercent,
+                sample.canonical,
+                accuracy: 0.000_001,
+                "raw=\(sample.raw)"
+            )
+            XCTAssertEqual(data.hpText, sample.label)
+            XCTAssertLessThanOrEqual(data.hpText.count, 5)
+            XCTAssertEqual(
+                data.hpFraction,
+                sample.canonical / 100,
+                accuracy: 0.000_001
+            )
+            XCTAssertEqual(data.band, sample.band)
+            XCTAssertEqual(
+                PetDistressState.evaluate(
+                    hudState: state,
+                    previous: .normal
+                ),
+                sample.distress
+            )
+        }
+    }
+
     func testAuthenticationStateUsesPlaceholderValues() {
         let data = HUDPresentationData.make(
             petName: "Pet",
