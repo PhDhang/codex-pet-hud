@@ -253,6 +253,94 @@ final class PetGeometryCacheTests: XCTestCase {
         }
     }
 
+    func testPersistsShellSizedGeometryAtExactMascotCenter() throws {
+        try withTemporaryDirectory { directory in
+            let mascotBounds = CGRect(
+                x: 30,
+                y: 643,
+                width: 249,
+                height: 259
+            )
+            let shell = WindowDescriptor(
+                owner: "ChatGPT",
+                name: PetWindowLocator.visualWindowName,
+                layer: 3,
+                bounds: CGRect(
+                    x: 0,
+                    y: 709,
+                    width: 384,
+                    height: 126
+                ),
+                ownerPID: 51_007,
+                windowID: 102
+            )
+            let geometry = try XCTUnwrap(
+                PetWindowLocator.observe(
+                    from: [
+                        WindowDescriptor(
+                            owner: "ChatGPT",
+                            name: PetWindowLocator.exactWindowName,
+                            layer: 2,
+                            bounds: mascotBounds,
+                            ownerPID: 51_007,
+                            windowID: 101
+                        ),
+                        shell,
+                        WindowDescriptor(
+                            owner: "ChatGPT",
+                            name: "Codex Pet Composition Surface",
+                            layer: 3,
+                            bounds: CGRect(
+                                x: 0,
+                                y: 0,
+                                width: 768,
+                                height: 912
+                            ),
+                            ownerPID: 51_007,
+                            windowID: 107
+                        ),
+                    ]
+                ).visualGeometry
+            )
+            let cache = PetGeometryCache(
+                url: directory.appendingPathComponent(
+                    "pet-geometry.json"
+                )
+            )
+
+            XCTAssertEqual(geometry.source, .shellDerived)
+            XCTAssertTrue(
+                try cache.save(
+                    geometry,
+                    updatedAt: Date(timeIntervalSince1970: 123)
+                )
+            )
+            let cachedBounds = try XCTUnwrap(
+                cache.load()?.geometry.window.bounds
+            )
+            XCTAssertEqual(
+                cachedBounds.midX,
+                mascotBounds.midX,
+                accuracy: 0.001
+            )
+            XCTAssertEqual(
+                cachedBounds.midY,
+                mascotBounds.midY,
+                accuracy: 0.001
+            )
+            XCTAssertEqual(
+                cachedBounds.width,
+                126 * 192 / 208,
+                accuracy: 0.001
+            )
+            XCTAssertEqual(
+                cachedBounds.height,
+                126,
+                accuracy: 0.001
+            )
+        }
+    }
+
     private func exactWindow(
         id: Int,
         bounds: CGRect = CGRect(

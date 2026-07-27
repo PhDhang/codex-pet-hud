@@ -239,8 +239,10 @@ public enum PetWindowLocator {
                 name: shell.name,
                 layer: shell.layer,
                 bounds: CGRect(
-                    x: shell.bounds.midX - visualWidth / 2,
-                    y: shell.bounds.minY,
+                    x: mascotWindow.bounds.midX - visualWidth / 2,
+                    y:
+                        mascotWindow.bounds.midY -
+                        shell.bounds.height / 2,
                     width: visualWidth,
                     height: shell.bounds.height
                 ),

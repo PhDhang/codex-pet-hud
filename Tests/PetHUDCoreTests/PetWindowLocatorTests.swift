@@ -407,6 +407,7 @@ final class PetWindowLocatorTests: XCTestCase {
             observation.exactWindow?.bounds,
             CGRect(x: 105, y: 683, width: 249, height: 259)
         )
+        let exact = try XCTUnwrap(observation.exactWindow)
         let visual = try XCTUnwrap(observation.visualWindow)
         XCTAssertEqual(
             observation.visualGeometry?.source,
@@ -422,12 +423,66 @@ final class PetWindowLocatorTests: XCTestCase {
         )
         XCTAssertEqual(
             visual.bounds.midX,
-            shell.bounds.midX,
+            exact.bounds.midX,
             accuracy: 0.001
         )
         XCTAssertEqual(
             visual.bounds.midY,
-            shell.bounds.midY,
+            exact.bounds.midY,
+            accuracy: 0.001
+        )
+    }
+
+    func testLiveOffsetFixtureUsesMascotCenterAndShellHeight() throws {
+        let mascotBounds = CGRect(
+            x: 30,
+            y: 643,
+            width: 249,
+            height: 259
+        )
+        let shell = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "Codex",
+            layer: 3,
+            bounds: CGRect(
+                x: 0,
+                y: 709,
+                width: 384,
+                height: 126
+            ),
+            ownerPID: 51_007,
+            windowID: 102
+        )
+
+        let observation = PetWindowLocator.observe(
+            from: liveWindowFixture(
+                shell: shell,
+                mascotBounds: mascotBounds
+            )
+        )
+        let visualGeometry = try XCTUnwrap(
+            observation.visualGeometry
+        )
+
+        XCTAssertEqual(visualGeometry.source, .shellDerived)
+        XCTAssertEqual(
+            visualGeometry.window.bounds.midX,
+            mascotBounds.midX,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            visualGeometry.window.bounds.midY,
+            mascotBounds.midY,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            visualGeometry.window.bounds.width,
+            126 * 192 / 208,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            visualGeometry.window.bounds.height,
+            126,
             accuracy: 0.001
         )
     }
@@ -506,10 +561,12 @@ final class PetWindowLocatorTests: XCTestCase {
             ).visualWindow
         )
 
-        XCTAssertEqual(initial.bounds.midX, 244, accuracy: 0.001)
+        XCTAssertEqual(initial.bounds.midX, 229.5, accuracy: 0.001)
+        XCTAssertEqual(initial.bounds.midY, 812.5, accuracy: 0.001)
+        XCTAssertEqual(initial.bounds.width, 126 * 192 / 208, accuracy: 0.001)
         XCTAssertEqual(initial.bounds.height, 126, accuracy: 0.001)
         XCTAssertEqual(resized.bounds.midX, 550, accuracy: 0.001)
-        XCTAssertEqual(resized.bounds.midY, 604, accuracy: 0.001)
+        XCTAssertEqual(resized.bounds.midY, 605, accuracy: 0.001)
         XCTAssertEqual(resized.bounds.width, 192, accuracy: 0.001)
         XCTAssertEqual(resized.bounds.height, 208, accuracy: 0.001)
     }
