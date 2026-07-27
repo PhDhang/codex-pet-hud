@@ -13,8 +13,8 @@ RECT="$(
       kCGNullWindowID
     ) as? [[String: Any]] ?? []
     let names = Set([
-      "Codex Pet Mascot Effect",
-      "Codex Pet HUD Life Pod",
+      "Codex Pet HUD Tactical",
+      "Codex Pet HUD Pet Effect",
     ])
     let rects = rows.compactMap { row -> CGRect? in
       let name = row[kCGWindowName as String] as? String ?? ""
