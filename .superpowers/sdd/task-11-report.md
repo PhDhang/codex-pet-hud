@@ -42,6 +42,8 @@ Verification completed: 2026-07-27 19:32 CST
     `fix: require companion evidence for shell presence`
 11. `3d3bf2758baf8d7906e943457d41ed4ebffbc32f`
     `fix: center shell-sized effects on mascot`
+12. `155dccae7e58cab5bbe70726310c5507ded7f39d`
+    `fix: raise pet replacement above mascot`
 
 ## Strict TDD Evidence
 
@@ -214,3 +216,49 @@ Evidence:
 - Live healthy, panic, and critical screenshots still require recapture from
   the running app before release. This run intentionally did not fabricate a
   screenshot, launch the GUI, persist an installation, or publish anything.
+
+## Final Live Z-Order Fix
+
+Verification completed: 2026-07-27 19:40 CST
+
+### Supplied Live Evidence and Root Cause
+
+- The supplied effect-only capture renders exactly one custom panic pet.
+- The supplied native-only capture renders the original ChatGPT mascot.
+- Their union renders both because the replacement effect panel was at
+  `.floating`, below the ChatGPT Mascot window.
+
+The root cause was a shared `ClickThroughPanel` initializer that assigned
+`.floating` unconditionally to both the tactical HUD and pet-effect panels.
+
+### Fix and Preserved Behavior
+
+- `ClickThroughPanel` now accepts an explicit public `NSWindow.Level`.
+- `PetEffectPanelController` requests `.statusBar`, placing the replacement
+  above the native mascot without private APIs or extra permissions.
+- `TacticalHUDPanelController` explicitly retains `.floating`.
+- The existing `.nonactivatingPanel`, `ignoresMouseEvents = true`,
+  `.canJoinAllSpaces`, `.fullScreenAuxiliary`, and non-key/non-main behavior
+  remain unchanged.
+
+### Strict TDD Evidence
+
+- RED: `bash Tests/Shell/tactical-ui.bats` exited `1` after adding a source
+  contract requiring `level: .statusBar` in the effect controller and
+  `level: .floating` in the tactical controller. The effect assertion was
+  absent before the implementation.
+- GREEN: the same focused shell contract exited `0` after the smallest change:
+  parameterize the shared initializer, pass `.statusBar` to the effect, and
+  pass `.floating` explicitly to tactical HUD.
+
+### Verification at Implementation Commit
+
+- `swift test --disable-sandbox`: `141` tests, `0` failures, exit `0`.
+- Every `Tests/Shell/*.bats` suite: exit `0`, including source contracts,
+  signed build, and isolated install/uninstall cycles.
+- `scripts/build-app.sh` produced an ad-hoc signed bundle and its strict
+  `codesign` verification succeeded; no persistent installation occurred.
+- `git diff --check` and the base-to-change diff check against
+  `305c256c688197c0b53d3f5ce9b00df585d04a57` exited `0` before commit.
+- No GUI application, persistent install, publish, branch push, pull request,
+  tag, or release was performed for this fix.
