@@ -6,6 +6,23 @@ import XCTest
 @testable import PetHUDCore
 
 final class PetAtlasTests: XCTestCase {
+    func testExtractsAllRunningRightFrames() throws {
+        try withTemporaryDirectory { directory in
+            let manifest = try writeManifestAndAtlas(
+                directory: directory
+            )
+
+            let frames = try PetAtlas.rowImages(
+                manifest: manifest,
+                row: .runningRight
+            )
+
+            XCTAssertEqual(frames.count, 8)
+            XCTAssertEqual(frames[0].width, 192)
+            XCTAssertEqual(frames[0].height, 208)
+        }
+    }
+
     func testExtractsTopLeftNeutralCellFromEightByElevenAtlas() throws {
         try withTemporaryDirectory { root in
             let petDirectory = root.appendingPathComponent(
@@ -39,8 +56,8 @@ final class PetAtlasTests: XCTestCase {
                 manifest: manifest
             )
 
-            XCTAssertEqual(image.width, 2)
-            XCTAssertEqual(image.height, 2)
+            XCTAssertEqual(image.width, 192)
+            XCTAssertEqual(image.height, 208)
             let bitmap = NSBitmapImageRep(cgImage: image)
             let color = try XCTUnwrap(
                 bitmap.colorAt(x: 0, y: 0)?
@@ -93,8 +110,8 @@ final class PetAtlasTests: XCTestCase {
     }
 
     private func writeAtlas(to url: URL) throws {
-        let width = 16
-        let height = 22
+        let width = 192 * 8
+        let height = 208 * 11
         let bytesPerPixel = 4
         var pixels = [UInt8](
             repeating: 0,
@@ -104,7 +121,7 @@ final class PetAtlasTests: XCTestCase {
         for y in 0..<height {
             for x in 0..<width {
                 let offset = (y * width + x) * bytesPerPixel
-                let isNeutral = x < 2 && y < 2
+                let isNeutral = x < 192 && y < 208
                 pixels[offset] = isNeutral ? 255 : 0
                 pixels[offset + 1] = 0
                 pixels[offset + 2] = isNeutral ? 0 : 255
@@ -118,6 +135,35 @@ final class PetAtlasTests: XCTestCase {
             height: height,
             to: url
         )
+    }
+
+    private func writeManifestAndAtlas(
+        directory: URL
+    ) throws -> PetManifest {
+        let petDirectory = directory.appendingPathComponent(
+            "pet",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: petDirectory,
+            withIntermediateDirectories: true
+        )
+        let spritesheetURL = petDirectory
+            .appendingPathComponent("spritesheet.png")
+        try writeAtlas(to: spritesheetURL)
+        try Data(
+            """
+            {
+              "id": "pet",
+              "displayName": "Pet",
+              "spriteVersionNumber": 2,
+              "spritesheetPath": "spritesheet.png"
+            }
+            """.utf8
+        ).write(
+            to: petDirectory.appendingPathComponent("pet.json")
+        )
+        return try PetManifest.load(directory: petDirectory)
     }
 
     private func writeSolidImage(
