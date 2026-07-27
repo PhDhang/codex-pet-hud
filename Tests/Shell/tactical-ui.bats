@@ -15,7 +15,13 @@ grep -F 'ForEach(0..<7' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'frameSize: frame.size' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
-grep -F 'PanelGeometry.tacticalHUDContentScale' \
+grep -F 'TacticalHUDLayoutMetrics' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'metrics.flameWidth' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'metrics.statusFontSize' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'rowHeight: metrics.flameHeight' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'data.statusLabel' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"

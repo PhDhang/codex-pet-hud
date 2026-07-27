@@ -14,11 +14,6 @@ public struct DisplayDescriptor: Equatable, Sendable {
 }
 
 public enum PanelGeometry {
-    public static let tacticalHUDContentDesignSize = CGSize(
-        width: 360,
-        height: 72
-    )
-
     public static func appKitPetFrame(
         pet: CGRect,
         displays: [DisplayDescriptor]
@@ -108,15 +103,6 @@ public enum PanelGeometry {
             height: height
         )
         return clamp(frame, to: display.appKitFrame)
-    }
-
-    public static func tacticalHUDContentScale(
-        for frame: CGRect
-    ) -> CGFloat {
-        min(
-            max(0, frame.width / tacticalHUDContentDesignSize.width),
-            max(0, frame.height / tacticalHUDContentDesignSize.height)
-        )
     }
 
     public static func petEffectFrame(

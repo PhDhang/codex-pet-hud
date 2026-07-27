@@ -39,37 +39,6 @@ final class PanelGeometryTests: XCTestCase {
         XCTAssertGreaterThan(frame.minY, 305)
     }
 
-    func testTacticalHUDContentScaleUsesActualCompactFrame() {
-        let compact = PanelGeometry.tacticalHUDContentScale(
-            for: CGRect(
-                x: 0,
-                y: 0,
-                width: 136.5,
-                height: 37.7
-            )
-        )
-        let standard = PanelGeometry.tacticalHUDContentScale(
-            for: CGRect(
-                x: 0,
-                y: 0,
-                width: 210,
-                height: 58
-            )
-        )
-        let expanded = PanelGeometry.tacticalHUDContentScale(
-            for: CGRect(
-                x: 0,
-                y: 0,
-                width: 576,
-                height: 92.8
-            )
-        )
-
-        XCTAssertEqual(compact, 136.5 / 360, accuracy: 0.001)
-        XCTAssertEqual(standard, 210 / 360, accuracy: 0.001)
-        XCTAssertEqual(expanded, 92.8 / 72, accuracy: 0.001)
-    }
-
     func testTacticalHUDPreservesOffsetsAfterResize() throws {
         let small = try XCTUnwrap(
             PanelGeometry.tacticalHUDFrame(

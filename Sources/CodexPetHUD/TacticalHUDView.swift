@@ -8,12 +8,16 @@ struct TacticalHUDView: View {
     private var reduceMotion
 
     var body: some View {
+        let metrics = TacticalHUDLayoutMetrics(
+            frameSize: frameSize
+        )
         ZStack {
             tacticalBackground
-            VStack(spacing: 6) {
+            VStack(spacing: metrics.rowSpacing) {
                 meterRow(
                     label: "HP",
-                    trailing: data.hpText
+                    trailing: data.hpText,
+                    rowHeight: metrics.hpRowHeight
                 ) {
                     GeometryReader { geometry in
                         Capsule()
@@ -28,57 +32,56 @@ struct TacticalHUDView: View {
                                     )
                             }
                     }
-                    .frame(height: 9)
+                    .frame(height: metrics.hpBarHeight)
                 }
                 meterRow(
                     label: "SP",
                     trailing: data.resetText.uppercased(),
+                    rowHeight: metrics.flameHeight,
                     accessibilityValue: spAccessibilityValue
                 ) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: metrics.flameSpacing) {
                         ForEach(0..<7, id: \.self) { index in
                             FlameCellView(
                                 isLit: index < data.spCellsLit
                             )
-                            .frame(width: 15, height: 19)
+                            .frame(
+                                width: metrics.flameWidth,
+                                height: metrics.flameHeight
+                            )
                             .accessibilityHidden(true)
                         }
                     }
+                    .frame(height: metrics.flameHeight)
                 }
                 Text(data.statusLabel)
                     .font(
                         .system(
-                            size: 8,
+                            size: metrics.statusFontSize,
                             weight: .black,
                             design: .monospaced
                         )
                     )
-                    .tracking(1.4)
+                    .tracking(metrics.statusTracking)
                     .foregroundStyle(
                         data.band == .critical
                             ? Color.red
                             : Color.cyan
                     )
+                    .frame(height: metrics.statusRowHeight)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
+            .padding(.horizontal, metrics.horizontalPadding)
+            .padding(.vertical, metrics.verticalPadding)
             .frame(
-                width: PanelGeometry.tacticalHUDContentDesignSize.width,
-                height: PanelGeometry.tacticalHUDContentDesignSize.height
+                width: frameSize.width,
+                height: frameSize.height
             )
-            .scaleEffect(contentScale)
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .allowsHitTesting(false)
         .animation(
             reduceMotion ? nil : .easeInOut(duration: 0.8),
             value: data.spCellsLit
-        )
-    }
-
-    private var contentScale: CGFloat {
-        PanelGeometry.tacticalHUDContentScale(
-            for: CGRect(origin: .zero, size: frameSize)
         )
     }
 
@@ -90,12 +93,16 @@ struct TacticalHUDView: View {
     private func meterRow<Content: View>(
         label: String,
         trailing: String,
+        rowHeight: CGFloat,
         accessibilityValue: String? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        HStack(spacing: 7) {
+        let metrics = TacticalHUDLayoutMetrics(
+            frameSize: frameSize
+        )
+        return HStack(spacing: metrics.columnSpacing) {
             Text(label)
-                .frame(width: 26, alignment: .leading)
+                .frame(width: metrics.labelWidth, alignment: .leading)
                 .foregroundStyle(
                     data.band == .critical
                         ? Color.red
@@ -104,12 +111,12 @@ struct TacticalHUDView: View {
             content()
                 .frame(maxWidth: .infinity)
             Text(trailing)
-                .frame(width: 42, alignment: .trailing)
+                .frame(width: metrics.trailingWidth, alignment: .trailing)
                 .foregroundStyle(Color.white)
         }
         .font(
             .system(
-                size: 10,
+                size: metrics.meterFontSize,
                 weight: .black,
                 design: .monospaced
             )
@@ -117,17 +124,26 @@ struct TacticalHUDView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(label)
         .accessibilityValue(accessibilityValue ?? trailing)
+        .frame(height: rowHeight)
     }
 
     private var tacticalBackground: some View {
-        TacticalPanelShape(cut: 8)
+        TacticalPanelShape(
+            cut: TacticalHUDLayoutMetrics(
+                frameSize: frameSize
+            ).cornerCut
+        )
             .fill(
                 Color.black.opacity(
                     data.band == .critical ? 0.88 : 0.78
                 )
             )
             .overlay {
-                TacticalPanelShape(cut: 8)
+                TacticalPanelShape(
+                    cut: TacticalHUDLayoutMetrics(
+                        frameSize: frameSize
+                    ).cornerCut
+                )
                     .stroke(
                         data.band == .critical
                             ? Color.red
