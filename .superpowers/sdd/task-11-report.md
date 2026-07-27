@@ -46,6 +46,8 @@ Verification completed: 2026-07-27 19:32 CST
     `fix: raise pet replacement above mascot`
 13. `a8e5756c247e80565df45a13f3bb7caf23549050`
     `test: enforce injected click-through panel level`
+14. `220af232950505c5026a0a92e5a486ced760eabe`
+    `test: prevent click-through panel level resets`
 
 ## Strict TDD Evidence
 
@@ -288,3 +290,23 @@ or reset it later.
 - All seven `Tests/Shell/*.bats` suites completed with exit `0`, including
   signed build and isolated install-cycle validation.
 - `git diff --check` passed before the test commit.
+
+## Reviewer Follow-Up: Qualified Level Reset Bypass
+
+Verification completed: 2026-07-27 19:49 CST
+
+The prior reset check matched only `level = .` syntax, so a qualified RHS such
+as `NSWindow.Level.floating` could bypass it.
+
+- The source contract extracts the `ClickThroughPanel` initializer, collects
+  every assignment whose target ends in `level`, requires exactly one such
+  assignment, then normalizes it and requires `self.level = level`.
+- RED: adding `self.level = .floating` after the injected assignment made
+  `bash Tests/Shell/tactical-ui.bats` exit `1` with the exactly-once failure.
+- RED: replacing that mutation with `self.level = NSWindow.Level.floating`
+  produced the same exactly-once failure.
+- GREEN: restoring only `self.level = level` made the focused tactical shell
+  contract exit `0`.
+- All seven `Tests/Shell/*.bats` suites passed, including the isolated source
+  install suite and its `141` Swift tests; `git diff --check` passed before
+  the test commit.
