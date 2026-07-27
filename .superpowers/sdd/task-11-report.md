@@ -1,6 +1,6 @@
 # Task 11 Final-Review Verification Report
 
-Verification completed: 2026-07-27 19:05 CST
+Verification completed: 2026-07-27 19:14 CST
 
 ## Scope and Safety
 
@@ -10,7 +10,7 @@ Verification completed: 2026-07-27 19:05 CST
 - Final re-review base:
   `f958958705397ddd3c69543d46208f7718b54644`
 - Verified implementation HEAD:
-  `e1d97cdfdbd56ed2b3b855c11b8c7a440ef66249`
+  `1f7f264b4d6ba559e057280ece26aa27755a2cf9`
 - No persistent app, LaunchAgent, pet asset, or Skill installation occurred.
 - Install and uninstall tests used temporary isolated `HOME` directories.
 - No GUI application was launched.
@@ -36,6 +36,8 @@ Verification completed: 2026-07-27 19:05 CST
    `fix: keep critical art centered at edges`
 9. `e1d97cdfdbd56ed2b3b855c11b8c7a440ef66249`
    `fix: model contained native pet cover`
+10. `1f7f264b4d6ba559e057280ece26aa27755a2cf9`
+    `fix: require companion evidence for shell presence`
 
 ## Strict TDD Evidence
 
@@ -58,12 +60,22 @@ Verification completed: 2026-07-27 19:05 CST
 - RED: exact mascot, named shell, named composition, and title-redacted
   signals could independently return early and hide cross-signal PID
   ambiguity.
-- GREEN: one candidate PID set spans every stable signal. Exactly one PID
-  qualifies; multiple named, exact, mixed named/redacted, or redacted
-  candidates fail closed and cannot revive retained or restored geometry.
+- GREEN: one candidate PID set spans exact mascot, named companion, and
+  complete redacted-cluster signals. Exactly one PID qualifies; multiple
+  named, exact, mixed named/redacted, or redacted candidates fail closed and
+  cannot revive retained or restored geometry.
+- Final P1 RED: a lone generic layer-3 `Codex` shell independently qualified
+  as stable presence and revived matching restored geometry. Shell-derived
+  geometry could also use a PID different from the qualifying companion.
+- Final P1 GREEN: the visual shell is geometry corroboration only. A lone
+  shell reports no stable PID and cannot revive cache; shell-derived geometry
+  requires the unique qualifying companion PID. Exact mascot and valid named
+  companion behavior remains stable.
 - Evidence:
   `.superpowers/sdd/final-rereview-artifacts/red-presence.log`,
-  `.superpowers/sdd/final-rereview-artifacts/green-presence.log`
+  `.superpowers/sdd/final-rereview-artifacts/green-presence.log`,
+  `.superpowers/sdd/final-rereview-artifacts/red-lone-shell.log`,
+  `.superpowers/sdd/final-rereview-artifacts/green-lone-shell.log`
 
 ### Effect Containment
 
@@ -127,11 +139,11 @@ swift test --disable-sandbox
 
 Result:
 
-- `135` tests
+- `139` tests
 - `0` failures
 - Exit `0`
 - Evidence:
-  `.superpowers/sdd/final-rereview-artifacts/full-swift.log`
+  `.superpowers/sdd/final-rereview-artifacts/full-lone-shell-swift.log`
 
 ### Shell
 
@@ -148,21 +160,21 @@ Every suite passed:
 | `Tests/Shell/tactical-ui.bats` | PASS |
 
 Evidence:
-`.superpowers/sdd/final-rereview-artifacts/all-shell-summary.txt`
+`.superpowers/sdd/final-rereview-artifacts/all-shell-lone-shell-summary.txt`
 
 ### Signed Build and Install Cycle
 
 - `codesign --verify --deep --strict --verbose=4`: exit `0`
 - Signature: ad hoc, arm64
 - Identifier: `com.codex-pet-hud.app`
-- CDHash: `fbfa58a5fb57ab90d9ff256abb8122ab4ff42860`
+- CDHash: `2d135e737c0a1d17dd8011dc413dc19e9188d8c9`
 - `CFBundleShortVersionString`: `0.3.0`
 - `CFBundleVersion`: `3`
 - Binary SHA-256:
-  `4b5337e35172e5692718660da195685569f14538c38b00a1a457267e212bb37b`
+  `4f305e65dcfe83dc07fab5891fd785ddaaec24cf328a5152caaa2b66363bb0fd`
 - Isolated install, ordinary uninstall, and purge uninstall passed.
 - Evidence:
-  `.superpowers/sdd/final-rereview-artifacts/final-gates.log`
+  `.superpowers/sdd/final-rereview-artifacts/lone-shell-final-gates.log`
 
 ### Final Gates
 
