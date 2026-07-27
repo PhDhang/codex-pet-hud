@@ -37,3 +37,32 @@ grep -F 'accessibilityValue: spAccessibilityValue' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F '.accessibilityValue(accessibilityValue ?? trailing)' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+test -f "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+test -f "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
+test -f "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F 'Codex Pet HUD Pet Effect' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F '🌀' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F '🐦' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F '@Environment(\.accessibilityReduceMotion)' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'let duration = 2.4' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'let movingRight = reduceMotion || progress < 0.5' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'min(geometry.size.width * 0.18, 28)' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'let bounce = -abs(sin(local * .pi * 2)) * 4' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'assets.criticalImage' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'assets.failedFrames' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'let orbitDuration = 3.0' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'guard state != .normal else' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+! grep -F '.rotationEffect(.degrees(76))' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
