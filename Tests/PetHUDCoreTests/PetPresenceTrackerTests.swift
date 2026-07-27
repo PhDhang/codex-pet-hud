@@ -50,6 +50,51 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testColdFallbackGeometryConfirmsPresence() {
+        var tracker = PetPresenceTracker()
+        let fallback = fallbackWindow(id: 78, x: 24)
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: fallback,
+                    hasStablePresence: false
+                ),
+                now: Date(timeIntervalSince1970: 100)
+            ),
+            fallback
+        )
+    }
+
+    func testRepeatedFallbackGeometryDoesNotEnterAbsence() {
+        var tracker = PetPresenceTracker()
+        let start = Date(timeIntervalSince1970: 100)
+        _ = tracker.update(
+            observation: .init(
+                exactWindow: exactWindow(id: 79),
+                hasStablePresence: true
+            ),
+            now: start
+        )
+
+        for (offset, x) in [(0.5, 30.0), (1.5, 42.0), (2.5, 54.0)] {
+            let fallback = fallbackWindow(
+                id: 80,
+                x: CGFloat(x)
+            )
+            XCTAssertEqual(
+                tracker.update(
+                    observation: .init(
+                        exactWindow: fallback,
+                        hasStablePresence: false
+                    ),
+                    now: start.addingTimeInterval(offset)
+                ),
+                fallback
+            )
+        }
+    }
+
     func testRetainsGeometryWhileIdleShellRemainsPresent() {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
@@ -127,6 +172,25 @@ final class PetPresenceTrackerTests: XCTestCase {
             layer: 2,
             bounds: CGRect(
                 x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: 1,
+            windowID: id
+        )
+    }
+
+    private func fallbackWindow(
+        id: Int,
+        x: CGFloat
+    ) -> WindowDescriptor {
+        WindowDescriptor(
+            owner: "ChatGPT",
+            name: "",
+            layer: 2,
+            bounds: CGRect(
+                x: x,
                 y: 775,
                 width: 243,
                 height: 252

@@ -22,6 +22,7 @@ grep -F 'PetPresenceTracker' "$SOURCE"
 grep -F 'PetGeometryCache' "$SOURCE"
 grep -F 'TacticalHUDPanelController' "$SOURCE"
 grep -F 'PetEffectPanelController' "$SOURCE"
+grep -F 'render(model.reduce(.clockTick(Date())))' "$SOURCE"
 
 if grep -F 'PetWindowTracker' \
   "$ROOT/Sources/PetHUDCore/PetPresenceTracker.swift"

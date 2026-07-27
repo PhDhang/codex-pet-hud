@@ -27,7 +27,10 @@ public struct PetPresenceTracker: Sendable {
         if let exact = observation.exactWindow {
             lastGeometry = exact
         }
-        if observation.hasStablePresence {
+        if
+            observation.exactWindow != nil ||
+            observation.hasStablePresence
+        {
             hasConfirmedPresence = true
             absenceStartedAt = nil
             absentObservationCount = 0

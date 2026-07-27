@@ -59,7 +59,7 @@ public struct ApplicationModel: Sendable {
             petWindow = window
         case let .quotaLoaded(snapshot):
             self.snapshot = snapshot
-            now = snapshot.fetchedAt
+            now = max(now, snapshot.fetchedAt)
             hudState = HUDState.evaluate(
                 snapshot: snapshot,
                 now: now

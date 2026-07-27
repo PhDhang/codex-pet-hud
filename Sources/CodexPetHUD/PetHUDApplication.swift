@@ -134,7 +134,8 @@ final class PetHUDCoordinator {
                 model.reduce(.quotaLoaded(mockSnapshot))
             )
         } else if let cached = try? cache.load() {
-            render(model.reduce(.quotaLoaded(cached)))
+            _ = model.reduce(.quotaLoaded(cached))
+            render(model.reduce(.clockTick(Date())))
         }
 
         updatePetWindow()

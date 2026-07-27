@@ -68,6 +68,24 @@ final class ApplicationModelTests: XCTestCase {
         XCTAssertEqual(presentation.distressState, .critical)
     }
 
+    func testStaleCriticalSnapshotIsNormalFromFirstPresentation() {
+        let current = Date(timeIntervalSince1970: 10_301)
+        let staleSnapshot = snapshot(remaining: 2)
+        var model = ApplicationModel(now: current)
+        _ = model.reduce(.petWindowChanged(petWindow))
+
+        let presentation = model.reduce(
+            .quotaLoaded(staleSnapshot)
+        )
+
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.distressState, .normal)
+        XCTAssertEqual(
+            presentation.hudState,
+            .stale(snapshot: staleSnapshot)
+        )
+    }
+
     func testAuthenticationFailureKeepsHUDVisible() {
         var model = ApplicationModel()
         _ = model.reduce(.petWindowChanged(petWindow))
