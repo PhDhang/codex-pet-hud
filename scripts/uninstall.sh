@@ -15,6 +15,8 @@ fi
 APP="$HOME/Applications/Codex Pet HUD.app"
 PLIST="$HOME/Library/LaunchAgents/com.codex-pet-hud.agent.plist"
 CONFIG_DIRECTORY="$HOME/.config/codex-pet-hud"
+LOG_DIRECTORY="$HOME/Library/Logs/CodexPetHUD"
+SUPPORT_DIRECTORY="$HOME/Library/Application Support/CodexPetHUD"
 
 if [ "${CODEX_PET_HUD_TESTING:-0}" != "1" ] &&
   [ -f "$PLIST" ]; then
@@ -26,6 +28,8 @@ rm -f "$PLIST"
 
 if [ "$PURGE" -eq 1 ]; then
   rm -rf "$CONFIG_DIRECTORY"
+  rm -rf "$LOG_DIRECTORY"
+  rm -rf "$SUPPORT_DIRECTORY"
 fi
 
 printf 'Uninstalled Codex Pet HUD.\n'

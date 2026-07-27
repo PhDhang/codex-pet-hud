@@ -18,7 +18,7 @@ ambiguous windows or assets, and use redacted diagnostics.
 - Never read browser cookies or request Accessibility or Screen Recording.
 - Select exactly one v2 pet; do not guess when checks find multiple candidates.
 - Prefer `Codex Pet Mascot Effect`. With title-redacted LaunchAgent windows,
-  require same-PID companion evidence including a layer-3 `20...32` point voice
+  require same PID companion evidence including a layer-3 `20...32` point voice
   control; hide on ambiguity.
 - Build and test before installing or copying assets.
 
@@ -34,7 +34,8 @@ If more than one v2 pet is reported, ask the user to choose one exact pet
 directory. Resolve source from the project root, bundled public repository,
 `CODEX_PET_HUD_REPO_URL`, or an explicit `--repo` fork.
 
-2. Run Swift and shell tests before installation:
+2. For a local repository checkout, run Swift and shell tests before
+installation:
 
 ```bash
 swift test --disable-sandbox
@@ -43,14 +44,16 @@ for test_script in Tests/Shell/*.bats; do
 done
 ```
 
-3. Build and install:
+3. Build and install the checked repository:
 
 ```bash
 scripts/build-app.sh
 scripts/install.sh --pet-path "$PET_PATH"
 ```
 
-For remote source installation:
+For remote source installation, the installer clones and checks out the source
+first, runs the same Swift and non-recursive shell checks, then builds and
+installs only when those checks pass:
 
 ```bash
 skills/codex-pet-hud/scripts/install-from-source.sh --ref main --pet-path "$PET_PATH"
@@ -98,19 +101,20 @@ Use the existing v2 atlas for generic panic and critical fallbacks. For custom
 prone critical art or a new pet, **REQUIRED SUB-SKILL:** Use `hatch-pet`; do not
 generate or rotate artwork in this Skill.
 
-Copy optional effects only after validating the selected pet path and image:
+Copy optional effects only after confirming the selected pet directory and example files exist:
 
 ```bash
 test -d "$PET_PATH"
 test -f Examples/yicha/hud-critical.png
 test -f Examples/yicha/hud-effects.json
-cp Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png"
-cp Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json"
+cp -n Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png"
+cp -n Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json"
 ```
 
 Yicha is an example only. `hud-effects.json` must keep relative asset paths
 inside the selected pet directory; malformed metadata, missing images, and unsafe
-paths fall back safely without hiding the HUD.
+paths fall back safely without hiding the HUD. These shell checks do not validate arbitrary images or manifests; the app validates loaded effect assets.
+The copy commands refuse to overwrite existing installed assets.
 
 ## Repair and Rollback
 
@@ -127,6 +131,8 @@ scripts/uninstall.sh
 ```bash
 scripts/uninstall.sh --purge
 ```
+
+`--purge` also removes the quota snapshot, geometry cache, and app logs.
 
 ## Bundled Tools
 

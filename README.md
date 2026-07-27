@@ -12,18 +12,20 @@ task. HP shows weekly quota remaining; seven SP flames show reset progress.
 
 ## Tactical HUD
 
-Fresh or cached HP always shows the rounded weekly percentage. Bands are
-`>90%` emerald, `51–90%` green, `10–50%` amber, `4–9%` red, and `≤3%`
-bright red. Cached data shows `STALE` and never drives effects.
+Fresh snapshots less than five minutes old show the rounded weekly HP
+percentage. Bands are `>90%` emerald, `51–90%` green, `10–50%` amber, `4–9%`
+red, and `≤3%` bright red. From five minutes until 30 minutes, the last values
+remain with `STALE` and never drive effects. At 30 minutes or later, the HUD is
+`OFFLINE` with `--` values.
 
 SP always has seven rounded three-layer flames. Lit flames are
 red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
 one elapsed seventh of the weekly reset window, from zero lit at a new window to
 seven at reset.
 
-Fresh `4–9%` HP enables a compact spiral-eye panic run. Fresh `≤3%` HP enables
-the prone critical state, which clears only above `5%`. Missing or invalid
-effect assets use generic v2 fallbacks without hiding the tactical HUD.
+Fresh `4–9%` HP enables a compact spiral-eye panic run. The critical threshold
+is fixed at `≤3%`; critical clears only above `5%`. Missing or invalid effect
+assets use generic v2 fallbacks without hiding the tactical HUD.
 
 ## Idle Presence and Alignment
 
@@ -55,7 +57,9 @@ Run a redacted diagnostic check:
 
 The installer writes private configuration and a per-user LaunchAgent. Settings
 live at `$HOME/.config/codex-pet-hud/config.json`; refresh is at least five
-minutes, critical threshold is `0...10%`, and X/Y offsets are `-300...300`.
+minutes and X/Y offsets are `-300...300`. The legacy
+`criticalThresholdPercent` setting is retained for compatibility, but tactical
+critical behavior remains fixed at `≤3%` enter and above `5%` recovery.
 
 ## Optional Per-Pet Effects
 
@@ -63,14 +67,15 @@ Generic v2 fallback effects need no extra files. Yicha is only an example; copy
 its checked effect image and manifest into the selected Yicha directory:
 
 ```bash
-cp Examples/yicha/hud-critical.png "$HOME/.codex/pets/yicha/hud-critical.png"
-cp Examples/yicha/hud-effects.json "$HOME/.codex/pets/yicha/hud-effects.json"
+cp -n Examples/yicha/hud-critical.png "$HOME/.codex/pets/yicha/hud-critical.png"
+cp -n Examples/yicha/hud-effects.json "$HOME/.codex/pets/yicha/hud-effects.json"
 ```
 
 `hud-effects.json` may reference only regular image files relative to the pet
-directory. Invalid paths, metadata, and images are rejected safely. Use
-`hatch-pet` to create custom prone critical art; do not modify the original
-spritesheet.
+directory. The copy commands confirm only that the example source files exist
+and refuse to overwrite an installed asset; the app validates relative paths,
+containment, and readable assets at load time. Use `hatch-pet` to create custom
+prone critical art; do not modify the original spritesheet.
 
 ## Skill, Uninstall, and Privacy
 
@@ -86,11 +91,16 @@ Keep configuration while uninstalling:
 scripts/uninstall.sh
 ```
 
+Without `--purge`, configuration, caches, and logs remain.
+
 Remove the app, LaunchAgent, logs, and settings:
 
 ```bash
 scripts/uninstall.sh --purge
 ```
+
+`--purge` also removes the quota snapshot and geometry cache from
+`Library/Application Support/CodexPetHUD`.
 
 The app makes one read-only quota request and never logs credentials, account
 IDs, emails, cookies, or raw provider responses. It uses public window metadata

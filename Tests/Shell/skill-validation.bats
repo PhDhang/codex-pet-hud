@@ -31,6 +31,12 @@ done
 grep -i 'resize' "$SKILL/SKILL.md" >/dev/null
 grep -F 'same PID' "$SKILL/SKILL.md" >/dev/null
 grep -F '20...32' "$SKILL/references/troubleshooting.md" >/dev/null
+grep -F 'confirming the selected pet directory and example files exist' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'do not validate arbitrary images or manifests' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'cp -n Examples/yicha/hud-critical.png' \
+  "$SKILL/SKILL.md" >/dev/null
 
 if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2
