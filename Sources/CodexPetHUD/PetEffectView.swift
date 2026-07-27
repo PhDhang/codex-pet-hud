@@ -5,25 +5,36 @@ import SwiftUI
 struct PetEffectView: View {
     let state: PetDistressState
     let assets: PetEffectAssets
+    let layout: PetEffectLayout
     @Environment(\.accessibilityReduceMotion)
     private var reduceMotion
+    private let nativePetMaskColor = Color(
+        red: 0.035,
+        green: 0.012,
+        blue: 0.025
+    )
 
     var body: some View {
         TimelineView(.animation) { timeline in
-            GeometryReader { geometry in
-                switch state {
-                case .normal:
+            GeometryReader { _ in
+                ZStack {
                     Color.clear
-                case .panic:
-                    panicView(
-                        date: timeline.date,
-                        geometry: geometry
-                    )
-                case .critical:
-                    criticalView(
-                        date: timeline.date,
-                        geometry: geometry
-                    )
+                        .frame(
+                            width: layout.panelSize.width,
+                            height: layout.panelSize.height
+                        )
+                    switch state {
+                    case .normal:
+                        Color.clear
+                    case .panic:
+                        panicView(
+                            date: timeline.date
+                        )
+                    case .critical:
+                        criticalView(
+                            date: timeline.date
+                        )
+                    }
                 }
             }
         }
@@ -32,8 +43,7 @@ struct PetEffectView: View {
     }
 
     private func panicView(
-        date: Date,
-        geometry: GeometryProxy
+        date: Date
     ) -> some View {
         let duration = 2.4
         let progress =
@@ -46,46 +56,30 @@ struct PetEffectView: View {
                 ? progress * 2
                 : (progress - 0.5) * 2
         let eased = 0.5 - cos(local * .pi) / 2
-        let travel = min(geometry.size.width * 0.18, 28)
+        let travel = layout.travel
         let x =
             movingRight
                 ? -travel + eased * travel * 2
                 : travel - eased * travel * 2
         let bounce = -abs(sin(local * .pi * 2)) * 4
-        let frames =
-            movingRight
-                ? assets.panicFramesRight
-                : assets.panicFramesLeft
+        let selection = PetEffectFrameSelection.panic(
+            customFrameCount:
+                assets.panicCustomFrames?.count ?? 0,
+            movingRight: movingRight
+        )
+        let selected = panicFrames(for: selection)
         let frameProgress = reduceMotion ? 0 : local
         let frame = animationFrame(
             progress: frameProgress,
-            frames: frames
+            frames: selected.frames
         )
-        let spriteSize = CGSize(
-            width: geometry.size.width / 1.35,
-            height: geometry.size.height / 1.10
-        )
+        let spriteSize = layout.localPetFrame.size
         let movingX = reduceMotion ? 0 : x
         let movingY = reduceMotion ? 0 : bounce
         let spiralAngle = reduceMotion ? 0 : progress * 720
 
         return ZStack {
-            RoundedRectangle(cornerRadius: 26)
-                .fill(
-                    Color(
-                        red: 0.28,
-                        green: 0.02,
-                        blue: 0.06
-                    )
-                    .opacity(0.82)
-                )
-                .overlay {
-                    RoundedRectangle(cornerRadius: 26)
-                        .stroke(
-                            Color.red.opacity(0.28),
-                            lineWidth: 1
-                        )
-                }
+            nativePetMask(frame: layout.localPetFrame)
 
             ZStack {
                 Image(
@@ -96,14 +90,20 @@ struct PetEffectView: View {
                 .resizable()
                 .interpolation(.none)
                 .scaledToFit()
+                .scaleEffect(
+                    x: selected.mirrored ? -1 : 1,
+                    y: 1
+                )
                 spiralEye(
                     at: assets.leftEye,
                     in: spriteSize,
+                    mirrored: selected.mirrored,
                     rotation: spiralAngle
                 )
                 spiralEye(
                     at: assets.rightEye,
                     in: spriteSize,
+                    mirrored: selected.mirrored,
                     rotation: -spiralAngle
                 )
             }
@@ -111,13 +111,15 @@ struct PetEffectView: View {
                 width: spriteSize.width,
                 height: spriteSize.height
             )
-            .offset(x: movingX, y: movingY)
+            .position(
+                x: layout.localPetFrame.midX + movingX,
+                y: layout.localPetFrame.midY + movingY
+            )
         }
     }
 
     private func criticalView(
-        date: Date,
-        geometry: GeometryProxy
+        date: Date
     ) -> some View {
         let orbitDuration = 3.0
         let progress =
@@ -131,9 +133,13 @@ struct PetEffectView: View {
             frames: assets.failedFrames
         )
         let image = assets.criticalImage ?? fallback
+        let availableSize =
+            assets.criticalImage == nil
+                ? layout.localPetFrame.size
+                : layout.localEffectFrame.size
         let fittedSize = aspectFitSize(
             image: image,
-            in: geometry.size
+            in: availableSize
         )
         let imageSize = CGSize(
             width:
@@ -144,8 +150,12 @@ struct PetEffectView: View {
                 CGFloat(assets.criticalScale)
         )
         let imageOrigin = CGPoint(
-            x: (geometry.size.width - imageSize.width) / 2,
-            y: geometry.size.height - imageSize.height
+            x:
+                layout.localPetFrame.midX -
+                imageSize.width / 2,
+            y:
+                layout.localPetFrame.midY -
+                imageSize.height / 2
         )
         let head = CGPoint(
             x:
@@ -163,8 +173,7 @@ struct PetEffectView: View {
         let radiusY = min(imageSize.height * 0.12, 24)
 
         return ZStack {
-            RoundedRectangle(cornerRadius: 26)
-                .fill(Color.red.opacity(0.12))
+            nativePetMask(frame: layout.localPetFrame)
 
             Image(
                 decorative: image,
@@ -226,6 +235,7 @@ struct PetEffectView: View {
     private func spiralEye(
         at anchor: NormalizedPoint,
         in size: CGSize,
+        mirrored: Bool,
         rotation: Double
     ) -> some View {
         Text("🌀")
@@ -236,8 +246,57 @@ struct PetEffectView: View {
             )
             .rotationEffect(.degrees(rotation))
             .position(
-                x: size.width * CGFloat(anchor.x),
+                x:
+                    size.width *
+                    CGFloat(
+                        mirrored
+                            ? 1 - anchor.x
+                            : anchor.x
+                    ),
                 y: size.height * CGFloat(anchor.y)
+            )
+    }
+
+    private func panicFrames(
+        for selection: PetEffectFrameSelection
+    ) -> (frames: [CGImage], mirrored: Bool) {
+        switch selection {
+        case let .custom(mirrored):
+            return (
+                assets.panicCustomFrames ??
+                    assets.panicFramesRight,
+                mirrored
+            )
+        case .runningRight:
+            return (assets.panicFramesRight, false)
+        case .runningLeft:
+            return (assets.panicFramesLeft, false)
+        }
+    }
+
+    private func nativePetMask(
+        frame: CGRect
+    ) -> some View {
+        Rectangle()
+            .fill(nativePetMaskColor)
+            .overlay {
+                Rectangle()
+                    .stroke(
+                        Color.red.opacity(0.42),
+                        lineWidth: 1
+                    )
+            }
+            .shadow(
+                color: Color.black.opacity(0.72),
+                radius: 8
+            )
+            .frame(
+                width: frame.width,
+                height: frame.height
+            )
+            .position(
+                x: frame.midX,
+                y: frame.midY
             )
     }
 

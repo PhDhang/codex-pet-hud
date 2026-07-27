@@ -1,0 +1,156 @@
+import CoreGraphics
+import XCTest
+@testable import PetHUDCore
+
+final class PetEffectLayoutTests: XCTestCase {
+    func testUsesOriginalPetWidthForPanicTravel() {
+        let layout = PetEffectLayout(
+            panelFrame: CGRect(
+                x: 0,
+                y: 0,
+                width: 200,
+                height: 120
+            ),
+            petFrame: CGRect(
+                x: 20,
+                y: 10,
+                width: 100,
+                height: 100
+            )
+        )
+
+        XCTAssertEqual(layout.travel, 18, accuracy: 0.001)
+    }
+
+    func testCapsPanicTravelAtTwentyEightPoints() {
+        let layout = PetEffectLayout(
+            panelFrame: CGRect(
+                x: 0,
+                y: 0,
+                width: 500,
+                height: 360
+            ),
+            petFrame: CGRect(
+                x: 50,
+                y: 20,
+                width: 300,
+                height: 320
+            )
+        )
+
+        XCTAssertEqual(layout.travel, 28, accuracy: 0.001)
+    }
+
+    func testClampedEdgePanelKeepsOriginalPetLocalCenter() {
+        let layout = PetEffectLayout(
+            panelFrame: CGRect(
+                x: 592,
+                y: 100,
+                width: 328.05,
+                height: 277.2
+            ),
+            petFrame: CGRect(
+                x: 677,
+                y: 100,
+                width: 243,
+                height: 252
+            )
+        )
+
+        XCTAssertEqual(
+            layout.localPetFrame.minX,
+            85,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.localPetFrame.minY,
+            25.2,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.localPetFrame.width,
+            243,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.localPetFrame.height,
+            252,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.localEffectFrame.minX,
+            42.475,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.localPetFrame.midX,
+            206.5,
+            accuracy: 0.001
+        )
+        XCTAssertNotEqual(
+            layout.localPetFrame.midX,
+            layout.panelSize.width / 2
+        )
+    }
+
+    func testConvertsAppKitPetFrameToTopLeftViewCoordinates() {
+        let layout = PetEffectLayout(
+            panelFrame: CGRect(
+                x: 100,
+                y: 500,
+                width: 300,
+                height: 280
+            ),
+            petFrame: CGRect(
+                x: 120,
+                y: 510,
+                width: 200,
+                height: 240
+            )
+        )
+
+        XCTAssertEqual(
+            layout.localPetFrame,
+            CGRect(
+                x: 20,
+                y: 30,
+                width: 200,
+                height: 240
+            )
+        )
+    }
+
+    func testCustomPanicFramesTakePriorityAndMirrorLeft() {
+        XCTAssertEqual(
+            PetEffectFrameSelection.panic(
+                customFrameCount: 8,
+                movingRight: true
+            ),
+            .custom(mirrored: false)
+        )
+        XCTAssertEqual(
+            PetEffectFrameSelection.panic(
+                customFrameCount: 8,
+                movingRight: false
+            ),
+            .custom(mirrored: true)
+        )
+    }
+
+    func testPanicFallbackPreservesV2DirectionRows() {
+        XCTAssertEqual(
+            PetEffectFrameSelection.panic(
+                customFrameCount: 0,
+                movingRight: true
+            ),
+            .runningRight
+        )
+        XCTAssertEqual(
+            PetEffectFrameSelection.panic(
+                customFrameCount: 0,
+                movingRight: false
+            ),
+            .runningLeft
+        )
+    }
+}

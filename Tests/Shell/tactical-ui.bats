@@ -52,7 +52,7 @@ grep -F 'let duration = 2.4' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'let movingRight = reduceMotion || progress < 0.5' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'min(geometry.size.width * 0.18, 28)' \
+grep -F 'let travel = layout.travel' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'let bounce = -abs(sin(local * .pi * 2)) * 4' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
@@ -64,5 +64,21 @@ grep -F 'let orbitDuration = 3.0' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'guard state != .normal else' \
   "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F 'petFrame: CGRect' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F 'PetEffectLayout(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F 'let layout: PetEffectLayout' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'width: layout.panelSize.width' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'height: layout.panelSize.height' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'nativePetMask(frame: layout.localPetFrame)' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F '.fill(nativePetMaskColor)' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'assets.panicCustomFrames' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 ! grep -F '.rotationEffect(.degrees(76))' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"

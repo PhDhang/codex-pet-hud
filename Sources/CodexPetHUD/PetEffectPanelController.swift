@@ -25,6 +25,7 @@ final class PetEffectPanelController {
 
     func show(
         frame: CGRect,
+        petFrame: CGRect,
         state: PetDistressState,
         assets: PetEffectAssets
     ) {
@@ -35,7 +36,11 @@ final class PetEffectPanelController {
         hostingView.rootView = AnyView(
             PetEffectView(
                 state: state,
-                assets: assets
+                assets: assets,
+                layout: PetEffectLayout(
+                    panelFrame: frame,
+                    petFrame: petFrame
+                )
             )
         )
         panel.setFrame(frame, display: true)
