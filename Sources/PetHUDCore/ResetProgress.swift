@@ -9,12 +9,15 @@ public enum ResetProgress {
             return 0
         }
 
-        let remainingFraction = min(
-            1,
-            max(0, secondsRemaining / windowDuration)
+        let secondsPerCell = windowDuration / 7
+        let clampedRemaining = min(
+            windowDuration,
+            max(0, secondsRemaining)
         )
-        let elapsedFraction = 1 - remainingFraction
-        return min(7, max(0, Int(floor(elapsedFraction * 7))))
+        let remainingCells = Int(
+            ceil(clampedRemaining / secondsPerCell)
+        )
+        return min(7, max(0, 7 - remainingCells))
     }
 
     public static func countdown(

@@ -2,13 +2,43 @@ import XCTest
 @testable import PetHUDCore
 
 final class HUDStateTests: XCTestCase {
-    func testThresholdsUseRemainingPercentage() {
-        XCTAssertEqual(HUDState.band(forRemainingPercent: 93), .healthy)
-        XCTAssertEqual(HUDState.band(forRemainingPercent: 60), .normal)
-        XCTAssertEqual(HUDState.band(forRemainingPercent: 25), .warning)
-        XCTAssertEqual(HUDState.band(forRemainingPercent: 8), .low)
-        XCTAssertEqual(HUDState.band(forRemainingPercent: 3), .critical)
-        XCTAssertEqual(HUDState.band(forRemainingPercent: 0), .critical)
+    func testThresholdsUseApprovedInclusiveBoundaries() {
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 91),
+            .healthy
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 90),
+            .normal
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 51),
+            .normal
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 50),
+            .warning
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 10),
+            .warning
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 9),
+            .low
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 4),
+            .low
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 3),
+            .critical
+        )
+        XCTAssertEqual(
+            HUDState.band(forRemainingPercent: 0),
+            .critical
+        )
     }
 
     func testFreshSnapshotUsesQuotaState() {

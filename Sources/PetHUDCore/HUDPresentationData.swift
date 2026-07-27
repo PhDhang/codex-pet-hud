@@ -16,14 +16,20 @@ public struct HUDPresentationData: Equatable, Sendable {
     ) -> HUDPresentationData {
         switch state {
         case let .quota(snapshot, band):
+            let statusLabel: String
+            switch band {
+            case .critical:
+                statusLabel = "EXHAUSTED · SIGNAL CRITICAL"
+            case .low:
+                statusLabel = "PANIC · QUOTA LOW"
+            default:
+                statusLabel = "CODEX · WEEKLY"
+            }
             return quotaData(
                 petName: petName,
                 snapshot: snapshot,
                 band: band,
-                statusLabel:
-                    band == .critical
-                    ? "EXHAUSTED"
-                    : "CODEX · WEEKLY",
+                statusLabel: statusLabel,
                 now: now
             )
         case let .stale(snapshot):

@@ -22,9 +22,9 @@ public enum HUDState: Equatable, Sendable {
             return .critical
         case ..<10:
             return .low
-        case ..<50:
+        case ...50:
             return .warning
-        case ..<90:
+        case ...90:
             return .normal
         default:
             return .healthy

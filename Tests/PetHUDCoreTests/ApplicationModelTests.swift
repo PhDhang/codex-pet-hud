@@ -13,17 +13,16 @@ final class ApplicationModelTests: XCTestCase {
         windowID: 11
     )
 
-    func testNoPetWindowHidesBothPanels() {
+    func testNoPetWindowHidesHUD() {
         var model = ApplicationModel()
         _ = model.reduce(.quotaLoaded(snapshot(remaining: 93)))
 
         let presentation = model.reduce(.petWindowChanged(nil))
 
-        XCTAssertFalse(presentation.showNameplate)
-        XCTAssertFalse(presentation.showCriticalEffect)
+        XCTAssertFalse(presentation.showHUD)
     }
 
-    func testHealthyQuotaShowsOnlyNameplate() {
+    func testHealthyQuotaShowsHUDWithNormalDistress() {
         var model = ApplicationModel()
         _ = model.reduce(.petWindowChanged(petWindow))
 
@@ -31,8 +30,8 @@ final class ApplicationModelTests: XCTestCase {
             .quotaLoaded(snapshot(remaining: 93))
         )
 
-        XCTAssertTrue(presentation.showNameplate)
-        XCTAssertFalse(presentation.showCriticalEffect)
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.distressState, .normal)
         XCTAssertEqual(
             presentation.hudState,
             .quota(
@@ -42,7 +41,7 @@ final class ApplicationModelTests: XCTestCase {
         )
     }
 
-    func testCriticalQuotaShowsCriticalEffect() {
+    func testCriticalQuotaShowsCriticalDistress() {
         var model = ApplicationModel()
         _ = model.reduce(.petWindowChanged(petWindow))
 
@@ -50,11 +49,11 @@ final class ApplicationModelTests: XCTestCase {
             .quotaLoaded(snapshot(remaining: 2))
         )
 
-        XCTAssertTrue(presentation.showNameplate)
-        XCTAssertTrue(presentation.showCriticalEffect)
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.distressState, .critical)
     }
 
-    func testAuthenticationFailureKeepsNameplateVisible() {
+    func testAuthenticationFailureKeepsHUDVisible() {
         var model = ApplicationModel()
         _ = model.reduce(.petWindowChanged(petWindow))
 
@@ -62,15 +61,15 @@ final class ApplicationModelTests: XCTestCase {
             .quotaFailed(.authenticationRequired)
         )
 
-        XCTAssertTrue(presentation.showNameplate)
-        XCTAssertFalse(presentation.showCriticalEffect)
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.distressState, .normal)
         XCTAssertEqual(
             presentation.hudState,
             .authenticationRequired
         )
     }
 
-    func testFreshHealthySnapshotClearsCriticalEffect() {
+    func testFreshHealthySnapshotClearsCriticalDistress() {
         var model = ApplicationModel()
         _ = model.reduce(.petWindowChanged(petWindow))
         _ = model.reduce(.quotaLoaded(snapshot(remaining: 2)))
@@ -79,7 +78,7 @@ final class ApplicationModelTests: XCTestCase {
             .quotaLoaded(snapshot(remaining: 40))
         )
 
-        XCTAssertFalse(presentation.showCriticalEffect)
+        XCTAssertEqual(presentation.distressState, .normal)
         XCTAssertEqual(
             presentation.hudState,
             .quota(
@@ -87,6 +86,64 @@ final class ApplicationModelTests: XCTestCase {
                 band: .warning
             )
         )
+    }
+
+    func testLowQuotaShowsPanicEffect() {
+        var model = ApplicationModel()
+        _ = model.reduce(.petWindowChanged(petWindow))
+
+        let presentation = model.reduce(
+            .quotaLoaded(snapshot(remaining: 8))
+        )
+
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.distressState, .panic)
+    }
+
+    func testCriticalStateUsesFivePercentRecoveryHysteresis() {
+        var model = ApplicationModel()
+        _ = model.reduce(.petWindowChanged(petWindow))
+        _ = model.reduce(.quotaLoaded(snapshot(remaining: 2)))
+
+        XCTAssertEqual(
+            model.reduce(.quotaLoaded(snapshot(remaining: 5)))
+                .distressState,
+            .critical
+        )
+        XCTAssertEqual(
+            model.reduce(.quotaLoaded(snapshot(remaining: 6)))
+                .distressState,
+            .panic
+        )
+    }
+
+    func testStaleQuotaClearsDistressEffectButKeepsHUD() {
+        let now = Date(timeIntervalSince1970: 20_000)
+        var model = ApplicationModel(now: now)
+        _ = model.reduce(.petWindowChanged(petWindow))
+        _ = model.reduce(
+            .quotaLoaded(
+                QuotaSnapshot(
+                    weekly: QuotaWindow(
+                        usedPercent: 98,
+                        resetAt:
+                            now.addingTimeInterval(172_800),
+                        windowDurationSeconds: 604_800
+                    ),
+                    fetchedAt: now
+                )
+            )
+        )
+
+        let presentation = model.reduce(
+            .clockTick(now.addingTimeInterval(301))
+        )
+
+        XCTAssertTrue(presentation.showHUD)
+        XCTAssertEqual(presentation.distressState, .normal)
+        guard case .stale = presentation.hudState else {
+            return XCTFail("Expected stale HUD state")
+        }
     }
 
     private func snapshot(

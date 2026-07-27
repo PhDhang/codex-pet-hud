@@ -46,9 +46,50 @@ final class HUDPresentationDataTests: XCTestCase {
             now: now
         )
 
-        XCTAssertEqual(data.statusLabel, "EXHAUSTED")
+        XCTAssertEqual(data.statusLabel, "EXHAUSTED · SIGNAL CRITICAL")
         XCTAssertEqual(data.hpText, "2%")
         XCTAssertEqual(data.resetText, "1h")
+    }
+
+    func testLowStateUsesPanicLabel() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let snapshot = QuotaSnapshot(
+            weekly: QuotaWindow(
+                usedPercent: 92,
+                resetAt: now.addingTimeInterval(3_600),
+                windowDurationSeconds: 604_800
+            ),
+            fetchedAt: now
+        )
+
+        let data = HUDPresentationData.make(
+            petName: "Pet",
+            state: .quota(snapshot: snapshot, band: .low),
+            now: now
+        )
+
+        XCTAssertEqual(data.statusLabel, "PANIC · QUOTA LOW")
+    }
+
+    func testStaleStateKeepsNumericValuesAndBandColor() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let snapshot = QuotaSnapshot(
+            weekly: QuotaWindow(
+                usedPercent: 92,
+                resetAt: now.addingTimeInterval(3_600),
+                windowDurationSeconds: 604_800
+            ),
+            fetchedAt: now
+        )
+
+        let data = HUDPresentationData.make(
+            petName: "Pet",
+            state: .stale(snapshot: snapshot),
+            now: now
+        )
+
+        XCTAssertEqual(data.hpText, "8%")
+        XCTAssertEqual(data.band, .low)
     }
 
     func testAuthenticationStateUsesPlaceholderValues() {

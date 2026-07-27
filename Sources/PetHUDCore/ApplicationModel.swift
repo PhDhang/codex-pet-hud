@@ -8,19 +8,27 @@ public enum ApplicationEvent: Sendable {
 }
 
 public struct PanelPresentation: Equatable, Sendable {
-    public let showNameplate: Bool
-    public let showCriticalEffect: Bool
+    public let showHUD: Bool
+    public let distressState: PetDistressState
     public let hudState: HUDState
     public let petWindow: WindowDescriptor?
 
+    public var showNameplate: Bool {
+        showHUD
+    }
+
+    public var showCriticalEffect: Bool {
+        distressState == .critical
+    }
+
     public init(
-        showNameplate: Bool,
-        showCriticalEffect: Bool,
+        showHUD: Bool,
+        distressState: PetDistressState,
         hudState: HUDState,
         petWindow: WindowDescriptor?
     ) {
-        self.showNameplate = showNameplate
-        self.showCriticalEffect = showCriticalEffect
+        self.showHUD = showHUD
+        self.distressState = distressState
         self.hudState = hudState
         self.petWindow = petWindow
     }
@@ -30,6 +38,7 @@ public struct ApplicationModel: Sendable {
     private var petWindow: WindowDescriptor?
     private var snapshot: QuotaSnapshot?
     private var hudState: HUDState
+    private var distressState = PetDistressState.normal
     private var now: Date
 
     public init(
@@ -72,16 +81,13 @@ public struct ApplicationModel: Sendable {
             )
         }
 
-        let isCritical: Bool
-        if case let .quota(_, band) = hudState {
-            isCritical = band == .critical
-        } else {
-            isCritical = false
-        }
-        let hasPet = petWindow != nil
+        distressState = PetDistressState.evaluate(
+            hudState: hudState,
+            previous: distressState
+        )
         return PanelPresentation(
-            showNameplate: hasPet,
-            showCriticalEffect: hasPet && isCritical,
+            showHUD: petWindow != nil,
+            distressState: distressState,
             hudState: hudState,
             petWindow: petWindow
         )
