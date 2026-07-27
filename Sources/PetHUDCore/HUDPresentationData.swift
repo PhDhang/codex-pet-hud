@@ -72,7 +72,7 @@ public struct HUDPresentationData: Equatable, Sendable {
         return HUDPresentationData(
             petName: petName,
             statusLabel: statusLabel,
-            hpText: "\(Int(remainingPercent.rounded()))%",
+            hpText: hpText(for: remainingPercent),
             hpFraction: remainingPercent / 100,
             spCellsLit: ResetProgress.cellsLit(
                 secondsRemaining: secondsRemaining,
@@ -83,6 +83,19 @@ public struct HUDPresentationData: Equatable, Sendable {
                 secondsRemaining: secondsRemaining
             ),
             band: band
+        )
+    }
+
+    private static func hpText(
+        for remainingPercent: Double
+    ) -> String {
+        if remainingPercent == remainingPercent.rounded() {
+            return "\(Int(remainingPercent))%"
+        }
+        return String(
+            format: "%.1f%%",
+            locale: Locale(identifier: "en_US_POSIX"),
+            remainingPercent
         )
     }
 

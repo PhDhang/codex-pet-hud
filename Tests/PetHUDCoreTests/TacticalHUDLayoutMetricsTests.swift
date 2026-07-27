@@ -29,6 +29,15 @@ final class TacticalHUDLayoutMetricsTests: XCTestCase {
         XCTAssertLessThanOrEqual(metrics.contentHeight, 37.7)
     }
 
+    func testCompactPanelReservesFiveCharacterHPLabel() {
+        let metrics = TacticalHUDLayoutMetrics(
+            frameSize: CGSize(width: 136.5, height: 37.7)
+        )
+
+        XCTAssertGreaterThanOrEqual(metrics.trailingWidth, 31)
+        XCTAssertLessThanOrEqual(metrics.spRowWidth, 136.5)
+    }
+
     func testExpandedPanelCapsMetricsAtStandardSize() {
         let standard = TacticalHUDLayoutMetrics(
             frameSize: CGSize(width: 210, height: 58)

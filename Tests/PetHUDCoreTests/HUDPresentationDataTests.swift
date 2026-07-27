@@ -92,6 +92,81 @@ final class HUDPresentationDataTests: XCTestCase {
         XCTAssertEqual(data.band, .low)
     }
 
+    func testFractionalHPLabelsMatchRawBandAndDistressState() {
+        let samples: [
+            (
+                remaining: Double,
+                label: String,
+                band: HPBand,
+                distress: PetDistressState
+            )
+        ] = [
+            (9.6, "9.6%", .low, .panic),
+            (3.4, "3.4%", .low, .panic),
+            (90.4, "90.4%", .healthy, .normal),
+            (50.5, "50.5%", .normal, .normal),
+        ]
+
+        for sample in samples {
+            let snapshot = snapshot(remaining: sample.remaining)
+            let state = HUDState.evaluate(
+                snapshot: snapshot,
+                now: snapshot.fetchedAt
+            )
+            let data = HUDPresentationData.make(
+                petName: "Pet",
+                state: state,
+                now: snapshot.fetchedAt
+            )
+
+            XCTAssertEqual(
+                data.hpText,
+                sample.label,
+                "remaining=\(sample.remaining)"
+            )
+            XCTAssertEqual(
+                data.band,
+                sample.band,
+                "remaining=\(sample.remaining)"
+            )
+            XCTAssertEqual(
+                PetDistressState.evaluate(
+                    hudState: state,
+                    previous: .normal
+                ),
+                sample.distress,
+                "remaining=\(sample.remaining)"
+            )
+        }
+    }
+
+    func testExactHPBoundariesKeepIntegralLabels() {
+        let samples: [
+            (remaining: Double, label: String, band: HPBand)
+        ] = [
+            (3, "3%", .critical),
+            (10, "10%", .warning),
+            (50, "50%", .warning),
+            (90, "90%", .normal),
+        ]
+
+        for sample in samples {
+            let snapshot = snapshot(remaining: sample.remaining)
+            let state = HUDState.evaluate(
+                snapshot: snapshot,
+                now: snapshot.fetchedAt
+            )
+            let data = HUDPresentationData.make(
+                petName: "Pet",
+                state: state,
+                now: snapshot.fetchedAt
+            )
+
+            XCTAssertEqual(data.hpText, sample.label)
+            XCTAssertEqual(data.band, sample.band)
+        }
+    }
+
     func testAuthenticationStateUsesPlaceholderValues() {
         let data = HUDPresentationData.make(
             petName: "Pet",
@@ -103,5 +178,19 @@ final class HUDPresentationDataTests: XCTestCase {
         XCTAssertEqual(data.hpText, "--")
         XCTAssertEqual(data.hpFraction, 0)
         XCTAssertEqual(data.spCellsLit, 0)
+    }
+
+    private func snapshot(
+        remaining: Double
+    ) -> QuotaSnapshot {
+        let now = Date(timeIntervalSince1970: 10_000)
+        return QuotaSnapshot(
+            weekly: QuotaWindow(
+                usedPercent: 100 - remaining,
+                resetAt: now.addingTimeInterval(3_600),
+                windowDurationSeconds: 604_800
+            ),
+            fetchedAt: now
+        )
     }
 }
