@@ -52,7 +52,7 @@ final class AppConfigurationTests: XCTestCase {
                 10
             )
             XCTAssertEqual(configuration.nameplateOffset, -100)
-            XCTAssertEqual(configuration.podScale, 1.8)
+            XCTAssertEqual(configuration.podScale, 1.6)
             XCTAssertEqual(configuration.podOffsetX, -300)
             XCTAssertEqual(configuration.podOffsetY, 300)
             XCTAssertFalse(configuration.launchAtLogin)
@@ -79,6 +79,24 @@ final class AppConfigurationTests: XCTestCase {
             XCTAssertEqual(configuration.podOffsetX, 0)
             XCTAssertEqual(configuration.podOffsetY, 0)
             XCTAssertEqual(configuration.nameplateOffset, 42)
+        }
+    }
+
+    func testPodScaleAllowsCompactTacticalHUD() throws {
+        try withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("config.json")
+            try Data(
+                """
+                { "podScale": 0.65 }
+                """.utf8
+            ).write(to: url)
+
+            let configuration = try AppConfiguration.load(
+                url: url,
+                homeDirectory: directory
+            )
+
+            XCTAssertEqual(configuration.podScale, 0.65)
         }
     }
 
