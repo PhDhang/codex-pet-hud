@@ -91,30 +91,49 @@ Missing keys use defaults; legacy `nameplateOffset` does not move the tactical H
 ## HP, Flame, Panic, and Critical States
 
 HP is weekly quota. Seven SP flame cells show elapsed reset progress: lit
-red/orange/yellow, unlit blue/cyan/ice-blue. Fresh `4–9%` quota enables a compact
-spiral-eye panic run. Fresh `≤3%` quota enables critical art, which clears only
-above `5%`. Stale or missing data never enables panic or critical effects.
+red/orange/yellow, unlit blue/cyan/ice-blue. Fresh `4–9%` quota replaces the pet
+with a compact panic run. Fresh `≤3%` quota replaces the pet with critical art,
+which clears only above `5%`. These states are not HUD content. Stale or missing
+data never enables panic or critical effects.
 
 ## Optional Pet Effects
 
-Use the existing v2 atlas for generic panic and critical fallbacks. For custom
-prone critical art or a new pet, **REQUIRED SUB-SKILL:** Use `hatch-pet`; do not
-generate or rotate artwork in this Skill.
+- Generic fallback: standard directional running frames, non-facial aura, no procedural eye overlay.
+- Custom strip: integrated eye art; legacy eye anchors may be omitted.
+
+Yicha ships the custom strip; the runtime mirrors its right-running frames for
+left travel. For custom panic, critical art, or a new pet, **REQUIRED
+SUB-SKILL:** Use `hatch-pet`; do not generate, rotate, or composite facial
+artwork in this Skill.
 
 Copy optional effects only after confirming the selected pet directory and example files exist:
 
 ```bash
 test -d "$PET_PATH"
+test -f Examples/yicha/hud-panic.png
 test -f Examples/yicha/hud-critical.png
 test -f Examples/yicha/hud-effects.json
-cp -n Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png"
-cp -n Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json"
+cp -n Examples/yicha/hud-panic.png "$PET_PATH/hud-panic.png" ||
+  test -e "$PET_PATH/hud-panic.png"
+cp -n Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png" ||
+  test -e "$PET_PATH/hud-critical.png"
+cp -n Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json" ||
+  test -e "$PET_PATH/hud-effects.json"
+cmp -s Examples/yicha/hud-panic.png "$PET_PATH/hud-panic.png" ||
+  { printf 'Existing hud-panic.png differs; left unchanged.\n' >&2; exit 1; }
+cmp -s Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png" ||
+  { printf 'Existing hud-critical.png differs; left unchanged.\n' >&2; exit 1; }
+cmp -s Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json" ||
+  { printf 'Existing hud-effects.json differs; left unchanged.\n' >&2; exit 1; }
 ```
 
 Yicha is an example only. `hud-effects.json` must keep relative asset paths
 inside the selected pet directory; malformed metadata, missing images, and unsafe
-paths fall back safely without hiding the HUD. These shell checks do not validate arbitrary images or manifests; the app validates loaded effect assets.
-The copy commands refuse to overwrite existing installed assets.
+paths fall back safely without hiding the HUD. Repository fixture tests validate
+Yicha's eight `192x208` RGBA panic cells, alpha, and connected components. These
+shell checks do not validate arbitrary images or manifests; the app validates
+loaded effect assets. `cp -n` refuses to overwrite existing installed assets,
+and `cmp -s` reports a different pre-existing asset without replacing it.
 
 ## Repair and Rollback
 

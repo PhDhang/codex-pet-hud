@@ -11,7 +11,7 @@ Replace the ring life-pod HUD with a compact tactical dual-bar HUD that remains 
 Low quota adds two pet distress states:
 
 - `4–9%`: a compact left/right panic run with open spiral eyes.
-- `≤3%`: a custom spread-eagle prone pose with spiral eyes, orbiting birds, and sparkles.
+- `≤3%`: a custom spread-eagle prone replacement with integrated spiral eyes.
 
 The implementation remains generic for Codex v2 pets while supporting optional per-pet effect assets. Yicha receives the first custom panic and critical assets.
 
@@ -98,7 +98,8 @@ litFlames = 7 - remainingDays
 - Exit to normal at `≥10%`.
 - Transition immediately to critical at `≤3%`.
 - Run a compact left/right shuttle loop.
-- Use open eyes with two visible `🌀` spiral pupils.
+- Use open anime dizzy eyes whose red/crimson spirals replace the original
+  pupils inside the sprite pixels.
 - Use actual v2 running-left and running-right animation families; never rotate a standing sprite.
 
 Motion limits:
@@ -108,11 +109,10 @@ Motion limits:
 - Loop duration: approximately `2.4s`.
 - Turn at each endpoint by switching animation family, not by rotating the full image.
 
-Yicha currently reuses her open-eye standard v2 running-right and running-left
-rows with calibrated procedural spiral-eye overlays. A custom panic strip
-remains optional. Generic v2 pets use their standard directional running rows
-with procedural spiral-eye overlays positioned by metadata or safe default
-anchors.
+Generic v2 pets use standard directional running frames plus a non-facial aura
+and no procedural eye overlay. A custom panic strip carries integrated eye art
+and may omit legacy eye anchors. Yicha ships eight right-running frames; the
+runtime mirrors the strip for left travel.
 
 ### Critical
 
@@ -131,7 +131,8 @@ Yicha's critical art must:
 - Avoid using a rotated standing or closed-eye frame.
 - Avoid baked-in birds, sparkles, shadows, scenery, or text.
 
-The app animates two birds and multiple sparkles around a per-pet head anchor. This keeps orbit motion smooth and allows the same effect engine to work with other pets.
+Custom critical art remains a single replacement sprite. Generic critical
+fallbacks use the v2 failed animation with a non-facial aura.
 
 ### Unknown or Stale Data
 
@@ -222,10 +223,7 @@ Per-pet effect assets are optional and live inside the pet directory.
   "panic": {
     "spritesheet": "hud-panic.png",
     "columns": 8,
-    "framesPerSecond": 8,
-    "leftEye": [0.42, 0.31],
-    "rightEye": [0.58, 0.31],
-    "eyeScale": 1.0
+    "framesPerSecond": 8
   },
   "critical": {
     "image": "hud-critical.png",
@@ -236,8 +234,8 @@ Per-pet effect assets are optional and live inside the pet directory.
 ```
 
 `panic.spritesheet` is optional. When omitted, the app uses the standard v2
-running-right and running-left rows while still applying the per-pet eye
-anchors and scale from `panic`.
+running-right and running-left rows with a non-facial aura and no procedural eye
+overlay. When present, the strip itself owns integrated facial artwork.
 
 Rules:
 
@@ -247,7 +245,7 @@ Rules:
 - Scale and frame-rate values use conservative bounds.
 - Missing panic art falls back to standard v2 running rows.
 - Missing critical art falls back to the v2 `failed` animation family, never a rotated neutral frame.
-- Orbiting birds and sparkles are always rendered by the app.
+- Panic and critical remain pet-state replacements outside the tactical bars.
 
 ## Rendering Components
 
@@ -301,9 +299,9 @@ Quota refresh and window tracking remain independent. A quota refresh failure ca
 When Reduce Motion is enabled:
 
 - Stop flame flicker.
-- Freeze spiral rotation.
-- Replace the shuttle run with a static low-state pose and subtle red HUD pulse.
-- Keep critical birds and sparkles static around the head anchor.
+- Freeze the custom panic strip on one integrated-eye frame.
+- Stop shuttle translation.
+- Keep critical replacement art static.
 
 The color states retain labels and percentages so state is not communicated by color alone.
 
@@ -348,7 +346,7 @@ The color states retain labels and percentages so state is not communicated by c
 2. Move the idle pet repeatedly and confirm the HUD never disappears.
 3. Resize the pet and confirm HUD size and distance remain proportional.
 4. Simulate `8%` and verify compact shuttle motion with open spiral eyes.
-5. Simulate `2%` and verify the custom prone pose with orbiting birds and sparkles.
+5. Simulate `2%` and verify the custom prone replacement pose.
 6. Restore healthy data and verify the native pet returns without stale overlays.
 7. Disable the pet and confirm all HUD windows close.
 

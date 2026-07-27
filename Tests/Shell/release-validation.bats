@@ -69,3 +69,19 @@ if rg -n 'critical threshold is `0\.\.\.10%`' README.md; then
   printf 'README documents a configurable critical threshold.\n' >&2
   exit 1
 fi
+
+for release_doc in \
+  README.md \
+  docs/architecture.md \
+  skills/codex-pet-hud/SKILL.md \
+  skills/codex-pet-hud/references/troubleshooting.md
+do
+  grep -F 'standard directional running frames' "$release_doc"
+  grep -F 'non-facial aura' "$release_doc"
+  grep -F 'no procedural eye overlay' "$release_doc"
+  grep -F 'integrated eye art' "$release_doc"
+done
+
+grep -F 'Yicha ships `hud-panic.png`' README.md
+grep -F 'cp -n Examples/yicha/hud-panic.png' README.md
+grep -F 'test -f Examples/yicha/hud-panic.png' README.md

@@ -1781,10 +1781,11 @@ test -f "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
 test -f "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
 grep -F 'Codex Pet HUD Pet Effect' \
   "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F '🌀' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F '🐦' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+if grep -F 'Text("🌀")' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
+  printf 'Pet replacement must not paste spiral emoji over sprite eyes.\n' >&2
+  exit 1
+fi
 ```
 
 - [ ] **Step 2: Run the shell contract and verify failure**
@@ -1890,7 +1891,9 @@ let x = movingRight
 let bounce = -abs(sin(local * .pi * 2)) * 4
 ```
 
-Choose a running frame from the direction-specific array, render it upright, and place two `Text("🌀")` glyphs at normalized eye anchors. Rotate the two glyphs in opposite directions unless Reduce Motion is enabled.
+Choose a running frame from the direction-specific array and render it upright.
+Generic pets use a non-facial aura and no procedural eye overlay. Custom strips
+carry integrated eye art and are mirrored for left travel.
 
 The panic backdrop is a subtle red-tinted rounded field with enough opacity to prevent the native pet underneath from reading as a duplicate, but it must not become a solid black rectangle.
 
@@ -1901,9 +1904,9 @@ For `.critical`:
 - Render `criticalImage` when present.
 - Otherwise animate the v2 failed row.
 - Never rotate the image.
-- Orbit two `🐦` glyphs and two sparkles around `headAnchor`.
-- Use the same three-second orbit for all pets.
-- Under Reduce Motion, freeze glyphs at four readable positions.
+- Keep custom critical art as one replacement sprite.
+- Add only the generic non-facial aura when custom art is absent.
+- Under Reduce Motion, freeze the replacement frame.
 
 Expose:
 
@@ -2274,7 +2277,10 @@ Adjust only the normalized anchors and scales after live visual QA.
 
 - [ ] **Step 5: Clarify the design document's optional panic strip**
 
-Update the asset-contract paragraph to state that `panic.spritesheet` is optional. When omitted, the app uses standard v2 running rows and still applies per-pet eye anchors. This records the approved dragging-animation reuse and avoids redundant Yicha artwork.
+Update the asset-contract paragraph to state that `panic.spritesheet` is
+optional. Generic pets use standard directional running frames with a
+non-facial aura and no procedural eye overlay. A custom strip carries integrated
+eye art and may omit legacy eye anchors.
 
 - [ ] **Step 6: Validate the example through core loaders**
 
@@ -2543,9 +2549,9 @@ Run low and critical fixtures one at a time:
 
 Confirm:
 
-- `8%`: small-amplitude left/right running, open eyes, two rotating spirals.
-- `2%`: prone “大” pose, visible spiral eyes, birds and sparkles orbiting the head.
-- Reduce Motion: static spirals, flames, and orbit glyphs; no shuttle translation.
+- `8%`: small-amplitude left/right running with integrated spiral-eye art.
+- `2%`: prone “大” replacement pose with visible spiral eyes.
+- Reduce Motion: static replacement frame and flames; no shuttle translation.
 - Healthy state removes the effect overlay and leaves only the tactical HUD.
 
 - [ ] **Step 7: Verify diagnostics and privacy**

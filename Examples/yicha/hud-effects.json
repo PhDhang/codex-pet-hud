@@ -1,9 +1,9 @@
 {
   "version": 1,
   "panic": {
-    "leftEye": [0.58, 0.41],
-    "rightEye": [0.74, 0.41],
-    "eyeScale": 0.88
+    "spritesheet": "hud-panic.png",
+    "columns": 8,
+    "framesPerSecond": 8
   },
   "critical": {
     "image": "hud-critical.png",

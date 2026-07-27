@@ -37,6 +37,12 @@ grep -F 'do not validate arbitrary images or manifests' \
   "$SKILL/SKILL.md" >/dev/null
 grep -F 'cp -n Examples/yicha/hud-critical.png' \
   "$SKILL/SKILL.md" >/dev/null
+grep -F 'test -f Examples/yicha/hud-panic.png' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'cp -n Examples/yicha/hud-panic.png' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'integrated eye art' "$SKILL/SKILL.md" >/dev/null
+grep -F 'no procedural eye overlay' "$SKILL/SKILL.md" >/dev/null
 
 if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2

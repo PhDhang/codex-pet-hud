@@ -68,14 +68,18 @@ Effect assets remain optional inside the selected pet directory:
   hud-critical.png          optional
 ```
 
-Version-1 `hud-effects.json` supplies normalized eye/head anchors and optional
-paths. `panic.spritesheet` may be omitted, using standard v2 running rows with
-the supplied eye anchors. Missing critical art uses the v2 `failed` animation,
-never a rotated neutral frame.
+Version-1 `hud-effects.json` supplies optional asset paths and legacy anchors.
+Generic pets use standard directional running frames plus a non-facial aura and
+no procedural eye overlay. A custom panic strip carries integrated eye art and
+may omit legacy eye anchors. Yicha ships eight right-running `192x208` RGBA
+frames; the renderer mirrors the strip for left travel. Missing critical art
+uses the v2 `failed` animation, never a rotated neutral frame.
 
 The loader rejects absolute or escaping paths, missing files, malformed metadata,
-and invalid images. It falls back safely without hiding the HUD. Use
-`hatch-pet` for custom critical art rather than replacing the original atlas.
+and invalid images. It falls back safely without hiding the HUD. Panic and
+critical are pet-state replacements rendered by `PetEffectPanelController`, not
+content in the tactical bars. Use `hatch-pet` for custom panic or critical art
+rather than replacing the original atlas.
 
 ## Accessibility and Lifecycle
 

@@ -38,7 +38,7 @@ final class PetEffectManifestTests: XCTestCase {
         }
     }
 
-    func testLoadsYichaExampleCriticalAssets() throws {
+    func testLoadsYichaExampleEffectAssets() throws {
         try withTemporaryDirectory { directory in
             let testFile = URL(fileURLWithPath: #filePath)
             let packageRoot = testFile
@@ -49,7 +49,11 @@ final class PetEffectManifestTests: XCTestCase {
                 .appendingPathComponent("Examples", isDirectory: true)
                 .appendingPathComponent("yicha", isDirectory: true)
 
-            for assetName in ["hud-effects.json", "hud-critical.png"] {
+            for assetName in [
+                "hud-effects.json",
+                "hud-panic.png",
+                "hud-critical.png",
+            ] {
                 try FileManager.default.copyItem(
                     at: exampleDirectory.appendingPathComponent(assetName),
                     to: directory.appendingPathComponent(assetName)
@@ -61,6 +65,16 @@ final class PetEffectManifestTests: XCTestCase {
             )
             let panic = try XCTUnwrap(manifest.panic)
             let critical = try XCTUnwrap(manifest.critical)
+            let panicURL = try XCTUnwrap(panic.spritesheetURL)
+            let panicBitmap = try XCTUnwrap(
+                NSBitmapImageRep(
+                    data: Data(contentsOf: panicURL)
+                )
+            )
+            let panicFrames = try PetAtlas.stripImages(
+                url: panicURL,
+                columns: panic.columns
+            )
             let image = try XCTUnwrap(
                 NSImage(contentsOf: critical.imageURL)
             )
@@ -70,18 +84,33 @@ final class PetEffectManifestTests: XCTestCase {
                 )
             )
 
-            XCTAssertNil(panic.spritesheetURL)
+            XCTAssertEqual(
+                panic.spritesheetURL?.lastPathComponent,
+                "hud-panic.png"
+            )
             XCTAssertEqual(panic.columns, 8)
             XCTAssertEqual(panic.framesPerSecond, 8)
-            XCTAssertEqual(
-                panic.leftEye,
-                NormalizedPoint(x: 0.58, y: 0.41)
-            )
-            XCTAssertEqual(
-                panic.rightEye,
-                NormalizedPoint(x: 0.74, y: 0.41)
-            )
-            XCTAssertEqual(panic.eyeScale, 0.88)
+            XCTAssertEqual(panicBitmap.pixelsWide, 1536)
+            XCTAssertEqual(panicBitmap.pixelsHigh, 208)
+            XCTAssertEqual(panicFrames.count, 8)
+            for (index, frame) in panicFrames.enumerated() {
+                XCTAssertEqual(frame.width, 192, "frame \(index)")
+                XCTAssertEqual(frame.height, 208, "frame \(index)")
+                let frameBitmap = NSBitmapImageRep(cgImage: frame)
+                XCTAssertTrue(
+                    hasVisiblePixels(in: frameBitmap),
+                    "frame \(index) is empty"
+                )
+                XCTAssertTrue(
+                    hasTransparentBorder(in: frameBitmap),
+                    "frame \(index) touches its cell border"
+                )
+                XCTAssertEqual(
+                    visibleComponentCount(in: frameBitmap),
+                    1,
+                    "frame \(index) contains detached artwork"
+                )
+            }
             XCTAssertEqual(
                 critical.headAnchor,
                 NormalizedPoint(x: 0.50, y: 0.30)
@@ -369,5 +398,40 @@ final class PetEffectManifestTests: XCTestCase {
         }
 
         return componentCount
+    }
+
+    private func hasVisiblePixels(
+        in bitmap: NSBitmapImageRep
+    ) -> Bool {
+        for y in 0..<bitmap.pixelsHigh {
+            for x in 0..<bitmap.pixelsWide
+            where (bitmap.colorAt(
+                x: x,
+                y: y
+            )?.alphaComponent ?? 0) > 0 {
+                return true
+            }
+        }
+        return false
+    }
+
+    private func hasTransparentBorder(
+        in bitmap: NSBitmapImageRep
+    ) -> Bool {
+        let maxX = bitmap.pixelsWide - 1
+        let maxY = bitmap.pixelsHigh - 1
+        for x in 0...maxX {
+            if (bitmap.colorAt(x: x, y: 0)?.alphaComponent ?? 0) > 0 ||
+                (bitmap.colorAt(x: x, y: maxY)?.alphaComponent ?? 0) > 0 {
+                return false
+            }
+        }
+        for y in 0...maxY {
+            if (bitmap.colorAt(x: 0, y: y)?.alphaComponent ?? 0) > 0 ||
+                (bitmap.colorAt(x: maxX, y: y)?.alphaComponent ?? 0) > 0 {
+                return false
+            }
+        }
+        return true
     }
 }

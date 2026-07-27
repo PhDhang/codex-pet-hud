@@ -23,9 +23,14 @@ red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
 one elapsed seventh of the weekly reset window, from zero lit at a new window to
 seven at reset.
 
-Fresh `4–9%` HP enables a compact spiral-eye panic run. The critical threshold
-is fixed at `≤3%`; critical clears only above `5%`. Missing or invalid effect
-assets use generic v2 fallbacks without hiding the tactical HUD.
+Fresh `4–9%` HP replaces the pet with a compact panic run. The critical
+threshold is fixed at `≤3%`; critical replaces the pet and clears only above
+`5%`. These are pet-state replacements, not HUD content.
+
+- Generic fallback: standard directional running frames, non-facial aura, no procedural eye overlay.
+- Custom strip: integrated eye art inside the sprite pixels.
+
+Missing or invalid effect assets fall back without hiding the tactical HUD.
 
 ## Idle Presence and Alignment
 
@@ -63,19 +68,37 @@ critical behavior remains fixed at `≤3%` enter and above `5%` recovery.
 
 ## Optional Per-Pet Effects
 
-Generic v2 fallback effects need no extra files. Yicha is only an example; copy
-its checked effect image and manifest into the selected Yicha directory:
+Generic v2 fallback effects need no extra files. An optional custom panic strip
+carries integrated eye art and may omit legacy eye anchors. Yicha ships `hud-panic.png`
+with eight right-running frames; the runtime mirrors that strip for left travel.
+Copy its checked effect assets and manifest into the selected Yicha directory:
 
 ```bash
-cp -n Examples/yicha/hud-critical.png "$HOME/.codex/pets/yicha/hud-critical.png"
-cp -n Examples/yicha/hud-effects.json "$HOME/.codex/pets/yicha/hud-effects.json"
+test -d "$HOME/.codex/pets/yicha"
+test -f Examples/yicha/hud-panic.png
+test -f Examples/yicha/hud-critical.png
+test -f Examples/yicha/hud-effects.json
+cp -n Examples/yicha/hud-panic.png "$HOME/.codex/pets/yicha/hud-panic.png" ||
+  test -e "$HOME/.codex/pets/yicha/hud-panic.png"
+cp -n Examples/yicha/hud-critical.png "$HOME/.codex/pets/yicha/hud-critical.png" ||
+  test -e "$HOME/.codex/pets/yicha/hud-critical.png"
+cp -n Examples/yicha/hud-effects.json "$HOME/.codex/pets/yicha/hud-effects.json" ||
+  test -e "$HOME/.codex/pets/yicha/hud-effects.json"
+cmp -s Examples/yicha/hud-panic.png "$HOME/.codex/pets/yicha/hud-panic.png" ||
+  { printf 'Existing hud-panic.png differs; left unchanged.\n' >&2; exit 1; }
+cmp -s Examples/yicha/hud-critical.png "$HOME/.codex/pets/yicha/hud-critical.png" ||
+  { printf 'Existing hud-critical.png differs; left unchanged.\n' >&2; exit 1; }
+cmp -s Examples/yicha/hud-effects.json "$HOME/.codex/pets/yicha/hud-effects.json" ||
+  { printf 'Existing hud-effects.json differs; left unchanged.\n' >&2; exit 1; }
 ```
 
 `hud-effects.json` may reference only regular image files relative to the pet
-directory. The copy commands confirm only that the example source files exist
-and refuse to overwrite an installed asset; the app validates relative paths,
-containment, and readable assets at load time. Use `hatch-pet` to create custom
-prone critical art; do not modify the original spritesheet.
+directory. The repository fixture validates the Yicha panic strip as eight
+`192x208` RGBA cells with clean alpha and connected artwork. `cp -n` refuses to
+overwrite installed assets; `cmp -s` detects a different pre-existing file and
+leaves it untouched. The app validates relative paths, containment, and readable
+assets at load time. Use `hatch-pet` for custom panic or critical art; do not
+modify the original spritesheet.
 
 ## Skill, Uninstall, and Privacy
 
