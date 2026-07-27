@@ -12,11 +12,11 @@ task. HP shows weekly quota remaining; seven SP flames show reset progress.
 
 ## Tactical HUD
 
-Fresh snapshots less than five minutes old show the rounded weekly HP
+Snapshots whose age is `≤300s` are fresh and show the rounded weekly HP
 percentage. Bands are `>90%` emerald, `51–90%` green, `10–50%` amber, `4–9%`
-red, and `≤3%` bright red. From five minutes until 30 minutes, the last values
-remain with `STALE` and never drive effects. At 30 minutes or later, the HUD is
-`OFFLINE` with `--` values.
+red, and `≤3%` bright red. At an age of `>300s` and `≤1800s`, the last values
+remain with `STALE` and never drive effects.
+At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
 
 SP always has seven rounded three-layer flames. Lit flames are
 red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents

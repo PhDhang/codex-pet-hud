@@ -39,7 +39,12 @@ layer removes credential-shaped strings, email addresses, and account identifier
 before error text is printed. Before publishing, scan release files:
 
 ```bash
-rg -n \
-  '/Users/[A-Za-z0-9._-]+/|Bearer eyJ|sk-[A-Za-z0-9_-]{20,}' \
-  README.md CHANGELOG.md SECURITY.md docs .github skills
+scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'
+release_content=()
+while IFS= read -r tracked_file; do
+  if [ "$tracked_file" != "Tests/Shell/release-validation.bats" ]; then
+    release_content+=("$tracked_file")
+  fi
+done < <(git ls-files)
+rg -n "$scan_pattern" "${release_content[@]}"
 ```

@@ -51,10 +51,20 @@ if ! rg -q "$scan_pattern" "$fixture"; then
 fi
 
 grep -F 'fixed at `≤3%`' README.md
-grep -F 'less than five minutes' README.md
-grep -F 'until 30 minutes' README.md
-grep -F '`OFFLINE` with `--`' README.md
+grep -F 'age is `≤300s`' README.md
+grep -F '`>300s` and `≤1800s`' README.md
+grep -F '`>1800s`, the HUD is `OFFLINE` with `--`' README.md
 grep -F 'Without `--purge`, configuration, caches, and logs remain.' README.md
+grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'" \
+  docs/privacy.md
+grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'" \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
+grep -F 'Tests/Shell/release-validation.bats' docs/privacy.md
+grep -F 'done < <(git ls-files)' docs/privacy.md
+grep -F 'Tests/Shell/release-validation.bats' \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
+grep -F 'done < <(git ls-files)' \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
 if rg -n 'critical threshold is `0\.\.\.10%`' README.md; then
   printf 'README documents a configurable critical threshold.\n' >&2
   exit 1
