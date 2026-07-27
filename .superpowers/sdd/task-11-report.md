@@ -1,14 +1,16 @@
 # Task 11 Final-Review Verification Report
 
-Verification completed: 2026-07-27 18:43 CST
+Verification completed: 2026-07-27 19:05 CST
 
 ## Scope and Safety
 
 - Branch: `feature/tactical-dual-bar-hud`
 - Final-review base:
   `cc1e987e72aded50d55a3c23fb9088ea41a94288`
+- Final re-review base:
+  `f958958705397ddd3c69543d46208f7718b54644`
 - Verified implementation HEAD:
-  `7ad615c34c59720389f9565ca5b1bd1458100725`
+  `e1d97cdfdbd56ed2b3b855c11b8c7a440ef66249`
 - No persistent app, LaunchAgent, pet asset, or Skill installation occurred.
 - Install and uninstall tests used temporary isolated `HOME` directories.
 - No GUI application was launched.
@@ -26,37 +28,52 @@ Verification completed: 2026-07-27 18:43 CST
    `fix: make pet effect optional in hud capture`
 5. `7ad615c34c59720389f9565ca5b1bd1458100725`
    `docs: remove obsolete critical screenshot`
+6. `6823e312ee8ab2459ee82937da0a641365826a62`
+   `fix: canonicalize visible hp precision`
+7. `c02223948479c6cd55cd1c0cf7a84ad08eabf200`
+   `fix: fail closed on ambiguous presence pids`
+8. `68d524b4f7f5b489d3e11609ac2faff9c730027f`
+   `fix: keep critical art centered at edges`
+9. `e1d97cdfdbd56ed2b3b855c11b8c7a440ef66249`
+   `fix: model contained native pet cover`
 
 ## Strict TDD Evidence
 
-### Fractional HP
+### Canonical HP
 
-- RED: `9.6`, `3.4`, `90.4`, and `50.5` rendered rounded integer labels
-  even though raw values already drove bands and distress.
-- GREEN: non-integral HP renders one POSIX decimal; `3`, `10`, `50`, and
-  `90` remain integral. Compact metrics retain five-character HP capacity.
+- RED: ordinary one-decimal rounding moved `9.96` into the `10.0` band and
+  allowed `99.96` to display as `100.0`.
+- GREEN: one canonical HP value clamps to `0...100`, floors toward zero to a
+  tenth, and drives bands, hysteresis, fill, and labels. Integral canonical
+  values omit the decimal; fractional values use one decimal.
+- Coverage spans floating values around `3`, `4`, `9`, `10`, `50`, `51`,
+  `90`, `91`, and `100`, plus critical recovery hysteresis and compact
+  five-character label capacity.
 - Evidence:
-  `.superpowers/sdd/final-review-artifacts/red-label.log`,
-  `.superpowers/sdd/final-review-artifacts/green-label.log`
+  `.superpowers/sdd/final-rereview-artifacts/red-hp.log`,
+  `.superpowers/sdd/final-rereview-artifacts/green-hp.log`
 
 ### Stable Presence PID
 
-- RED: observations carried no stable PID; two complete title-redacted PID
-  clusters could confirm presence; retained and restored geometry survived a
-  known PID mismatch.
-- GREEN: exactly one complete title-redacted same-PID cluster is required;
-  multiple clusters fail closed; known mismatches clear retained geometry.
-  Exact named shell and mascot behavior remains covered.
+- RED: exact mascot, named shell, named composition, and title-redacted
+  signals could independently return early and hide cross-signal PID
+  ambiguity.
+- GREEN: one candidate PID set spans every stable signal. Exactly one PID
+  qualifies; multiple named, exact, mixed named/redacted, or redacted
+  candidates fail closed and cannot revive retained or restored geometry.
 - Evidence:
-  `.superpowers/sdd/final-review-artifacts/red-presence.log`,
-  `.superpowers/sdd/final-review-artifacts/green-presence.log`
+  `.superpowers/sdd/final-rereview-artifacts/red-presence.log`,
+  `.superpowers/sdd/final-rereview-artifacts/green-presence.log`
 
 ### Effect Containment
 
-- RED: layout lacked asymmetric edge travel, bounded bounce, and a constrained
-  critical image frame; the panel covered only a scale-1 envelope.
-- GREEN: the panel covers the accepted scale-2 envelope. Local pet, effect,
-  panic-extreme, and critical frames remain contained after display clamping.
+- RED: contained scale-2 critical art translated away from the pet at all
+  four display edges; the native cover had no modeled envelope and emitted an
+  external shadow.
+- GREEN: critical art shrinks symmetrically around the unchanged pet center.
+  The explicit `1.10x1.08` native cover envelope intersects the panel only
+  where display clamping makes the full envelope impossible, still covering
+  every onscreen native-pet pixel. Cover output is clipped with no shadow.
 - Coverage includes:
   - visual pet `116.3x126`
   - left, right, top, and bottom display edges
@@ -64,13 +81,15 @@ Verification completed: 2026-07-27 18:43 CST
   - custom critical scales `1` and `2`
   - `140x140` small display
   - horizontally and vertically arranged displays
-  - centered Yicha critical scale `1`
+  - centered Yicha critical scales `1` and `2`
   - exact-one-character cover shell contract
 - Evidence:
-  `.superpowers/sdd/final-review-artifacts/red-effect-swift.log`,
-  `.superpowers/sdd/final-review-artifacts/red-effect-shell.log`,
-  `.superpowers/sdd/final-review-artifacts/green-effect-swift.log`,
-  `.superpowers/sdd/final-review-artifacts/green-effect-shell.log`
+  `.superpowers/sdd/final-rereview-artifacts/red-critical.log`,
+  `.superpowers/sdd/final-rereview-artifacts/green-critical.log`,
+  `.superpowers/sdd/final-rereview-artifacts/red-cover-swift.log`,
+  `.superpowers/sdd/final-rereview-artifacts/red-cover-shell.log`,
+  `.superpowers/sdd/final-rereview-artifacts/green-cover-swift.log`,
+  `.superpowers/sdd/final-rereview-artifacts/green-cover-shell.log`
 
 ### Capture Contract
 
@@ -108,11 +127,11 @@ swift test --disable-sandbox
 
 Result:
 
-- `126` tests
+- `135` tests
 - `0` failures
 - Exit `0`
 - Evidence:
-  `.superpowers/sdd/final-review-artifacts/full-swift.log`
+  `.superpowers/sdd/final-rereview-artifacts/full-swift.log`
 
 ### Shell
 
@@ -129,21 +148,21 @@ Every suite passed:
 | `Tests/Shell/tactical-ui.bats` | PASS |
 
 Evidence:
-`.superpowers/sdd/final-review-artifacts/all-shell-summary.txt`
+`.superpowers/sdd/final-rereview-artifacts/all-shell-summary.txt`
 
 ### Signed Build and Install Cycle
 
 - `codesign --verify --deep --strict --verbose=4`: exit `0`
 - Signature: ad hoc, arm64
 - Identifier: `com.codex-pet-hud.app`
-- CDHash: `43cce631ad5ae0711b7e1d08ec75db561869286a`
+- CDHash: `fbfa58a5fb57ab90d9ff256abb8122ab4ff42860`
 - `CFBundleShortVersionString`: `0.3.0`
 - `CFBundleVersion`: `3`
 - Binary SHA-256:
-  `4a48cea1a24c556713c05987e27dda8fad99adf41ad68bd797c0037b1e6e50c6`
+  `4b5337e35172e5692718660da195685569f14538c38b00a1a457267e212bb37b`
 - Isolated install, ordinary uninstall, and purge uninstall passed.
 - Evidence:
-  `.superpowers/sdd/final-review-artifacts/final-gates.log`
+  `.superpowers/sdd/final-rereview-artifacts/final-gates.log`
 
 ### Final Gates
 
