@@ -1,7 +1,11 @@
 import CoreGraphics
 import Foundation
 
-public struct WindowDescriptor: Equatable, Sendable {
+public struct WindowDescriptor:
+    Codable,
+    Equatable,
+    Sendable
+{
     public let owner: String
     public let name: String
     public let layer: Int
