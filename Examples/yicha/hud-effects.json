@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "panic": {
+    "leftEye": [0.42, 0.31],
+    "rightEye": [0.58, 0.31],
+    "eyeScale": 0.88
+  },
+  "critical": {
+    "image": "hud-critical.png",
+    "headAnchor": [0.50, 0.30],
+    "scale": 1.0
+  }
+}

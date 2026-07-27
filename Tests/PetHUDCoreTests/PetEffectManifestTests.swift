@@ -1,8 +1,58 @@
+import AppKit
 import Foundation
 import XCTest
 @testable import PetHUDCore
 
 final class PetEffectManifestTests: XCTestCase {
+    func testLoadsYichaExampleCriticalAssets() throws {
+        try withTemporaryDirectory { directory in
+            let testFile = URL(fileURLWithPath: #filePath)
+            let packageRoot = testFile
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+            let exampleDirectory = packageRoot
+                .appendingPathComponent("Examples", isDirectory: true)
+                .appendingPathComponent("yicha", isDirectory: true)
+
+            for assetName in ["hud-effects.json", "hud-critical.png"] {
+                try FileManager.default.copyItem(
+                    at: exampleDirectory.appendingPathComponent(assetName),
+                    to: directory.appendingPathComponent(assetName)
+                )
+            }
+
+            let manifest = try XCTUnwrap(
+                PetEffectManifest.load(directory: directory)
+            )
+            let panic = try XCTUnwrap(manifest.panic)
+            let critical = try XCTUnwrap(manifest.critical)
+            let image = try XCTUnwrap(
+                NSImage(contentsOf: critical.imageURL)
+            )
+
+            XCTAssertNil(panic.spritesheetURL)
+            XCTAssertEqual(panic.columns, 8)
+            XCTAssertEqual(panic.framesPerSecond, 8)
+            XCTAssertEqual(
+                panic.leftEye,
+                NormalizedPoint(x: 0.42, y: 0.31)
+            )
+            XCTAssertEqual(
+                panic.rightEye,
+                NormalizedPoint(x: 0.58, y: 0.31)
+            )
+            XCTAssertEqual(panic.eyeScale, 0.88)
+            XCTAssertEqual(
+                critical.headAnchor,
+                NormalizedPoint(x: 0.50, y: 0.30)
+            )
+            XCTAssertEqual(critical.scale, 1.0)
+            XCTAssertGreaterThan(image.size.width, 0)
+            XCTAssertGreaterThan(image.size.height, 0)
+        }
+    }
+
     func testLoadsCriticalMetadataInsidePetDirectory() throws {
         try withTemporaryDirectory { directory in
             try Data([0x89]).write(

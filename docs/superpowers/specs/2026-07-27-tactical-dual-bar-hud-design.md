@@ -231,6 +231,10 @@ Per-pet effect assets are optional and live inside the pet directory.
 }
 ```
 
+`panic.spritesheet` is optional. When omitted, the app uses the standard v2
+running-right and running-left rows while still applying the per-pet eye
+anchors and scale from `panic`.
+
 Rules:
 
 - Paths must resolve inside the pet directory.
