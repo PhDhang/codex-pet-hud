@@ -81,11 +81,15 @@ uses the v2 `failed` animation, never a rotated neutral frame.
 The loader rejects absolute or escaping paths, missing files, malformed metadata,
 and invalid images. It falls back safely without hiding the HUD. Panic and
 critical are pet-state replacements rendered by `PetEffectPanelController`, not
-content in the tactical bars. Use `hatch-pet` for custom panic or critical art
-rather than replacing the original atlas.
+content in the tactical bars. The critical renderer uses the calibrated
+`headAnchor` for two birds and two sparkles, shrinking their orbit and glyph
+boxes to remain inside the effect panel at display edges. Orbit glyphs stay in `PetEffectView` and never enter `TacticalHUDView`.
+Use `hatch-pet` for custom panic or critical art rather than replacing the
+original atlas.
 
 ## Accessibility and Lifecycle
 
 No Accessibility or Screen Recording permission is required. The per-user
 LaunchAgent refreshes quota no more often than every five minutes while the
-main-run-loop window sampler follows movement and resize events.
+main-run-loop window sampler follows movement and resize events. Reduce Motion
+freezes the four orbit glyphs at separated cardinal positions.

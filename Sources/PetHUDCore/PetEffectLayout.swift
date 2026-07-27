@@ -179,6 +179,137 @@ public struct PetEffectLayout: Equatable, Sendable {
     }
 }
 
+public struct CriticalOrbitLayout: Equatable, Sendable {
+    public let center: CGPoint
+    public let birdGlyphSize: CGFloat
+    public let sparkleGlyphSize: CGFloat
+    public let birdRadii: CGSize
+    public let sparkleRadii: CGSize
+
+    public init(
+        panelSize: CGSize,
+        imageFrame: CGRect,
+        headAnchor: NormalizedPoint
+    ) {
+        let center = CGPoint(
+            x:
+                imageFrame.minX +
+                imageFrame.width * CGFloat(headAnchor.x),
+            y:
+                imageFrame.minY +
+                imageFrame.height * CGFloat(headAnchor.y)
+        )
+        let desiredBirdRadii = CGSize(
+            width: min(imageFrame.width * 0.20, 44),
+            height: min(imageFrame.height * 0.12, 24)
+        )
+        let desiredSparkleRadii = CGSize(
+            width: desiredBirdRadii.width * 0.72,
+            height: desiredBirdRadii.height * 0.72
+        )
+        let birdGlyphSize = Self.containedGlyphSize(
+            desired: 22,
+            center: center,
+            panelSize: panelSize
+        )
+        let sparkleGlyphSize = Self.containedGlyphSize(
+            desired: 18,
+            center: center,
+            panelSize: panelSize
+        )
+
+        self.center = center
+        self.birdGlyphSize = birdGlyphSize
+        self.sparkleGlyphSize = sparkleGlyphSize
+        birdRadii = Self.containedRadii(
+            desired: desiredBirdRadii,
+            glyphSize: birdGlyphSize,
+            center: center,
+            panelSize: panelSize
+        )
+        sparkleRadii = Self.containedRadii(
+            desired: desiredSparkleRadii,
+            glyphSize: sparkleGlyphSize,
+            center: center,
+            panelSize: panelSize
+        )
+    }
+
+    public func birdPosition(
+        index: Int,
+        phase: Double
+    ) -> CGPoint {
+        position(
+            phase: phase + Double(index) * .pi,
+            radii: birdRadii
+        )
+    }
+
+    public func sparklePosition(
+        index: Int,
+        phase: Double
+    ) -> CGPoint {
+        position(
+            phase:
+                phase +
+                .pi / 2 +
+                Double(index) * .pi,
+            radii: sparkleRadii
+        )
+    }
+
+    private func position(
+        phase: Double,
+        radii: CGSize
+    ) -> CGPoint {
+        CGPoint(
+            x: center.x + CGFloat(cos(phase)) * radii.width,
+            y: center.y + CGFloat(sin(phase)) * radii.height
+        )
+    }
+
+    private static func containedGlyphSize(
+        desired: CGFloat,
+        center: CGPoint,
+        panelSize: CGSize
+    ) -> CGFloat {
+        let clearance = min(
+            center.x,
+            panelSize.width - center.x,
+            center.y,
+            panelSize.height - center.y
+        )
+        return min(desired, max(0, clearance * 2))
+    }
+
+    private static func containedRadii(
+        desired: CGSize,
+        glyphSize: CGFloat,
+        center: CGPoint,
+        panelSize: CGSize
+    ) -> CGSize {
+        let glyphInset = glyphSize / 2
+        let availableWidth = max(
+            0,
+            min(
+                center.x,
+                panelSize.width - center.x
+            ) - glyphInset
+        )
+        let availableHeight = max(
+            0,
+            min(
+                center.y,
+                panelSize.height - center.y
+            ) - glyphInset
+        )
+        return CGSize(
+            width: min(desired.width, availableWidth),
+            height: min(desired.height, availableHeight)
+        )
+    }
+}
+
 public enum PetEffectFrameSelection:
     Equatable,
     Sendable
@@ -219,6 +350,8 @@ public enum PetEffectFrameSelection:
 }
 
 public enum PetEffectAnimation {
+    public static let criticalOrbitDuration: TimeInterval = 3
+
     public static func frameIndex(
         elapsedTime: TimeInterval,
         framesPerSecond: Double,
@@ -234,5 +367,21 @@ public enum PetEffectAnimation {
         }
         let elapsed = max(0, elapsedTime)
         return Int(elapsed * framesPerSecond) % frameCount
+    }
+
+    public static func orbitPhase(
+        elapsedTime: TimeInterval,
+        reduceMotion: Bool
+    ) -> Double {
+        guard !reduceMotion else {
+            return 0
+        }
+        let progress =
+            max(0, elapsedTime)
+                .truncatingRemainder(
+                    dividingBy: criticalOrbitDuration
+                ) /
+            criticalOrbitDuration
+        return progress * .pi * 2
     }
 }

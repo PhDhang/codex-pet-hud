@@ -112,9 +112,12 @@ struct PetEffectView: View {
     private func criticalView(
         date: Date
     ) -> some View {
-        let orbitDuration = 3.0
-        let progress =
+        let elapsedTime =
             date.timeIntervalSinceReferenceDate
+        let orbitDuration =
+            PetEffectAnimation.criticalOrbitDuration
+        let progress =
+            elapsedTime
                 .truncatingRemainder(
                     dividingBy: orbitDuration
                 ) /
@@ -140,13 +143,14 @@ struct PetEffectView: View {
         )
         let imageSize = imageFrame.size
         let imageOrigin = imageFrame.origin
-        let head = CGPoint(
-            x:
-                imageOrigin.x +
-                imageSize.width * CGFloat(assets.headAnchor.x),
-            y:
-                imageOrigin.y +
-                imageSize.height * CGFloat(assets.headAnchor.y)
+        let orbit = CriticalOrbitLayout(
+            panelSize: layout.panelSize,
+            imageFrame: imageFrame,
+            headAnchor: assets.headAnchor
+        )
+        let phase = PetEffectAnimation.orbitPhase(
+            elapsedTime: elapsedTime,
+            reduceMotion: reduceMotion
         )
         return ZStack {
             nativePetCover(
@@ -174,9 +178,80 @@ struct PetEffectView: View {
 
             if assets.criticalImage == nil {
                 genericCriticalHeadAura(
-                    head: head,
+                    head: orbit.center,
                     imageSize: imageSize
                 )
+            }
+
+            criticalOrbit(
+                layout: orbit,
+                phase: phase
+            )
+        }
+    }
+
+    private func criticalOrbit(
+        layout: CriticalOrbitLayout,
+        phase: Double
+    ) -> some View {
+        ZStack {
+            orbitingGlyph(
+                "🐦",
+                size: layout.birdGlyphSize,
+                center:
+                    layout.birdPosition(
+                        index: 0,
+                        phase: phase
+                    )
+            )
+            orbitingGlyph(
+                "🐦",
+                size: layout.birdGlyphSize,
+                center:
+                    layout.birdPosition(
+                        index: 1,
+                        phase: phase
+                    )
+            )
+            orbitingGlyph(
+                "✨",
+                size: layout.sparkleGlyphSize,
+                center:
+                    layout.sparklePosition(
+                        index: 0,
+                        phase: phase
+                    )
+            )
+            orbitingGlyph(
+                "✨",
+                size: layout.sparkleGlyphSize,
+                center:
+                    layout.sparklePosition(
+                        index: 1,
+                        phase: phase
+                    )
+            )
+        }
+    }
+
+    private func orbitingGlyph(
+        _ glyph: String,
+        size: CGFloat,
+        center: CGPoint
+    ) -> some View {
+        Group {
+            if size > 0 {
+                Text(glyph)
+                    .font(.system(size: size * 0.82))
+                    .frame(
+                        width: size,
+                        height: size
+                    )
+                    .clipped()
+                    .position(
+                        x: center.x,
+                        y: center.y
+                    )
             }
         }
     }

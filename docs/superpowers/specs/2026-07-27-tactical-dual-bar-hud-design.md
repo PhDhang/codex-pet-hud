@@ -132,7 +132,10 @@ Yicha's critical art must:
 - Avoid baked-in birds, sparkles, shadows, scenery, or text.
 
 Custom critical art remains a single replacement sprite. Generic critical
-fallbacks use the v2 failed animation with a non-facial aura.
+fallbacks use the v2 failed animation with a non-facial aura. At runtime, both
+custom and generic replacements add two birds and two sparkles orbiting the
+calibrated `headAnchor` in `PetEffectView`; they are not baked into the art and
+never appear in `TacticalHUDView`.
 
 ### Unknown or Stale Data
 
@@ -266,7 +269,9 @@ Core additions:
 - `PetDistressState`
 - Generalized `PetAtlas.image(row:column:)`
 
-The tactical HUD and pet effect remain separate non-activating, mouse-transparent floating panels.
+The tactical HUD and pet effect remain separate non-activating,
+mouse-transparent panels. The tactical HUD stays at the floating level; the
+pet replacement stays in its status-bar-level effect window above the mascot.
 
 ## Data Flow
 
@@ -302,6 +307,7 @@ When Reduce Motion is enabled:
 - Freeze the custom panic strip on one integrated-eye frame.
 - Stop shuttle translation.
 - Keep critical replacement art static.
+- Freeze the birds and sparkles at four separated positions.
 
 The color states retain labels and percentages so state is not communicated by color alone.
 
@@ -336,7 +342,8 @@ The color states retain labels and percentages so state is not communicated by c
 - Tactical HUD at healthy, warning, panic, critical, stale, and unknown states.
 - Seven flame counts from 0 through 7.
 - Panic loop at normal speed and Reduce Motion.
-- Critical prone art at normal display scale and Retina scale.
+- Critical prone art and runtime orbit at normal display scale and Retina scale.
+- Orbit containment at display edges, small displays, and critical scale `2`.
 - Movement and resize while no Codex task is active.
 - Multiple-display placement and display removal.
 
@@ -346,7 +353,8 @@ The color states retain labels and percentages so state is not communicated by c
 2. Move the idle pet repeatedly and confirm the HUD never disappears.
 3. Resize the pet and confirm HUD size and distance remain proportional.
 4. Simulate `8%` and verify compact shuttle motion with open spiral eyes.
-5. Simulate `2%` and verify the custom prone replacement pose.
+5. Simulate `2%` and verify one custom prone body plus two orbiting birds and
+   two orbiting sparkles around the head.
 6. Restore healthy data and verify the native pet returns without stale overlays.
 7. Disable the pet and confirm all HUD windows close.
 
@@ -365,7 +373,8 @@ The color states retain labels and percentages so state is not communicated by c
 - HUD follows pet movement and resizing without losing alignment.
 - HP and seven flame-shaped SP indicators match the approved thresholds and colors.
 - Panic state uses small-amplitude left/right running with open spiral eyes.
-- Critical state uses newly drawn prone art, not a rotated standing frame.
+- Critical state uses one newly drawn prone body plus the contained runtime
+  bird/sparkle orbit, not a rotated standing frame or facial emoji overlay.
 - Missing data never falsely exhausts the pet.
 - Yicha-specific assets load safely while other v2 pets receive functional fallbacks.
 - Automated tests and live macOS QA cover idle, movement, resize, panic, critical, and close behavior.

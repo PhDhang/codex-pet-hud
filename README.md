@@ -6,12 +6,14 @@ task. HP shows weekly quota remaining; seven SP flames show reset progress.
 
 ![Healthy tactical HUD](docs/screenshots/tactical-hud.png)
 
-| Panic preview | Tracked Yicha critical asset |
+| Panic preview | Tracked Yicha critical body asset |
 | --- | --- |
 | ![Panic pet effect](docs/screenshots/tactical-hud-panic.png) | ![Tracked Yicha critical asset](Examples/yicha/hud-critical.png) |
 
-The critical image is the current prone integrated-eye Yicha asset, not a live
-HUD screenshot. Live panic and critical screenshots will be recaptured before release.
+The critical image is the current prone integrated-eye Yicha body asset, not a
+live HUD screenshot. The tracked critical asset intentionally omits runtime orbit glyphs.
+At runtime `PetEffectView` adds two `🐦` birds and two `✨` sparkles around the calibrated head anchor in the separate pet-replacement window.
+Live panic and critical screenshots will be recaptured before release.
 
 ## Tactical HUD
 
@@ -29,7 +31,8 @@ seven at reset.
 
 Fresh `4–9%` HP replaces the pet with a compact panic run. The critical
 threshold is fixed at `≤3%`; critical replaces the pet and clears only above
-`5%`. These are pet-state replacements, not HUD content.
+`5%`. Critical includes the contained bird/sparkle orbit around the manifest
+head anchor. These are pet-state replacements, not HUD content.
 
 - Generic fallback: standard directional running frames, non-facial aura, no procedural eye overlay.
 - Custom strip: integrated eye art inside the sprite pixels.

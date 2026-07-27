@@ -10,6 +10,7 @@ All notable changes to this project are documented here.
 - Stable idle presence tracking and persisted safe geometry for task-free pet states.
 - Compact spiral-eye panic state for fresh low quota.
 - Custom per-pet prone critical art with a generic v2 failed-animation fallback.
+- Contained two-bird/two-sparkle critical orbit in the pet-replacement window.
 - Optional, validated per-pet effect manifests and the Yicha example assets.
 
 ### Changed

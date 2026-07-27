@@ -10,7 +10,7 @@ test -f "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 grep -F 'Codex Pet HUD Tactical' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 if grep -E \
-  'PetEffect|panicView|criticalView|panicFrames|criticalImage|Image[(]' \
+  'PetEffect|panicView|criticalView|panicFrames|criticalImage|criticalOrbit|orbitingGlyph|Text[(]"🌀"|🐦|✨|Image[(]' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"; then
   printf 'Tactical HUD must remain bars-only with no pet-state content.\n' >&2
   exit 1
@@ -77,11 +77,33 @@ if grep -F 'Text("🌀")' \
   printf 'Pet replacement must not paste spiral emoji over sprite eyes.\n' >&2
   exit 1
 fi
-if grep -F 'orbitingGlyph(' \
+if grep -F '.rotationEffect(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
-  printf 'Custom critical art must remain a single replacement sprite.\n' >&2
+  printf 'Reduce Motion contract forbids rotating critical glyphs.\n' >&2
   exit 1
 fi
+grep -F 'criticalOrbit(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'orbitingGlyph(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'CriticalOrbitLayout(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'PetEffectAnimation.orbitPhase(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'reduceMotion: reduceMotion' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+test "$(
+  grep -F -o '"🐦"' \
+    "$ROOT/Sources/CodexPetHUD/PetEffectView.swift" |
+    wc -l |
+    tr -d '[:space:]'
+)" -eq 2
+test "$(
+  grep -F -o '"✨"' \
+    "$ROOT/Sources/CodexPetHUD/PetEffectView.swift" |
+    wc -l |
+    tr -d '[:space:]'
+)" -eq 2
 grep -F '@Environment(\.accessibilityReduceMotion)' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'let duration = 2.4' \
@@ -100,7 +122,7 @@ grep -F 'assets.criticalImage' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'assets.failedFrames' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let orbitDuration = 3.0' \
+grep -F 'PetEffectAnimation.criticalOrbitDuration' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'guard state != .normal else' \
   "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"

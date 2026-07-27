@@ -102,9 +102,12 @@ data never enables panic or critical effects.
 - Custom strip: integrated eye art; legacy eye anchors may be omitted.
 
 Yicha ships the custom strip; the runtime mirrors its right-running frames for
-left travel. For custom panic, critical art, or a new pet, **REQUIRED
-SUB-SKILL:** Use `hatch-pet`; do not generate, rotate, or composite facial
-artwork in this Skill.
+left travel. Two birds and two sparkles orbit the calibrated critical head anchor
+for both custom and generic replacements. Reduce Motion freezes the four glyphs
+at separated positions, and edge containment may shrink their radii and size.
+They remain in the pet-effect window, never the tactical bars. For custom panic,
+critical art, or a new pet, **REQUIRED SUB-SKILL:** Use `hatch-pet`; do not
+generate, rotate, or composite facial artwork in this Skill.
 
 Copy optional effects only after confirming the selected pet directory and example files exist:
 

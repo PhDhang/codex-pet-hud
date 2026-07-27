@@ -1906,7 +1906,12 @@ For `.critical`:
 - Never rotate the image.
 - Keep custom critical art as one replacement sprite.
 - Add only the generic non-facial aura when custom art is absent.
-- Under Reduce Motion, freeze the replacement frame.
+- Add two birds and two sparkles around the calibrated head anchor for both
+  custom and generic replacements.
+- Keep orbit glyph boxes inside the effect panel at display edges and critical
+  scale `2`.
+- Under Reduce Motion, freeze the replacement frame and four orbit glyphs at
+  separated positions.
 
 Expose:
 
@@ -2201,8 +2206,9 @@ every frame she lies flat on the ground with both arms and both legs spread into
 a clearly readable Chinese “大” silhouette. Her face remains visible toward the
 viewer. Her eyelids are open and both eyes show anime dizziness spirals. Vary
 only tiny breathing, hair settling, and expression timing across the eight
-frames. No standing pose, no rotated upright sprite, no closed eyes, no birds,
-no sparkles, no text, no floor shadow, no scenery, and no detached effects.
+frames. Do not bake birds, sparkles, text, a floor shadow, scenery, or detached
+effects into the sprite; the runtime adds the approved orbit separately. No
+standing pose, rotated upright sprite, or closed eyes.
 Eight evenly spaced full-body frames on one flat chroma-key green background
 with generous safe padding and no visible guides.
 ```

@@ -96,6 +96,21 @@ grep -F \
   'Live panic and critical screenshots will be recaptured before release.' \
   README.md
 grep -F \
+  'The tracked critical asset intentionally omits runtime orbit glyphs.' \
+  README.md
+grep -F \
+  'two `🐦` birds and two `✨` sparkles around the calibrated head anchor' \
+  README.md
+grep -F \
+  'Orbit glyphs stay in `PetEffectView` and never enter `TacticalHUDView`.' \
+  docs/architecture.md
+grep -F \
+  'Freeze the birds and sparkles at four separated positions.' \
+  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md
+grep -F \
+  'Two birds and two sparkles orbit the calibrated critical head anchor' \
+  skills/codex-pet-hud/SKILL.md
+grep -F \
   'Only high-confidence shell-derived geometry is cached.' \
   docs/architecture.md
 grep -F \
