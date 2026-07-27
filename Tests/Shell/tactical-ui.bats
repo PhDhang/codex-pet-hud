@@ -9,6 +9,12 @@ test -f "$ROOT/Sources/CodexPetHUD/FlameCellView.swift"
 test -f "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 grep -F 'Codex Pet HUD Tactical' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
+if grep -E \
+  'PetEffect|panicView|criticalView|panicFrames|criticalImage|Image[(]' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"; then
+  printf 'Tactical HUD must remain bars-only with no pet-state content.\n' >&2
+  exit 1
+fi
 grep -F 'struct FlameCellView' \
   "$ROOT/Sources/CodexPetHUD/FlameCellView.swift"
 grep -F 'ForEach(0..<7' \
@@ -42,10 +48,16 @@ test -f "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
 test -f "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
 grep -F 'Codex Pet HUD Pet Effect' \
   "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F '🌀' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F '🐦' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+if grep -F 'Text("🌀")' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
+  printf 'Pet replacement must not paste spiral emoji over sprite eyes.\n' >&2
+  exit 1
+fi
+if grep -F 'orbitingGlyph(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
+  printf 'Custom critical art must remain a single replacement sprite.\n' >&2
+  exit 1
+fi
 grep -F '@Environment(\.accessibilityReduceMotion)' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'let duration = 2.4' \
@@ -74,7 +86,7 @@ grep -F 'width: layout.panelSize.width' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'height: layout.panelSize.height' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'nativePetAura(' \
+grep -F 'nativePetCover(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'RadialGradient(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
@@ -82,12 +94,22 @@ grep -F 'Ellipse()' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'Capsule()' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'RoundedRectangle(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'genericCriticalHeadAura(' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 if grep -F 'Rectangle()' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
   printf 'Pet effect still uses a rectangular native-pet mask.\n' >&2
   exit 1
 fi
 grep -F 'assets.panicCustomFrames' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'assets.panicCustomFrames?.count ?? 0' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'case .custom' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'if assets.criticalImage == nil {' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 ! grep -F '.rotationEffect(.degrees(76))' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"

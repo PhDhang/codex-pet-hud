@@ -4,6 +4,40 @@ import XCTest
 @testable import PetHUDCore
 
 final class PetEffectManifestTests: XCTestCase {
+    func testCustomPanicStripDoesNotRequireEyeOverlayMetadata() throws {
+        try withTemporaryDirectory { directory in
+            try Data([0x89]).write(
+                to: directory.appendingPathComponent("hud-panic.png")
+            )
+            try """
+            {
+              "version": 1,
+              "panic": {
+                "spritesheet": "hud-panic.png",
+                "columns": 8,
+                "framesPerSecond": 8
+              }
+            }
+            """.write(
+                to: directory.appendingPathComponent("hud-effects.json"),
+                atomically: true,
+                encoding: .utf8
+            )
+
+            let manifest = try XCTUnwrap(
+                PetEffectManifest.load(directory: directory)
+            )
+            let panic = try XCTUnwrap(manifest.panic)
+
+            XCTAssertEqual(
+                panic.spritesheetURL?.lastPathComponent,
+                "hud-panic.png"
+            )
+            XCTAssertEqual(panic.columns, 8)
+            XCTAssertEqual(panic.framesPerSecond, 8)
+        }
+    }
+
     func testLoadsYichaExampleCriticalAssets() throws {
         try withTemporaryDirectory { directory in
             let testFile = URL(fileURLWithPath: #filePath)

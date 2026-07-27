@@ -71,40 +71,25 @@ struct PetEffectView: View {
         let spriteSize = layout.localPetFrame.size
         let movingX = reduceMotion ? 0 : x
         let movingY = reduceMotion ? 0 : bounce
-        let spiralAngle = reduceMotion ? 0 : progress * 720
 
         return ZStack {
-            nativePetAura(
+            nativePetCover(
                 frame: layout.localPetFrame,
                 state: .panic
             )
 
-            ZStack {
-                Image(
-                    decorative: frame,
-                    scale: 1,
-                    orientation: .up
-                )
-                .resizable()
-                .interpolation(.none)
-                .scaledToFit()
-                .scaleEffect(
-                    x: selection.mirrorsSprite ? -1 : 1,
-                    y: 1
-                )
-                spiralEye(
-                    at: assets.leftEye,
-                    in: spriteSize,
-                    mirrored: selection.mirrorsEyeAnchors,
-                    rotation: spiralAngle
-                )
-                spiralEye(
-                    at: assets.rightEye,
-                    in: spriteSize,
-                    mirrored: selection.mirrorsEyeAnchors,
-                    rotation: -spiralAngle
-                )
-            }
+            Image(
+                decorative: frame,
+                scale: 1,
+                orientation: .up
+            )
+            .resizable()
+            .interpolation(.none)
+            .scaledToFit()
+            .scaleEffect(
+                x: selection.mirrorsSprite ? -1 : 1,
+                y: 1
+            )
             .frame(
                 width: spriteSize.width,
                 height: spriteSize.height
@@ -163,15 +148,8 @@ struct PetEffectView: View {
                 imageOrigin.y +
                 imageSize.height * CGFloat(assets.headAnchor.y)
         )
-        let phase =
-            reduceMotion
-                ? 0
-                : progress * .pi * 2
-        let radiusX = min(imageSize.width * 0.20, 44)
-        let radiusY = min(imageSize.height * 0.12, 24)
-
         return ZStack {
-            nativePetAura(
+            nativePetCover(
                 frame: layout.localPetFrame,
                 state: .critical
             )
@@ -194,68 +172,12 @@ struct PetEffectView: View {
             )
 
             if assets.criticalImage == nil {
-                fallbackSpiralEyes(
+                genericCriticalHeadAura(
                     head: head,
                     imageSize: imageSize
                 )
             }
-
-            orbitingGlyph(
-                "🐦",
-                phase: phase,
-                radiusX: radiusX,
-                radiusY: radiusY,
-                center: head
-            )
-            orbitingGlyph(
-                "🐦",
-                phase: phase + .pi,
-                radiusX: radiusX,
-                radiusY: radiusY,
-                center: head
-            )
-            orbitingGlyph(
-                "✦",
-                phase: phase + .pi / 2,
-                radiusX: radiusX * 0.72,
-                radiusY: radiusY * 0.72,
-                center: head
-            )
-            .foregroundStyle(Color.yellow)
-            orbitingGlyph(
-                "✧",
-                phase: phase + .pi * 1.5,
-                radiusX: radiusX * 0.72,
-                radiusY: radiusY * 0.72,
-                center: head
-            )
-            .foregroundStyle(Color.yellow)
         }
-    }
-
-    private func spiralEye(
-        at anchor: NormalizedPoint,
-        in size: CGSize,
-        mirrored: Bool,
-        rotation: Double
-    ) -> some View {
-        Text("🌀")
-            .font(
-                .system(
-                    size: spiralSize(for: size)
-                )
-            )
-            .rotationEffect(.degrees(rotation))
-            .position(
-                x:
-                    size.width *
-                    CGFloat(
-                        mirrored
-                            ? 1 - anchor.x
-                            : anchor.x
-                    ),
-                y: size.height * CGFloat(anchor.y)
-            )
     }
 
     private func panicFrames(
@@ -272,7 +194,7 @@ struct PetEffectView: View {
         }
     }
 
-    private func nativePetAura(
+    private func nativePetCover(
         frame: CGRect,
         state: PetDistressState
     ) -> some View {
@@ -285,14 +207,16 @@ struct PetEffectView: View {
             green: 0.018,
             blue: 0.11
         )
+        let cornerRadius =
+            min(frame.width, frame.height) * 0.14
 
         return ZStack {
             Ellipse()
                 .fill(
                     RadialGradient(
                         colors: [
+                            core,
                             core.opacity(0.98),
-                            core.opacity(0.96),
                             accent.opacity(0.78),
                             accent.opacity(0.22),
                             .clear,
@@ -308,18 +232,49 @@ struct PetEffectView: View {
                     height: frame.height * 1.06
                 )
 
-            Capsule()
-                .fill(core.opacity(0.94))
+            RoundedRectangle(
+                cornerRadius: cornerRadius,
+                style: .continuous
+            )
+                .fill(core)
                 .overlay {
-                    Capsule()
-                        .stroke(
-                            accent.opacity(0.58),
-                            lineWidth: 1
+                    RoundedRectangle(
+                        cornerRadius: cornerRadius,
+                        style: .continuous
+                    )
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    .clear,
+                                    accent.opacity(0.42),
+                                ],
+                                center: .center,
+                                startRadius:
+                                    min(
+                                        frame.width,
+                                        frame.height
+                                    ) * 0.22,
+                                endRadius:
+                                    max(
+                                        frame.width,
+                                        frame.height
+                                    ) * 0.72
+                            )
                         )
                 }
                 .frame(
-                    width: frame.width * 0.88,
-                    height: frame.height * 0.98
+                    width: frame.width * 1.08,
+                    height: frame.height * 1.08
+                )
+
+            Capsule()
+                .stroke(
+                    accent.opacity(0.68),
+                    lineWidth: 1
+                )
+                .frame(
+                    width: frame.width * 0.90,
+                    height: frame.height
                 )
         }
             .shadow(
@@ -332,46 +287,40 @@ struct PetEffectView: View {
             )
     }
 
-    private func fallbackSpiralEyes(
+    private func genericCriticalHeadAura(
         head: CGPoint,
         imageSize: CGSize
     ) -> some View {
-        let eyeOffset = imageSize.width * 0.035
-        let size = spiralSize(for: imageSize)
-        return ZStack {
-            Text("🌀")
-                .font(.system(size: size))
-                .position(
-                    x: head.x - eyeOffset,
-                    y: head.y
+        let diameter = min(
+            imageSize.width * 0.34,
+            imageSize.height * 0.24
+        )
+        return Circle()
+            .trim(from: 0.08, to: 0.84)
+            .stroke(
+                AngularGradient(
+                    colors: [
+                        Color.red.opacity(0.18),
+                        Color.purple.opacity(0.88),
+                        Color.cyan.opacity(0.52),
+                        Color.red.opacity(0.18),
+                    ],
+                    center: .center
+                ),
+                style: StrokeStyle(
+                    lineWidth: max(1, diameter * 0.035),
+                    lineCap: .round
                 )
-            Text("🌀")
-                .font(.system(size: size))
-                .position(
-                    x: head.x + eyeOffset,
-                    y: head.y
-                )
-        }
-    }
-
-    private func orbitingGlyph(
-        _ glyph: String,
-        phase: Double,
-        radiusX: CGFloat,
-        radiusY: CGFloat,
-        center: CGPoint
-    ) -> some View {
-        Text(glyph)
-            .font(
-                .system(size: glyph == "🐦" ? 22 : 18)
             )
-            .shadow(
-                color: Color.yellow.opacity(0.45),
-                radius: 6
+            .frame(
+                width: diameter,
+                height: diameter
             )
             .position(
-                x: center.x + cos(phase) * radiusX,
-                y: center.y + sin(phase) * radiusY
+                x: head.x,
+                y:
+                    head.y -
+                    imageSize.height * 0.035
             )
     }
 
@@ -384,17 +333,6 @@ struct PetEffectView: View {
             frames.count - 1
         )
         return frames[index]
-    }
-
-    private func spiralSize(
-        for size: CGSize
-    ) -> CGFloat {
-        max(
-            8,
-            min(size.width, size.height) *
-                0.07 *
-                CGFloat(assets.eyeScale)
-        )
     }
 
     private func aspectFitSize(

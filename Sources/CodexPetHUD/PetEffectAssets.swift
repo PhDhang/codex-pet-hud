@@ -7,9 +7,6 @@ struct PetEffectAssets {
     let panicCustomFrames: [CGImage]?
     let criticalImage: CGImage?
     let failedFrames: [CGImage]
-    let leftEye: NormalizedPoint
-    let rightEye: NormalizedPoint
-    let eyeScale: Double
     let headAnchor: NormalizedPoint
     let criticalScale: Double
 
@@ -51,11 +48,6 @@ struct PetEffectAssets {
                 try? PetAtlas.image(url: $0.imageURL)
             },
             failedFrames: failed,
-            leftEye: panic?.leftEye ??
-                NormalizedPoint(x: 0.42, y: 0.31),
-            rightEye: panic?.rightEye ??
-                NormalizedPoint(x: 0.58, y: 0.31),
-            eyeScale: panic?.eyeScale ?? 1,
             headAnchor: critical?.headAnchor ??
                 NormalizedPoint(x: 0.5, y: 0.30),
             criticalScale: critical?.scale ?? 1

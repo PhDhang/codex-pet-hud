@@ -65,8 +65,8 @@ public struct PetEffectManifest: Equatable, Sendable {
         let spritesheet: String?
         let columns: Int?
         let framesPerSecond: Double?
-        let leftEye: NormalizedPoint
-        let rightEye: NormalizedPoint
+        let leftEye: NormalizedPoint?
+        let rightEye: NormalizedPoint?
         let eyeScale: Double?
     }
 
@@ -122,8 +122,10 @@ public struct PetEffectManifest: Equatable, Sendable {
                     24,
                     max(1, $0.framesPerSecond ?? 8)
                 ),
-                leftEye: $0.leftEye,
-                rightEye: $0.rightEye,
+                leftEye: $0.leftEye ??
+                    NormalizedPoint(x: 0.42, y: 0.31),
+                rightEye: $0.rightEye ??
+                    NormalizedPoint(x: 0.58, y: 0.31),
                 eyeScale: min(2, max(0.5, $0.eyeScale ?? 1))
             )
         }
