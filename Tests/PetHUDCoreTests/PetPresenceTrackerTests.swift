@@ -4,6 +4,43 @@ import XCTest
 @testable import PetHUDCore
 
 final class PetPresenceTrackerTests: XCTestCase {
+    func testLoneVisualShellCannotReviveMatchingRestoredGeometry() {
+        let restored = shellGeometry(
+            id: 70,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126),
+            ownerPID: 7
+        )
+        var tracker = PetPresenceTracker(
+            restoredGeometry: restored
+        )
+        let observation = PetWindowLocator.observe(
+            from: [
+                WindowDescriptor(
+                    owner: "ChatGPT",
+                    name: "Codex",
+                    layer: 3,
+                    bounds: CGRect(
+                        x: 52,
+                        y: 749,
+                        width: 384,
+                        height: 126
+                    ),
+                    ownerPID: 7,
+                    windowID: 71
+                ),
+            ]
+        )
+
+        XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
+        XCTAssertNil(
+            tracker.update(
+                observation: observation,
+                now: Date(timeIntervalSince1970: 100)
+            )
+        )
+    }
+
     func testColdRestoredGeometryStaysHiddenBeforeStablePresence() {
         let restored = shellGeometry(
             id: 76,

@@ -134,7 +134,9 @@ public enum PetWindowLocator {
             visualGeometry: exactWindow.map {
                 visualWindow(
                     for: $0,
-                    in: windows
+                    in: windows,
+                    stablePresencePID:
+                        stablePresence.ownerPID
                 ) ?? mascotFallbackGeometry(for: $0)
             },
             hasStablePresence: stablePresence.isPresent,
@@ -193,14 +195,21 @@ public enum PetWindowLocator {
 
     private static func visualWindow(
         for mascotWindow: WindowDescriptor,
-        in windows: [WindowDescriptor]
+        in windows: [WindowDescriptor],
+        stablePresencePID: Int?
     ) -> PetVisualGeometry? {
+        guard
+            let stablePresencePID,
+            stablePresencePID == mascotWindow.ownerPID
+        else {
+            return nil
+        }
         let candidates = windows.filter { candidate in
             guard
                 candidate.owner == "ChatGPT",
                 candidate.name == visualWindowName,
                 candidate.layer == 3,
-                candidate.ownerPID == mascotWindow.ownerPID,
+                candidate.ownerPID == stablePresencePID,
                 (80...640).contains(candidate.bounds.width),
                 (60...680).contains(candidate.bounds.height),
                 candidate.bounds.intersects(mascotWindow.bounds),
@@ -282,7 +291,7 @@ public enum PetWindowLocator {
         )
         candidatePIDs.formUnion(
             windows
-                .filter(isNamedStableWindow)
+                .filter(isNamedCompanionWindow)
                 .map(\.ownerPID)
         )
         candidatePIDs.formUnion(
@@ -321,19 +330,11 @@ public enum PetWindowLocator {
         })
     }
 
-    private static func isNamedStableWindow(
+    private static func isNamedCompanionWindow(
         _ window: WindowDescriptor
     ) -> Bool {
-        guard window.owner == "ChatGPT" else {
-            return false
-        }
-        if stableWindowNames.contains(window.name) {
-            return true
-        }
-        return window.name == visualWindowName &&
-            window.layer == 3 &&
-            (80...640).contains(window.bounds.width) &&
-            (60...680).contains(window.bounds.height)
+        window.owner == "ChatGPT" &&
+            stableWindowNames.contains(window.name)
     }
 
     private static func isVoiceControl(

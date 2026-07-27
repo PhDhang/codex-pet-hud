@@ -3,6 +3,98 @@ import XCTest
 @testable import PetHUDCore
 
 final class PetWindowLocatorTests: XCTestCase {
+    func testLoneVisualShellDoesNotReportStablePresence() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "Codex",
+                    layer: 3,
+                    width: 384,
+                    height: 126,
+                    id: 70,
+                    ownerPID: 7
+                ),
+            ]
+        )
+
+        XCTAssertNil(observation.exactWindow)
+        XCTAssertNil(observation.visualGeometry)
+        XCTAssertFalse(observation.hasStablePresence)
+        XCTAssertNil(observation.stablePresencePID)
+    }
+
+    func testVisualShellWithNamedCompanionRemainsStable() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "Codex",
+                    layer: 3,
+                    width: 384,
+                    height: 126,
+                    id: 71,
+                    ownerPID: 7
+                ),
+                descriptor(
+                    name: "Codex Pet Composition Surface",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 72,
+                    ownerPID: 7
+                ),
+            ]
+        )
+
+        XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(observation.stablePresencePID, 7)
+    }
+
+    func testShellDerivedGeometryRequiresQualifyingCompanionPID() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: "",
+                    layer: 2,
+                    width: 243,
+                    height: 252,
+                    id: 73,
+                    ownerPID: 1
+                ),
+                descriptor(
+                    name: "Voice",
+                    layer: 3,
+                    width: 24,
+                    height: 24,
+                    id: 74,
+                    ownerPID: 1
+                ),
+                descriptor(
+                    name: "Codex",
+                    layer: 3,
+                    width: 192,
+                    height: 126,
+                    id: 75,
+                    ownerPID: 1
+                ),
+                descriptor(
+                    name: "Codex Pet Composition Surface",
+                    layer: 3,
+                    width: 768,
+                    height: 912,
+                    id: 76,
+                    ownerPID: 2
+                ),
+            ]
+        )
+
+        XCTAssertEqual(observation.stablePresencePID, 2)
+        XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(
+            observation.visualGeometry?.source,
+            .mascotFallback
+        )
+    }
+
     func testIdleShellReportsPresenceWithoutExactGeometry() {
         let observation = PetWindowLocator.observe(
             from: [
