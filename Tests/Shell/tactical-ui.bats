@@ -64,9 +64,13 @@ grep -F 'let duration = 2.4' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'let movingRight = reduceMotion || progress < 0.5' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let travel = layout.travel' \
+grep -F 'let leftTravel = layout.leftTravel' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let bounce = -abs(sin(local * .pi * 2)) * 4' \
+grep -F 'let rightTravel = layout.rightTravel' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'let panicBounce = layout.panicBounce' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+grep -F 'layout.criticalImageFrame(' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
 grep -F 'assets.criticalImage' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"

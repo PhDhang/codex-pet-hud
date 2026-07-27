@@ -41,6 +41,72 @@ final class PetEffectLayoutTests: XCTestCase {
         XCTAssertEqual(layout.travel, 28, accuracy: 0.001)
     }
 
+    func testCenteredVisualPetKeepsFullTravelAndYichaScaleOneCenter() {
+        let visualSize = CGSize(
+            width: 126 * 192 / 208,
+            height: 126
+        )
+        let baseEffectSize = CGSize(
+            width: visualSize.width * 1.36,
+            height: visualSize.height * 1.10
+        )
+        let panelFrame = CGRect(
+            x: 200,
+            y: 100,
+            width: baseEffectSize.width * 2,
+            height: baseEffectSize.height * 2
+        )
+        let petFrame = CGRect(
+            x: panelFrame.midX - visualSize.width / 2,
+            y: panelFrame.midY - visualSize.height / 2,
+            width: visualSize.width,
+            height: visualSize.height
+        )
+        let layout = PetEffectLayout(
+            panelFrame: panelFrame,
+            petFrame: petFrame
+        )
+        let scaleOne = layout.criticalImageFrame(
+            imageSize: CGSize(width: 192, height: 208),
+            scale: 1
+        )
+        let scaleTwo = layout.criticalImageFrame(
+            imageSize: CGSize(width: 192, height: 208),
+            scale: 2
+        )
+
+        XCTAssertEqual(
+            layout.leftTravel,
+            layout.travel,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            layout.rightTravel,
+            layout.travel,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            scaleOne.midX,
+            layout.localPetFrame.midX,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            scaleOne.midY,
+            layout.localPetFrame.midY,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            scaleTwo.width,
+            scaleOne.width * 2,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            scaleTwo.height,
+            scaleOne.height * 2,
+            accuracy: 0.001
+        )
+    }
+
     func testLiveVisualFrameControlsTravelAndSpriteBounds() {
         let visualWidth: CGFloat = 126 * 192 / 208
         let visualFrame = CGRect(
@@ -112,8 +178,14 @@ final class PetEffectLayoutTests: XCTestCase {
         )
         XCTAssertEqual(
             layout.localEffectFrame.minX,
-            42.475,
+            0,
             accuracy: 0.001
+        )
+        XCTAssertTrue(
+            CGRect(
+                origin: .zero,
+                size: layout.panelSize
+            ).contains(layout.localEffectFrame)
         )
         XCTAssertEqual(
             layout.localPetFrame.midX,

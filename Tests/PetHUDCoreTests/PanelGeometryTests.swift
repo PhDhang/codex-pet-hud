@@ -67,10 +67,10 @@ final class PanelGeometryTests: XCTestCase {
         XCTAssertEqual(hud.minY, 339, accuracy: 0.001)
         XCTAssertEqual(
             effect.width,
-            visualPet.width * 1.36,
+            visualPet.width * 1.36 * 2,
             accuracy: 0.001
         )
-        XCTAssertEqual(effect.height, 138.6, accuracy: 0.001)
+        XCTAssertEqual(effect.height, 277.2, accuracy: 0.001)
         XCTAssertEqual(effect.midX, 244, accuracy: 0.001)
     }
 
@@ -181,6 +181,173 @@ final class PanelGeometryTests: XCTestCase {
 
         XCTAssertTrue(smallDisplay.appKitFrame.contains(tactical))
         XCTAssertTrue(smallDisplay.appKitFrame.contains(effect))
+    }
+
+    func testVisualPetEffectsStayContainedAtEveryDisplayEdge() throws {
+        let visualSize = CGSize(
+            width: 126 * 192 / 208,
+            height: 126
+        )
+        let edgePets: [(name: String, frame: CGRect)] = [
+            (
+                "left",
+                CGRect(
+                    x: 0,
+                    y: 220,
+                    width: visualSize.width,
+                    height: visualSize.height
+                )
+            ),
+            (
+                "right",
+                CGRect(
+                    x: display.cgBounds.maxX - visualSize.width,
+                    y: 220,
+                    width: visualSize.width,
+                    height: visualSize.height
+                )
+            ),
+            (
+                "top",
+                CGRect(
+                    x: 420,
+                    y: 0,
+                    width: visualSize.width,
+                    height: visualSize.height
+                )
+            ),
+            (
+                "bottom",
+                CGRect(
+                    x: 420,
+                    y: display.cgBounds.maxY - visualSize.height,
+                    width: visualSize.width,
+                    height: visualSize.height
+                )
+            ),
+        ]
+
+        for sample in edgePets {
+            let panel = try XCTUnwrap(
+                PanelGeometry.petEffectFrame(
+                    pet: sample.frame,
+                    displays: [display]
+                )
+            )
+            let appKitPet = try XCTUnwrap(
+                PanelGeometry.appKitPetFrame(
+                    pet: sample.frame,
+                    displays: [display]
+                )
+            )
+            let layout = PetEffectLayout(
+                panelFrame: panel,
+                petFrame: appKitPet
+            )
+            let localBounds = CGRect(
+                origin: .zero,
+                size: layout.panelSize
+            )
+            let leftPanicFrame = layout.localPetFrame.offsetBy(
+                dx: -layout.leftTravel,
+                dy: -layout.panicBounce
+            )
+            let rightPanicFrame = layout.localPetFrame.offsetBy(
+                dx: layout.rightTravel,
+                dy: -layout.panicBounce
+            )
+
+            XCTAssertTrue(
+                display.appKitFrame.contains(panel),
+                sample.name
+            )
+            XCTAssertTrue(
+                localBounds.contains(layout.localPetFrame),
+                sample.name
+            )
+            XCTAssertTrue(
+                localBounds.contains(layout.localEffectFrame),
+                sample.name
+            )
+            XCTAssertTrue(
+                localBounds.contains(leftPanicFrame),
+                sample.name
+            )
+            XCTAssertTrue(
+                localBounds.contains(rightPanicFrame),
+                sample.name
+            )
+            for scale in [1.0, 2.0] {
+                XCTAssertTrue(
+                    localBounds.contains(
+                        layout.criticalImageFrame(
+                            imageSize: CGSize(width: 192, height: 208),
+                            scale: scale
+                        )
+                    ),
+                    "\(sample.name) scale=\(scale)"
+                )
+            }
+
+            if sample.name == "left" {
+                XCTAssertEqual(layout.leftTravel, 0, accuracy: 0.001)
+                XCTAssertGreaterThan(layout.rightTravel, 0)
+            }
+            if sample.name == "right" {
+                XCTAssertGreaterThan(layout.leftTravel, 0)
+                XCTAssertEqual(layout.rightTravel, 0, accuracy: 0.001)
+            }
+            if sample.name == "top" {
+                XCTAssertEqual(layout.panicBounce, 0, accuracy: 0.001)
+            }
+        }
+    }
+
+    func testSmallDisplayConstrainsScaleTwoCriticalArt() throws {
+        let visualSize = CGSize(
+            width: 126 * 192 / 208,
+            height: 126
+        )
+        let smallDisplay = DisplayDescriptor(
+            cgBounds: CGRect(x: 0, y: 0, width: 140, height: 140),
+            appKitFrame: CGRect(x: 0, y: 0, width: 140, height: 140)
+        )
+        let pet = CGRect(
+            x: (smallDisplay.cgBounds.width - visualSize.width) / 2,
+            y: (smallDisplay.cgBounds.height - visualSize.height) / 2,
+            width: visualSize.width,
+            height: visualSize.height
+        )
+        let panel = try XCTUnwrap(
+            PanelGeometry.petEffectFrame(
+                pet: pet,
+                displays: [smallDisplay]
+            )
+        )
+        let appKitPet = try XCTUnwrap(
+            PanelGeometry.appKitPetFrame(
+                pet: pet,
+                displays: [smallDisplay]
+            )
+        )
+        let layout = PetEffectLayout(
+            panelFrame: panel,
+            petFrame: appKitPet
+        )
+        let localBounds = CGRect(
+            origin: .zero,
+            size: layout.panelSize
+        )
+        let critical = layout.criticalImageFrame(
+            imageSize: CGSize(width: 192, height: 208),
+            scale: 2
+        )
+
+        XCTAssertEqual(panel, smallDisplay.appKitFrame)
+        XCTAssertTrue(localBounds.contains(layout.localEffectFrame))
+        XCTAssertTrue(localBounds.contains(critical))
+        XCTAssertLessThanOrEqual(critical.width, panel.width)
+        XCTAssertLessThanOrEqual(critical.height, panel.height)
     }
 
     func testFramesUseOriginalPetDisplayWhenDisplaysAreVerticallyStacked() throws {

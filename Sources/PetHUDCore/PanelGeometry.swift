@@ -121,11 +121,14 @@ public enum PanelGeometry {
         let width = max(
             appKitPet.width * 1.35,
             appKitPet.width + travel * 2
-        )
-        let height = appKitPet.height * 1.10
+        ) * PetEffectLayout.maximumCriticalScale
+        let height =
+            appKitPet.height *
+            1.10 *
+            PetEffectLayout.maximumCriticalScale
         let frame = CGRect(
             x: appKitPet.midX - width / 2,
-            y: appKitPet.minY,
+            y: appKitPet.midY - height / 2,
             width: width,
             height: height
         )

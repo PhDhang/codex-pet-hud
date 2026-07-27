@@ -51,12 +51,17 @@ struct PetEffectView: View {
                 ? progress * 2
                 : (progress - 0.5) * 2
         let eased = 0.5 - cos(local * .pi) / 2
-        let travel = layout.travel
+        let leftTravel = layout.leftTravel
+        let rightTravel = layout.rightTravel
+        let route = leftTravel + rightTravel
         let x =
             movingRight
-                ? -travel + eased * travel * 2
-                : travel - eased * travel * 2
-        let bounce = -abs(sin(local * .pi * 2)) * 4
+                ? -leftTravel + eased * route
+                : rightTravel - eased * route
+        let panicBounce = layout.panicBounce
+        let bounce =
+            -abs(sin(local * .pi * 2)) *
+            panicBounce
         let selection = PetEffectFrameSelection.panic(
             customFrameCount:
                 assets.panicCustomFrames?.count ?? 0,
@@ -118,30 +123,22 @@ struct PetEffectView: View {
             frames: assets.failedFrames
         )
         let image = assets.criticalImage ?? fallback
-        let availableSize =
-            assets.criticalImage == nil
-                ? layout.localPetFrame.size
-                : layout.localEffectFrame.size
-        let fittedSize = aspectFitSize(
-            image: image,
-            in: availableSize
+        let imageFrame = layout.criticalImageFrame(
+            imageSize: CGSize(
+                width: image.width,
+                height: image.height
+            ),
+            scale:
+                assets.criticalImage == nil
+                    ? 1
+                    : assets.criticalScale,
+            availableFrame:
+                assets.criticalImage == nil
+                    ? layout.localPetFrame
+                    : nil
         )
-        let imageSize = CGSize(
-            width:
-                fittedSize.width *
-                CGFloat(assets.criticalScale),
-            height:
-                fittedSize.height *
-                CGFloat(assets.criticalScale)
-        )
-        let imageOrigin = CGPoint(
-            x:
-                layout.localPetFrame.midX -
-                imageSize.width / 2,
-            y:
-                layout.localPetFrame.midY -
-                imageSize.height / 2
-        )
+        let imageSize = imageFrame.size
+        let imageOrigin = imageFrame.origin
         let head = CGPoint(
             x:
                 imageOrigin.x +
@@ -337,21 +334,4 @@ struct PetEffectView: View {
         return frames[index]
     }
 
-    private func aspectFitSize(
-        image: CGImage,
-        in bounds: CGSize
-    ) -> CGSize {
-        let imageSize = CGSize(
-            width: image.width,
-            height: image.height
-        )
-        let scale = min(
-            bounds.width / imageSize.width,
-            bounds.height / imageSize.height
-        )
-        return CGSize(
-            width: imageSize.width * scale,
-            height: imageSize.height * scale
-        )
-    }
 }
