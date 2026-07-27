@@ -25,7 +25,8 @@ final class TacticalHUDPanelController {
                 y: 0,
                 width: 1,
                 height: 1
-            )
+            ),
+            level: .floating
         )
         panel.title = "Codex Pet HUD Tactical"
         panel.contentView = hostingView
@@ -50,7 +51,10 @@ final class TacticalHUDPanelController {
 
 @MainActor
 final class ClickThroughPanel: NSPanel {
-    init(contentRect: CGRect) {
+    init(
+        contentRect: CGRect,
+        level: NSWindow.Level
+    ) {
         super.init(
             contentRect: contentRect,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -61,7 +65,7 @@ final class ClickThroughPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = false
         ignoresMouseEvents = true
-        level = .floating
+        self.level = level
         collectionBehavior = [
             .canJoinAllSpaces,
             .fullScreenAuxiliary,

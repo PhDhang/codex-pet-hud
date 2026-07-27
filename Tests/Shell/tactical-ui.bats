@@ -48,6 +48,10 @@ test -f "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
 test -f "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
 grep -F 'Codex Pet HUD Pet Effect' \
   "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F 'level: .statusBar' \
+  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
+grep -F 'level: .floating' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 if grep -F 'Text("🌀")' \
   "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
   printf 'Pet replacement must not paste spiral emoji over sprite eyes.\n' >&2

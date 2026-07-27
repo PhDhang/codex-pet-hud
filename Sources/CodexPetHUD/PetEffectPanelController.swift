@@ -17,7 +17,8 @@ final class PetEffectPanelController {
                 y: 0,
                 width: 1,
                 height: 1
-            )
+            ),
+            level: .statusBar
         )
         panel.title = "Codex Pet HUD Pet Effect"
         panel.contentView = hostingView
