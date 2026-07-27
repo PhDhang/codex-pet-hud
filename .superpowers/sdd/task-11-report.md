@@ -333,3 +333,104 @@ on one semicolon-separated line to appear as one assignment.
 - All seven `Tests/Shell/*.bats` suites passed, including signed build,
   temporary-home install cycle, and the isolated source-install suite with
   `141` Swift tests; `git diff --check` passed before the test commit.
+
+## Approved Critical Orbit Restoration
+
+Verification completed: 2026-07-27 20:04 CST
+
+### Scope and Root Cause
+
+- Starting HEAD:
+  `db6e627399506336a31dd393a6e1cb33ad117cf6`
+- Dedicated implementation commit:
+  `a362893b6e72e97ccb4a3be88c604b950e4f55ee`
+  `fix: restore contained critical orbit`
+- Commit `157ae42` correctly removed procedural facial spiral emoji overlays,
+  but also removed the separately approved critical bird/sparkle orbit and
+  inverted the tactical source contract to reject all orbit helpers.
+- The restored orbit remains in `PetEffectView`, hosted by the
+  status-bar-level `PetEffectPanelController`. `TacticalHUDView` remains
+  bars-only, and the native cover plus click-through panel z-order are
+  unchanged.
+
+### Restored Behavior
+
+- Custom critical art and the generic failed-animation fallback each render
+  exactly one replacement body.
+- Two `🐦` birds and two `✨` sparkles orbit the calibrated manifest
+  `headAnchor` on a three-second loop.
+- `CriticalOrbitLayout` derives the head center, elliptical radii, glyph
+  boxes, and phase-separated positions from the contained critical image
+  frame.
+- Orbit radii and glyph size shrink against all four panel edges so their
+  modeled frames remain contained on small displays and edge-clamped panels,
+  including critical scale `2`.
+- Reduce Motion fixes the phase at zero, leaving the four glyphs at
+  deterministic separated positions with no glyph rotation or translation.
+- No `Text("🌀")` facial overlay was added; Yicha's spiral eyes remain
+  integrated image pixels.
+
+### Strict TDD Evidence
+
+- Core RED: focused compilation failed because `CriticalOrbitLayout` and
+  `PetEffectAnimation.orbitPhase` did not exist.
+- Core GREEN: `PetEffectLayoutTests` executed `16` tests with zero failures,
+  covering calibrated anchors, the three-second loop, constrained-edge glyph
+  frames, and deterministic Reduce Motion positions.
+- View-contract RED: `Tests/Shell/tactical-ui.bats` exited `1` because
+  `criticalOrbit`, `orbitingGlyph`, the tested layout model, and the two
+  bird/two sparkle source contract were absent.
+- View-contract GREEN: the focused shell suite exited `0` after restoring the
+  helpers only in `PetEffectView` and retaining the facial-overlay rejection.
+- Documentation RED: release validation exited `1` because the tracked body
+  asset, runtime orbit, bars-only ownership, and Reduce Motion wording were
+  absent.
+- Documentation GREEN: release validation exited `0` after README,
+  architecture, design spec, implementation plan, Skill, and changelog
+  updates.
+- Evidence:
+  `.superpowers/sdd/critical-orbit-artifacts/red-core.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/green-core.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/red-tactical-ui.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/green-tactical-ui.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/red-docs-release.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/green-docs-release.log`
+
+### Complete Verification
+
+- Pre-commit full Swift suite: `145` tests, zero failures, exit `0`.
+- Committed source-install Swift suite: `145` tests, zero failures, exit `0`.
+- All seven shell suites passed:
+  - `Tests/Shell/build-app.bats`
+  - `Tests/Shell/install-cycle.bats`
+  - `Tests/Shell/install-from-source.bats`
+  - `Tests/Shell/main-actor.bats`
+  - `Tests/Shell/release-validation.bats`
+  - `Tests/Shell/skill-validation.bats`
+  - `Tests/Shell/tactical-ui.bats`
+- `codesign --verify --deep --strict --verbose=4`: exit `0`.
+- Signature: ad hoc, arm64.
+- Identifier: `com.codex-pet-hud.app`.
+- CDHash: `32fbc46a2f275cfc8e37b8ebe8d1a05318690df6`.
+- `CFBundleShortVersionString`: `0.3.0`.
+- `CFBundleVersion`: `3`.
+- Binary SHA-256:
+  `0530d587ed0a01a90a7784bdb07066c6d0cda209832c97dbfdad1c57a2b56c75`.
+- Release scan, working-tree diff check, and
+  `db6e627399506336a31dd393a6e1cb33ad117cf6..HEAD` diff check passed.
+- Evidence:
+  `.superpowers/sdd/critical-orbit-artifacts/full-swift-precommit.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/all-shell-final-summary.txt`,
+  `.superpowers/sdd/critical-orbit-artifacts/install-from-source-final.log`,
+  `.superpowers/sdd/critical-orbit-artifacts/final-gates.log`
+
+### Safety
+
+- No GUI application was launched.
+- Build output remained local to the worktree.
+- Install and uninstall checks used temporary isolated `HOME` directories.
+- No persistent app, LaunchAgent, pet asset, or Skill installation occurred.
+- No push, pull request, tag, release, or publication occurred.
+- Live panic and critical screenshots still require recapture before release;
+  the tracked critical image remains accurately labeled as the body asset
+  without runtime orbit glyphs.
