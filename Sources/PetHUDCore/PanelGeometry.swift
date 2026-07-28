@@ -42,40 +42,6 @@ public enum PanelGeometry {
         )
     }
 
-    public static func lifePodFrame(
-        pet: CGRect,
-        displays: [DisplayDescriptor],
-        scale: CGFloat,
-        offset: CGPoint
-    ) -> CGRect? {
-        guard
-            let appKitPet = appKitPetFrame(
-                pet: pet,
-                displays: displays
-            )
-        else {
-            return nil
-        }
-
-        let size = CGSize(
-            width: appKitPet.width * scale,
-            height: appKitPet.height * scale
-        )
-        return CGRect(
-            x: appKitPet.midX - size.width / 2 + offset.x,
-            y: appKitPet.midY - size.height / 2 + offset.y,
-            width: size.width,
-            height: size.height
-        )
-    }
-
-    public static func criticalFrame(
-        pet: CGRect,
-        displays: [DisplayDescriptor]
-    ) -> CGRect? {
-        appKitPetFrame(pet: pet, displays: displays)
-    }
-
     public static func tacticalHUDFrame(
         pet: CGRect,
         displays: [DisplayDescriptor],
@@ -99,36 +65,6 @@ public enum PanelGeometry {
         let frame = CGRect(
             x: appKitPet.midX - width / 2 + offset.x,
             y: appKitPet.maxY + gap + offset.y,
-            width: width,
-            height: height
-        )
-        return clamp(frame, to: display.appKitFrame)
-    }
-
-    public static func petEffectFrame(
-        pet: CGRect,
-        displays: [DisplayDescriptor]
-    ) -> CGRect? {
-        guard let display = display(
-            containingMostOf: pet,
-            from: displays
-        ) else {
-            return nil
-        }
-        let appKitPet = appKitPetFrame(pet: pet, on: display)
-
-        let travel = min(appKitPet.width * 0.18, 28)
-        let width = max(
-            appKitPet.width * 1.35,
-            appKitPet.width + travel * 2
-        ) * PetEffectLayout.maximumCriticalScale
-        let height =
-            appKitPet.height *
-            1.10 *
-            PetEffectLayout.maximumCriticalScale
-        let frame = CGRect(
-            x: appKitPet.midX - width / 2,
-            y: appKitPet.midY - height / 2,
             width: width,
             height: height
         )

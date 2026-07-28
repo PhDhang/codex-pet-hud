@@ -43,10 +43,7 @@ final class PetHUDCoordinator {
     private let mockSnapshot: QuotaSnapshot?
     private let tacticalHUDController =
         TacticalHUDPanelController()
-    private let petEffectController =
-        PetEffectPanelController()
     private let geometryCache: PetGeometryCache
-    private let effectAssets: PetEffectAssets?
 
     private var model = ApplicationModel(now: Date())
     private var presenceTracker: PetPresenceTracker
@@ -121,9 +118,6 @@ final class PetHUDCoordinator {
                 "pets",
                 isDirectory: true
             )
-        )
-        effectAssets = manifest.flatMap(
-            PetEffectAssets.load(manifest:)
         )
         self.mockSnapshot = mockSnapshot
     }
@@ -240,7 +234,6 @@ final class PetHUDCoordinator {
             let petWindow = presentation.petWindow
         else {
             tacticalHUDController.hide()
-            petEffectController.hide()
             return
         }
 
@@ -258,7 +251,6 @@ final class PetHUDCoordinator {
                 )
         else {
             tacticalHUDController.hide()
-            petEffectController.hide()
             return
         }
 
@@ -272,30 +264,6 @@ final class PetHUDCoordinator {
             frame: tacticalHUDFrame,
             data: viewData
         )
-
-        if
-            presentation.distressState != .normal,
-            let effectAssets,
-            let petEffectFrame =
-                PanelGeometry.petEffectFrame(
-                    pet: petWindow.bounds,
-                    displays: displays
-                ),
-            let appKitPetFrame =
-                PanelGeometry.appKitPetFrame(
-                    pet: petWindow.bounds,
-                    displays: displays
-                )
-        {
-            petEffectController.show(
-                frame: petEffectFrame,
-                petFrame: appKitPetFrame,
-                state: presentation.distressState,
-                assets: effectAssets
-            )
-        } else {
-            petEffectController.hide()
-        }
     }
 
     private static func currentDisplays()

@@ -43,13 +43,6 @@ grep -F 'accessibilityValue: spAccessibilityValue' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F '.accessibilityValue(accessibilityValue ?? trailing)' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
-test -f "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-test -f "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
-test -f "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F 'Codex Pet HUD Pet Effect' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F 'level: .statusBar' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
 grep -F 'level: .floating' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 PANEL_INITIALIZER="$(sed -n \
@@ -72,109 +65,16 @@ if [ "$NORMALIZED_LEVEL_ASSIGNMENT" != 'self.level=level' ]; then
   printf 'Click-through panel must apply its injected window level.\n' >&2
   exit 1
 fi
-if grep -F 'Text("🌀")' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
-  printf 'Pet replacement must not paste spiral emoji over sprite eyes.\n' >&2
-  exit 1
-fi
-if grep -F '.rotationEffect(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
-  printf 'Reduce Motion contract forbids rotating critical glyphs.\n' >&2
-  exit 1
-fi
-grep -F 'criticalOrbit(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'orbitingGlyph(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'CriticalOrbitLayout(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'PetEffectAnimation.orbitPhase(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'reduceMotion: reduceMotion' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-test "$(
-  grep -F -o '"🐦"' \
-    "$ROOT/Sources/CodexPetHUD/PetEffectView.swift" |
-    wc -l |
-    tr -d '[:space:]'
-)" -eq 2
-test "$(
-  grep -F -o '"✨"' \
-    "$ROOT/Sources/CodexPetHUD/PetEffectView.swift" |
-    wc -l |
-    tr -d '[:space:]'
-)" -eq 2
-grep -F '@Environment(\.accessibilityReduceMotion)' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let duration = 2.4' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let movingRight = reduceMotion || progress < 0.5' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let leftTravel = layout.leftTravel' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let rightTravel = layout.rightTravel' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let panicBounce = layout.panicBounce' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'layout.criticalImageFrame(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'assets.criticalImage' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'assets.failedFrames' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'PetEffectAnimation.criticalOrbitDuration' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'guard state != .normal else' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F 'petFrame: CGRect' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F 'PetEffectLayout(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectPanelController.swift"
-grep -F 'let layout: PetEffectLayout' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'width: layout.panelSize.width' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'height: layout.panelSize.height' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-if grep -E 'nativePetCover|Ellipse[(][)]|RoundedRectangle[(]|Capsule[(]' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
-  printf 'Pet replacement layers must remain fully transparent.\n' >&2
-  exit 1
-fi
-grep -F 'genericCriticalHeadAura(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-if grep -F 'Rectangle()' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"; then
-  printf 'Pet effect still uses a rectangular native-pet mask.\n' >&2
-  exit 1
-fi
-grep -F 'assets.panicCustomFrames' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'assets.panicCustomFrames?.count ?? 0' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'let panicFramesPerSecond: Double' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
-grep -F 'panic?.framesPerSecond ?? 8' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectAssets.swift"
-grep -F 'PetEffectAnimation.frameIndex(' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'framesPerSecond: assets.panicFramesPerSecond' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'case .custom' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-grep -F 'if assets.criticalImage == nil {' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
-! grep -F '.rotationEffect(.degrees(76))' \
-  "$ROOT/Sources/CodexPetHUD/PetEffectView.swift"
+for removed in \
+  PetEffectAssets.swift \
+  PetEffectPanelController.swift \
+  PetEffectView.swift
+do
+  test ! -e "$ROOT/Sources/CodexPetHUD/$removed"
+done
 
-test -x "$ROOT/scripts/capture-hud.sh"
-grep -F 'let tacticalName = "Codex Pet HUD Tactical"' \
-  "$ROOT/scripts/capture-hud.sh"
-grep -F 'let effectName = "Codex Pet HUD Pet Effect"' \
-  "$ROOT/scripts/capture-hud.sh"
-grep -F 'guard tacticalRects.count == 1 else {' \
-  "$ROOT/scripts/capture-hud.sh"
-grep -F 'guard effectRects.count <= 1 else {' \
-  "$ROOT/scripts/capture-hud.sh"
-grep -F 'let rects = tacticalRects + effectRects' \
-  "$ROOT/scripts/capture-hud.sh"
+if rg -n 'PetEffect|PetDistressState|distressState|effectAssets' \
+  "$ROOT/Sources"; then
+  printf 'HUD runtime still contains pet-effect behavior.\n' >&2
+  exit 1
+fi

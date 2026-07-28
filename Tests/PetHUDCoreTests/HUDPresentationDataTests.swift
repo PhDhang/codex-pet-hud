@@ -92,19 +92,18 @@ final class HUDPresentationDataTests: XCTestCase {
         XCTAssertEqual(data.band, .low)
     }
 
-    func testFractionalHPLabelsMatchRawBandAndDistressState() {
+    func testFractionalHPLabelsMatchRawBand() {
         let samples: [
             (
                 remaining: Double,
                 label: String,
-                band: HPBand,
-                distress: PetDistressState
+                band: HPBand
             )
         ] = [
-            (9.6, "9.6%", .low, .panic),
-            (3.4, "3.4%", .low, .panic),
-            (90.4, "90.4%", .healthy, .normal),
-            (50.5, "50.5%", .normal, .normal),
+            (9.6, "9.6%", .low),
+            (3.4, "3.4%", .low),
+            (90.4, "90.4%", .healthy),
+            (50.5, "50.5%", .normal),
         ]
 
         for sample in samples {
@@ -127,14 +126,6 @@ final class HUDPresentationDataTests: XCTestCase {
             XCTAssertEqual(
                 data.band,
                 sample.band,
-                "remaining=\(sample.remaining)"
-            )
-            XCTAssertEqual(
-                PetDistressState.evaluate(
-                    hudState: state,
-                    previous: .normal
-                ),
-                sample.distress,
                 "remaining=\(sample.remaining)"
             )
         }
@@ -167,29 +158,28 @@ final class HUDPresentationDataTests: XCTestCase {
         }
     }
 
-    func testNearBoundaryHPUsesCanonicalBandDistressBarAndLabel() {
+    func testNearBoundaryHPUsesCanonicalBandBarAndLabel() {
         let samples: [
             (
                 raw: Double,
                 canonical: Double,
                 label: String,
-                band: HPBand,
-                distress: PetDistressState
+                band: HPBand
             )
         ] = [
-            (3.04, 3, "3%", .critical, .critical),
-            (3.99, 3.9, "3.9%", .low, .panic),
-            (4.09, 4, "4%", .low, .panic),
-            (9.96, 9.9, "9.9%", .low, .panic),
-            (10.09, 10, "10%", .warning, .normal),
-            (50.09, 50, "50%", .warning, .normal),
-            (50.99, 50.9, "50.9%", .normal, .normal),
-            (51.09, 51, "51%", .normal, .normal),
-            (90.09, 90, "90%", .normal, .normal),
-            (90.99, 90.9, "90.9%", .healthy, .normal),
-            (91.09, 91, "91%", .healthy, .normal),
-            (99.96, 99.9, "99.9%", .healthy, .normal),
-            (100.04, 100, "100%", .healthy, .normal),
+            (3.04, 3, "3%", .critical),
+            (3.99, 3.9, "3.9%", .low),
+            (4.09, 4, "4%", .low),
+            (9.96, 9.9, "9.9%", .low),
+            (10.09, 10, "10%", .warning),
+            (50.09, 50, "50%", .warning),
+            (50.99, 50.9, "50.9%", .normal),
+            (51.09, 51, "51%", .normal),
+            (90.09, 90, "90%", .normal),
+            (90.99, 90.9, "90.9%", .healthy),
+            (91.09, 91, "91%", .healthy),
+            (99.96, 99.9, "99.9%", .healthy),
+            (100.04, 100, "100%", .healthy),
         ]
 
         for sample in samples {
@@ -218,13 +208,6 @@ final class HUDPresentationDataTests: XCTestCase {
                 accuracy: 0.000_001
             )
             XCTAssertEqual(data.band, sample.band)
-            XCTAssertEqual(
-                PetDistressState.evaluate(
-                    hudState: state,
-                    previous: .normal
-                ),
-                sample.distress
-            )
         }
     }
 

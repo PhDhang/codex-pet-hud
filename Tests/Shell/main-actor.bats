@@ -23,7 +23,10 @@ grep -F 'geometryCache.save(' "$SOURCE"
 grep -F 'PetPresenceTracker' "$SOURCE"
 grep -F 'PetGeometryCache' "$SOURCE"
 grep -F 'TacticalHUDPanelController' "$SOURCE"
-grep -F 'PetEffectPanelController' "$SOURCE"
+if grep -F 'PetEffectPanelController' "$SOURCE"; then
+  printf 'HUD application still initializes a pet-effect panel.\n' >&2
+  exit 1
+fi
 grep -F 'render(model.reduce(.clockTick(Date())))' "$SOURCE"
 
 if grep -F 'PetWindowTracker' \
