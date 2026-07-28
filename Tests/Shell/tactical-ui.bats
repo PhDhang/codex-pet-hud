@@ -31,6 +31,25 @@ grep -F 'rowHeight: metrics.flameHeight' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'data.statusLabel' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+HUD_VIEW="$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+ACCENT_HELPER="$(sed -n \
+  '/private var tacticalAccentColor: Color {/,/^    }/p' \
+  "$HUD_VIEW")"
+if ! printf '%s\n' "$ACCENT_HELPER" | \
+  grep -A 1 -F 'case .low, .critical:' | \
+  grep -F 'Color.red'; then
+  printf 'Low and critical quota bands must share the red tactical accent.\n' \
+    >&2
+  exit 1
+fi
+ACCENT_LABEL_USE_COUNT="$(grep -F '.foregroundStyle(tacticalAccentColor)' \
+  "$HUD_VIEW" | wc -l | tr -d '[:space:]')"
+if [ "$ACCENT_LABEL_USE_COUNT" -ne 2 ]; then
+  printf 'Tactical status and meter labels must share one accent helper.\n' \
+    >&2
+  exit 1
+fi
+grep -F '.stroke(tacticalAccentColor, lineWidth: 1)' "$HUD_VIEW"
 grep -F '.accessibilityElement(children: .combine)' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F '.accessibilityHidden(true)' \

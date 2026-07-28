@@ -63,11 +63,7 @@ struct TacticalHUDView: View {
                         )
                     )
                     .tracking(metrics.statusTracking)
-                    .foregroundStyle(
-                        data.band == .critical
-                            ? Color.red
-                            : Color.cyan
-                    )
+                    .foregroundStyle(tacticalAccentColor)
                     .frame(height: metrics.statusRowHeight)
             }
             .padding(.horizontal, metrics.horizontalPadding)
@@ -90,6 +86,15 @@ struct TacticalHUDView: View {
             data.resetText
     }
 
+    private var tacticalAccentColor: Color {
+        switch data.band {
+        case .low, .critical:
+            Color.red
+        default:
+            Color.cyan
+        }
+    }
+
     private func meterRow<Content: View>(
         label: String,
         trailing: String,
@@ -103,11 +108,7 @@ struct TacticalHUDView: View {
         return HStack(spacing: metrics.columnSpacing) {
             Text(label)
                 .frame(width: metrics.labelWidth, alignment: .leading)
-                .foregroundStyle(
-                    data.band == .critical
-                        ? Color.red
-                        : Color.cyan
-                )
+                .foregroundStyle(tacticalAccentColor)
             content()
                 .frame(maxWidth: .infinity)
             Text(trailing)
@@ -144,12 +145,7 @@ struct TacticalHUDView: View {
                         frameSize: frameSize
                     ).cornerCut
                 )
-                    .stroke(
-                        data.band == .critical
-                            ? Color.red
-                            : Color.cyan.opacity(0.78),
-                        lineWidth: 1
-                    )
+                    .stroke(tacticalAccentColor, lineWidth: 1)
             }
     }
 
