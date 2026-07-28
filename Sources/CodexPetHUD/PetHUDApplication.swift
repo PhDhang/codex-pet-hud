@@ -255,7 +255,7 @@ final class PetHUDCoordinator {
         }
 
         let viewData = HUDPresentationData.make(
-            petName: manifest?.displayName ?? "CODEX PET",
+            manifest: manifest,
             state: presentation.hudState,
             now: Date()
         )

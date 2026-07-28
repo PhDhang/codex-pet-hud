@@ -67,6 +67,19 @@ Any Codex v2 pet with standard `pet.json` metadata is supported. The HUD uses
 the manifest display name and positions its one tactical window above the native
 pet; no repository asset or per-pet extension is required.
 
+Automated coverage creates two distinct valid v2 manifests that contain only
+standard `pet.json` metadata and a `spritesheetPath`. It verifies that each
+manifest display name follows the same HUD data path used by the app at `8%`
+(`PANIC · QUOTA LOW`) and `2%` (`EXHAUSTED · SIGNAL CRITICAL`), without effect
+metadata or assets.
+
+Live desktop validation is available for every locally discoverable pet. This
+machine currently exposes only the installed `一茬` manifest at
+`$HOME/.codex/pets/yicha/pet.json`; no additional default pet assets are
+discoverable in `/Applications/ChatGPT.app` or
+`$HOME/Library/Application Support`. There are therefore no other local
+manifests to check with the diagnose/mock-visual workflow.
+
 ## Skill, Uninstall, and Privacy
 
 Copy `skills/codex-pet-hud` into the Codex skills directory. To use a fork:

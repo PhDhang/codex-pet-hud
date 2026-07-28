@@ -10,6 +10,18 @@ public struct HUDPresentationData: Equatable, Sendable {
     public let band: HPBand?
 
     public static func make(
+        manifest: PetManifest?,
+        state: HUDState,
+        now: Date
+    ) -> HUDPresentationData {
+        make(
+            petName: manifest?.displayName ?? "CODEX PET",
+            state: state,
+            now: now
+        )
+    }
+
+    public static func make(
         petName: String,
         state: HUDState,
         now: Date
