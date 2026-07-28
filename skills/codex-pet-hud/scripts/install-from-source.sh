@@ -67,6 +67,12 @@ git -C "$DESTINATION" checkout --detach "$TARGET_REF"
 
 cd "$DESTINATION"
 swift test --disable-sandbox
+for test_script in Tests/Shell/*.bats; do
+  if [ "$test_script" = "Tests/Shell/install-from-source.bats" ]; then
+    continue
+  fi
+  bash "$test_script"
+done
 scripts/build-app.sh
 scripts/install.sh --pet-path "$PET_PATH"
 if [ "${CODEX_PET_HUD_TESTING:-0}" != "1" ]; then

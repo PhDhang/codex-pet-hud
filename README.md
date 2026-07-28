@@ -1,42 +1,43 @@
 # Codex Pet HUD
 
-Codex Pet HUD is a native macOS companion for Codex v2 pets. It follows the
-live pet window and renders a proportional ring life pod with weekly quota
-and reset-cycle status.
+Codex Pet HUD is a macOS 14 companion for one selected Codex v2 pet. It keeps a
+compact tactical dual-bar HUD above the pet, including when Codex has no active
+task. HP shows weekly quota remaining; seven SP flames show reset progress.
 
-![Ring life pod showing weekly HP and reset SP](docs/screenshots/ring-life-pod.png)
+![Healthy tactical HUD](docs/screenshots/tactical-hud.png)
 
-## Features
+## Tactical HUD
 
-- **HP ring:** shows remaining weekly Codex quota as a colored outer arc and
-  numeric percentage.
-- **Quota colors:** emerald above 90%, amber through the middle range, and red
-  below 10%.
-- **SP cells:** seven lower-arc cells visualize progress toward the weekly reset. Seven
-  days remaining starts empty; two days remaining lights five cells.
-- **Critical state:** at 3% remaining or less, a darkened pet clone, stars, and
-  circling birds indicate an exhausted character.
-- **Live attachment:** tracks the exact `Codex Pet Mascot Effect` window and
-  follows moves, resizes, and temporary window reconstruction.
-- **Proportional layout:** scales from the current pet dimensions and supports
-  independent scale and X/Y alignment adjustments.
-- **Local-first:** reads Codex authentication locally, sends one read-only
-  quota request, and never reads browser cookies.
-- **Reusable Skill:** includes a Codex Skill for prerequisite checks, source
-  installation, diagnostics, repair, and removal.
+Snapshots whose age is `≤300s` are fresh and show the raw weekly HP percentage,
+using one decimal only for non-integral values. Bands are `>90%` emerald,
+`51–90%` green, `10–50%` amber, `4–9%`
+red, and `≤3%` bright red. At an age of `>300s` and `≤1800s`, the last values
+remain with `STALE`.
+At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
 
-### Critical State
+SP always has seven rounded three-layer flames. Lit flames are
+red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
+one elapsed seventh of the weekly reset window, from zero lit at a new window to
+seven at reset.
 
-| Exhausted life pod | Downed pet effect |
-| --- | --- |
-| ![Exhausted HP life pod](docs/screenshots/ring-life-pod-critical.png) | ![Downed pet with circling birds](docs/screenshots/dungeon-critical-effect.png) |
+For fresh `4–9%` quota, the HUD shows `PANIC · QUOTA LOW` in red. For fresh
+`≤3%` quota, it shows `EXHAUSTED · SIGNAL CRITICAL` in bright red. These are
+HUD-only label and color changes: the HUD never changes the native pet.
 
-## Requirements
+## Idle Presence and Alignment
 
-- macOS 14 or newer
-- Codex desktop with a visible v2 pet
-- Swift 6.2 or newer from Xcode Command Line Tools
-- A signed-in Codex session
+Exact mascot observations refresh pet geometry. Stable Codex companion windows
+keep the HUD present while the task is idle. Title-redacted presence requires one
+complete same-PID companion cluster and fails closed when multiple complete
+clusters exist. The local geometry cache retains only high-confidence
+shell-derived bounds, PID, window ID, and timestamp; mascot fallback geometry is
+transient. Cached geometry restores only for matching stable presence on a
+connected display. Both panels hide only after three missing observations
+spanning at least two seconds.
+
+The HUD centers above the pet. `podScale`, `podOffsetX`, and `podOffsetY`
+remain compatible; `podScale` is clamped to `0.65...1.6`. Positive X moves
+right and positive Y moves up.
 
 ## Install From Source
 
@@ -48,67 +49,66 @@ scripts/build-app.sh
 scripts/install.sh --pet-path "$HOME/.codex/pets/YOUR_PET"
 ```
 
-The installer copies the application to
-`$HOME/Applications/Codex Pet HUD.app`, writes a private configuration file,
-and installs a per-user LaunchAgent.
-
-Run a redacted health check:
+Run a redacted diagnostic check:
 
 ```bash
 "$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" --diagnose
 ```
 
-## Configuration
+The installer writes private configuration and a per-user LaunchAgent. Settings
+live at `$HOME/.config/codex-pet-hud/config.json`; refresh is at least five
+minutes and X/Y offsets are `-300...300`. The legacy
+`criticalThresholdPercent` setting is retained for compatibility, but tactical
+behavior remains fixed at `≤3%` for `EXHAUSTED · SIGNAL CRITICAL`.
 
-Settings live at `$HOME/.config/codex-pet-hud/config.json`:
+## Pet Compatibility
 
-```json
-{
-  "petPath": "~/.codex/pets/YOUR_PET",
-  "refreshIntervalSeconds": 300,
-  "criticalThresholdPercent": 3,
-  "podScale": 1.14,
-  "podOffsetX": 0,
-  "podOffsetY": 0,
-  "launchAtLogin": true
-}
-```
+Any Codex v2 pet with standard `pet.json` metadata is supported. The HUD uses
+the manifest display name and positions its one tactical window above the native
+pet; no repository asset or per-pet extension is required.
 
-Refresh intervals shorter than five minutes are clamped. Critical thresholds
-are limited to 0–10%. `podScale` is relative to the current pet size and is
-limited to `1.0...1.8`; `podOffsetX` and `podOffsetY` move the ring by up to
-±300 points without resizing the pet. Positive X moves right and positive Y
-moves up. Try `1.10` for a close ring, `1.14` for the default, or `1.22` for
-more breathing room.
+Automated coverage creates two distinct valid v2 manifests that contain only
+standard `pet.json` metadata and a `spritesheetPath`. It verifies that each
+manifest display name follows the same HUD data path used by the app at `8%`
+(`PANIC · QUOTA LOW`) and `2%` (`EXHAUSTED · SIGNAL CRITICAL`), without effect
+metadata or assets.
 
-Existing configuration files continue working when these keys are absent.
-The legacy `nameplateOffset` key remains accepted but does not move the ring.
+Live desktop validation is available for every locally discoverable pet. This
+machine currently exposes only the installed `一茬` manifest at
+`$HOME/.codex/pets/yicha/pet.json`; no additional default pet assets are
+discoverable in `/Applications/ChatGPT.app` or
+`$HOME/Library/Application Support`. There are therefore no other local
+manifests to check with the diagnose/mock-visual workflow.
 
-## Install The Skill
+## Skill, Uninstall, and Privacy
 
-Copy `skills/codex-pet-hud` into your Codex skills directory. The Skill can
-check prerequisites and install from this repository. To use a fork instead,
-set:
+Copy `skills/codex-pet-hud` into the Codex skills directory. To use a fork:
 
 ```bash
 export CODEX_PET_HUD_REPO_URL="https://github.com/PhDhang/codex-pet-hud.git"
 ```
 
-Then ask Codex to install or diagnose Codex Pet HUD for a v2 pet.
-
-## Uninstall
-
-Keep configuration:
+Keep configuration while uninstalling:
 
 ```bash
 scripts/uninstall.sh
 ```
 
-Remove the app, LaunchAgent, logs, and configuration:
+Without `--purge`, configuration, caches, and logs remain.
+
+Remove the app, LaunchAgent, logs, and settings:
 
 ```bash
 scripts/uninstall.sh --purge
 ```
+
+`--purge` also removes the quota snapshot and geometry cache from
+`Library/Application Support/CodexPetHUD`.
+
+The app makes one read-only quota request and never logs credentials, account
+IDs, emails, cookies, or raw provider responses. It uses public window metadata
+only and requests neither Accessibility nor Screen Recording. See
+`docs/privacy.md` for the full boundary and release scan command.
 
 ## Development
 
@@ -119,14 +119,12 @@ for test_script in Tests/Shell/*.bats; do
 done
 ```
 
-See `docs/architecture.md` for component boundaries and `docs/privacy.md` for
-the data-flow and credential policy.
+See `docs/architecture.md` for component boundaries and data flow.
 
 ## Status
 
-Version 0.2.0 targets macOS only. This is an independent community project,
-not an official OpenAI product. The quota endpoint and Codex pet window title
-are implementation details that may change.
+Version 0.3.0-rc.1 targets macOS 14 and newer. This is an independent community
+project, not an official OpenAI product. Quota and window metadata can change.
 
 ## License
 

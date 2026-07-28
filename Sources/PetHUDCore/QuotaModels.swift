@@ -1,5 +1,42 @@
 import Foundation
 
+public enum HPPrecision {
+    public static func canonical(
+        _ remainingPercent: Double
+    ) -> Double {
+        canonical(
+            Decimal(remainingPercent)
+        )
+    }
+
+    public static func remainingPercent(
+        fromUsedPercent usedPercent: Double
+    ) -> Double {
+        canonical(
+            Decimal(100) - Decimal(usedPercent)
+        )
+    }
+
+    private static func canonical(
+        _ remainingPercent: Decimal
+    ) -> Double {
+        var clamped = min(
+            Decimal(100),
+            max(Decimal(0), remainingPercent)
+        )
+        var canonical = Decimal()
+        NSDecimalRound(
+            &canonical,
+            &clamped,
+            1,
+            .down
+        )
+        return NSDecimalNumber(
+            decimal: canonical
+        ).doubleValue
+    }
+}
+
 public struct QuotaWindow: Codable, Equatable, Sendable {
     public let usedPercent: Double
     public let resetAt: Date
@@ -16,7 +53,9 @@ public struct QuotaWindow: Codable, Equatable, Sendable {
     }
 
     public var remainingPercent: Double {
-        min(100, max(0, 100 - usedPercent))
+        HPPrecision.remainingPercent(
+            fromUsedPercent: usedPercent
+        )
     }
 }
 
@@ -54,4 +93,3 @@ extension QuotaProviderError: CustomStringConvertible {
         }
     }
 }
-

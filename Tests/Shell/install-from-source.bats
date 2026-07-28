@@ -32,3 +32,10 @@ test "$(
 )" = "$(
   printf '%s' "$SOURCE_REF"
 )"
+
+SCRIPT="$ROOT/skills/codex-pet-hud/scripts/install-from-source.sh"
+CHECKOUT_LINE="$(grep -n -F 'git -C "$DESTINATION" checkout --detach "$TARGET_REF"' "$SCRIPT" | cut -d: -f1)"
+TEST_LINE="$(grep -n -F 'for test_script in Tests/Shell/*.bats; do' "$SCRIPT" | cut -d: -f1)"
+INSTALL_LINE="$(grep -n -F 'scripts/install.sh --pet-path "$PET_PATH"' "$SCRIPT" | cut -d: -f1)"
+test "$CHECKOUT_LINE" -lt "$TEST_LINE"
+test "$TEST_LINE" -lt "$INSTALL_LINE"

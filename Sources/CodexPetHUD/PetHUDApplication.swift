@@ -40,15 +40,13 @@ final class PetHUDCoordinator {
     private let provider: WhamUsageClient
     private let cache: SnapshotCache
     private let manifest: PetManifest?
-    private let neutralImage: CGImage?
     private let mockSnapshot: QuotaSnapshot?
-    private let lifePodController =
-        LifePodPanelController()
-    private let criticalController =
-        CriticalPanelController()
+    private let tacticalHUDController =
+        TacticalHUDPanelController()
+    private let geometryCache: PetGeometryCache
 
     private var model = ApplicationModel(now: Date())
-    private var petWindowTracker = PetWindowTracker()
+    private var presenceTracker: PetPresenceTracker
     private var windowTimer: Timer?
     private var freshnessTimer: Timer?
     private var quotaTimer: Timer?
@@ -68,6 +66,15 @@ final class PetHUDCoordinator {
             url: configURL,
             homeDirectory: home
         )
+        let applicationSupport = home
+            .appendingPathComponent(
+                "Library/Application Support",
+                isDirectory: true
+            )
+            .appendingPathComponent(
+                "CodexPetHUD",
+                isDirectory: true
+            )
 
         let codexHome: URL
         if let configuredHome =
@@ -86,16 +93,20 @@ final class PetHUDCoordinator {
             )
         )
         cache = SnapshotCache(
-            url: home
-                .appendingPathComponent(
-                    "Library/Application Support",
-                    isDirectory: true
-                )
-                .appendingPathComponent(
-                    "CodexPetHUD",
-                    isDirectory: true
-                )
-                .appendingPathComponent("snapshot.json")
+            url: applicationSupport.appendingPathComponent(
+                "snapshot.json"
+            )
+        )
+        geometryCache = PetGeometryCache(
+            url: applicationSupport.appendingPathComponent(
+                "pet-geometry.json"
+            )
+        )
+        let restored = try? geometryCache.load(
+            intersecting: Self.currentDisplays().map(\.cgBounds)
+        )?.geometry
+        presenceTracker = PetPresenceTracker(
+            restoredGeometry: restored
         )
 
         let configuredPetURL = configuration.petPath.map {
@@ -108,9 +119,6 @@ final class PetHUDCoordinator {
                 isDirectory: true
             )
         )
-        neutralImage = manifest.flatMap {
-            try? PetAtlas.neutralImage(manifest: $0)
-        }
         self.mockSnapshot = mockSnapshot
     }
 
@@ -120,7 +128,8 @@ final class PetHUDCoordinator {
                 model.reduce(.quotaLoaded(mockSnapshot))
             )
         } else if let cached = try? cache.load() {
-            render(model.reduce(.quotaLoaded(cached)))
+            _ = model.reduce(.quotaLoaded(cached))
+            render(model.reduce(.clockTick(Date())))
         }
 
         updatePetWindow()
@@ -193,16 +202,27 @@ final class PetHUDCoordinator {
     }
 
     private func updatePetWindow() {
-        let petWindow = petWindowTracker.update(
-            observed: PetWindowLocator.currentWindow(),
-            now: Date()
+        let now = Date()
+        let observation =
+            PetWindowLocator.currentObservation()
+        if
+            let visualGeometry = observation.visualGeometry,
+            visualGeometry.source == .shellDerived
+        {
+            _ = try? geometryCache.save(
+                visualGeometry,
+                updatedAt: now
+            )
+        }
+        let petGeometry = presenceTracker.update(
+            observation: observation,
+            now: now
         )
-        let presentation = model.reduce(
-            .petWindowChanged(
-                petWindow
+        render(
+            model.reduce(
+                .petWindowChanged(petGeometry?.window)
             )
         )
-        render(presentation)
     }
 
     private func render(
@@ -210,18 +230,17 @@ final class PetHUDCoordinator {
     ) {
         lastPresentation = presentation
         guard
-            presentation.showNameplate,
+            presentation.showHUD,
             let petWindow = presentation.petWindow
         else {
-            lifePodController.hide()
-            criticalController.hide()
+            tacticalHUDController.hide()
             return
         }
 
         let displays = Self.currentDisplays()
         guard
-            let lifePodFrame =
-                PanelGeometry.lifePodFrame(
+            let tacticalHUDFrame =
+                PanelGeometry.tacticalHUDFrame(
                     pet: petWindow.bounds,
                     displays: displays,
                     scale: configuration.podScale,
@@ -231,35 +250,18 @@ final class PetHUDCoordinator {
                     ),
                 )
         else {
-            lifePodController.hide()
-            criticalController.hide()
+            tacticalHUDController.hide()
             return
         }
 
         let viewData = HUDPresentationData.make(
-            petName: manifest?.displayName ?? "CODEX PET",
+            manifest: manifest,
             state: presentation.hudState,
             now: Date()
         )
 
-        if
-            presentation.showCriticalEffect,
-            let criticalFrame =
-                PanelGeometry.criticalFrame(
-                    pet: petWindow.bounds,
-                    displays: displays
-                )
-        {
-            criticalController.show(
-                frame: criticalFrame,
-                petImage: neutralImage
-            )
-        } else {
-            criticalController.hide()
-        }
-
-        lifePodController.show(
-            frame: lifePodFrame,
+        tacticalHUDController.show(
+            frame: tacticalHUDFrame,
             data: viewData
         )
     }

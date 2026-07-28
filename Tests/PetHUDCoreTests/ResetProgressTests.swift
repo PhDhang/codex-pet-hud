@@ -2,31 +2,33 @@ import XCTest
 @testable import PetHUDCore
 
 final class ResetProgressTests: XCTestCase {
-    func testSevenDaysRemainingLightsNoCells() {
+    func testSevenDayResetUsesElapsedWholeDays() {
+        let day: TimeInterval = 86_400
         XCTAssertEqual(
             ResetProgress.cellsLit(
-                secondsRemaining: 604_800,
-                windowDuration: 604_800
+                secondsRemaining: 7 * day,
+                windowDuration: 7 * day
             ),
             0
         )
-    }
-
-    func testTwoDaysRemainingLightsFiveCells() {
         XCTAssertEqual(
             ResetProgress.cellsLit(
-                secondsRemaining: 172_800,
-                windowDuration: 604_800
+                secondsRemaining: 5 * day,
+                windowDuration: 7 * day
+            ),
+            2
+        )
+        XCTAssertEqual(
+            ResetProgress.cellsLit(
+                secondsRemaining: 2 * day,
+                windowDuration: 7 * day
             ),
             5
         )
-    }
-
-    func testImminentResetLightsSevenCells() {
         XCTAssertEqual(
             ResetProgress.cellsLit(
                 secondsRemaining: 0,
-                windowDuration: 604_800
+                windowDuration: 7 * day
             ),
             7
         )

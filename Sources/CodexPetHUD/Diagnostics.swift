@@ -15,7 +15,12 @@ enum Diagnostics {
         includeQuota: Bool
     ) async -> Int32 {
         let context = loadContext()
-        let petWindow = PetWindowLocator.currentWindow()
+        let observation = PetWindowLocator.currentObservation()
+        let petWindowStatus =
+            observation.exactWindow != nil ||
+            observation.hasStablePresence
+            ? "found"
+            : "missing"
         var providerStatus = includeQuota ? "unavailable" : "skipped"
         var remaining: Int?
         var resetAt: Date?
@@ -41,7 +46,7 @@ enum Diagnostics {
         let report = Report(
             configuration: context.configurationStatus,
             pet: context.petStatus,
-            petWindow: petWindow == nil ? "missing" : "found",
+            petWindow: petWindowStatus,
             provider: providerStatus,
             weeklyRemainingPercent: remaining,
             resetAt: resetAt
@@ -57,7 +62,7 @@ enum Diagnostics {
         if includeQuota && providerStatus != "reachable" {
             return 4
         }
-        if petWindow == nil {
+        if petWindowStatus == "missing" {
             return 5
         }
         return 0

@@ -8,22 +8,9 @@ public enum ApplicationEvent: Sendable {
 }
 
 public struct PanelPresentation: Equatable, Sendable {
-    public let showNameplate: Bool
-    public let showCriticalEffect: Bool
+    public let showHUD: Bool
     public let hudState: HUDState
     public let petWindow: WindowDescriptor?
-
-    public init(
-        showNameplate: Bool,
-        showCriticalEffect: Bool,
-        hudState: HUDState,
-        petWindow: WindowDescriptor?
-    ) {
-        self.showNameplate = showNameplate
-        self.showCriticalEffect = showCriticalEffect
-        self.hudState = hudState
-        self.petWindow = petWindow
-    }
 }
 
 public struct ApplicationModel: Sendable {
@@ -50,7 +37,7 @@ public struct ApplicationModel: Sendable {
             petWindow = window
         case let .quotaLoaded(snapshot):
             self.snapshot = snapshot
-            now = snapshot.fetchedAt
+            now = max(now, snapshot.fetchedAt)
             hudState = HUDState.evaluate(
                 snapshot: snapshot,
                 now: now
@@ -72,16 +59,8 @@ public struct ApplicationModel: Sendable {
             )
         }
 
-        let isCritical: Bool
-        if case let .quota(_, band) = hudState {
-            isCritical = band == .critical
-        } else {
-            isCritical = false
-        }
-        let hasPet = petWindow != nil
         return PanelPresentation(
-            showNameplate: hasPet,
-            showCriticalEffect: hasPet && isCritical,
+            showHUD: petWindow != nil,
             hudState: hudState,
             petWindow: petWindow
         )

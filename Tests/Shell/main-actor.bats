@@ -17,6 +17,34 @@ if grep -F "Task { @MainActor" "$SOURCE"; then
   exit 1
 fi
 
+grep -F 'PetWindowLocator.currentObservation()' "$SOURCE"
+grep -F 'observation.visualGeometry' "$SOURCE"
+grep -F 'geometryCache.save(' "$SOURCE"
+grep -F 'PetPresenceTracker' "$SOURCE"
+grep -F 'PetGeometryCache' "$SOURCE"
+grep -F 'TacticalHUDPanelController' "$SOURCE"
+if grep -F 'PetEffectPanelController' "$SOURCE"; then
+  printf 'HUD application still initializes a pet-effect panel.\n' >&2
+  exit 1
+fi
+grep -F 'render(model.reduce(.clockTick(Date())))' "$SOURCE"
+
+if grep -F 'PetWindowTracker' \
+  "$ROOT/Sources/PetHUDCore/PetPresenceTracker.swift"
+then
+  printf 'Task 2 compatibility tracker still exists.\n' >&2
+  exit 1
+fi
+
+for legacy_source in \
+  LifePodView.swift \
+  LifePodPanelController.swift \
+  CriticalEffectView.swift \
+  CriticalPanelController.swift
+do
+  test ! -e "$ROOT/Sources/CodexPetHUD/$legacy_source"
+done
+
 test -x "$APP"
 
 OUTPUT="$(

@@ -10,20 +10,38 @@ public struct HUDPresentationData: Equatable, Sendable {
     public let band: HPBand?
 
     public static func make(
+        manifest: PetManifest?,
+        state: HUDState,
+        now: Date
+    ) -> HUDPresentationData {
+        make(
+            petName: manifest?.displayName ?? "CODEX PET",
+            state: state,
+            now: now
+        )
+    }
+
+    public static func make(
         petName: String,
         state: HUDState,
         now: Date
     ) -> HUDPresentationData {
         switch state {
         case let .quota(snapshot, band):
+            let statusLabel: String
+            switch band {
+            case .critical:
+                statusLabel = "EXHAUSTED · SIGNAL CRITICAL"
+            case .low:
+                statusLabel = "PANIC · QUOTA LOW"
+            default:
+                statusLabel = "CODEX · WEEKLY"
+            }
             return quotaData(
                 petName: petName,
                 snapshot: snapshot,
                 band: band,
-                statusLabel:
-                    band == .critical
-                    ? "EXHAUSTED"
-                    : "CODEX · WEEKLY",
+                statusLabel: statusLabel,
                 now: now
             )
         case let .stale(snapshot):
@@ -57,8 +75,9 @@ public struct HUDPresentationData: Equatable, Sendable {
         statusLabel: String,
         now: Date
     ) -> HUDPresentationData {
-        let remainingPercent =
+        let remainingPercent = HPPrecision.canonical(
             snapshot.weekly.remainingPercent
+        )
         let secondsRemaining = max(
             0,
             snapshot.weekly.resetAt.timeIntervalSince(now)
@@ -66,7 +85,7 @@ public struct HUDPresentationData: Equatable, Sendable {
         return HUDPresentationData(
             petName: petName,
             statusLabel: statusLabel,
-            hpText: "\(Int(remainingPercent.rounded()))%",
+            hpText: hpText(for: remainingPercent),
             hpFraction: remainingPercent / 100,
             spCellsLit: ResetProgress.cellsLit(
                 secondsRemaining: secondsRemaining,
@@ -77,6 +96,19 @@ public struct HUDPresentationData: Equatable, Sendable {
                 secondsRemaining: secondsRemaining
             ),
             band: band
+        )
+    }
+
+    private static func hpText(
+        for remainingPercent: Double
+    ) -> String {
+        if remainingPercent == remainingPercent.rounded() {
+            return "\(Int(remainingPercent))%"
+        }
+        return String(
+            format: "%.1f%%",
+            locale: Locale(identifier: "en_US_POSIX"),
+            remainingPercent
         )
     }
 

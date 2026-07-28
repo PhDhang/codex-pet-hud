@@ -12,35 +12,39 @@ RECT="$(
       .optionAll,
       kCGNullWindowID
     ) as? [[String: Any]] ?? []
-    let names = Set([
-      "Codex Pet Mascot Effect",
-      "Codex Pet HUD Life Pod",
-    ])
-    let rects = rows.compactMap { row -> CGRect? in
-      let name = row[kCGWindowName as String] as? String ?? ""
-      let onScreen =
-        (row[kCGWindowIsOnscreen as String] as? NSNumber)?.boolValue ??
-        false
-      guard
-        names.contains(name),
-        onScreen,
-        let dictionary =
-          row[kCGWindowBounds as String] as? [String: Any]
-      else {
-        return nil
+    let tacticalName = "Codex Pet HUD Tactical"
+    let effectName = "Codex Pet HUD Pet Effect"
+    func visibleRects(named expectedName: String) -> [CGRect] {
+      rows.compactMap { row -> CGRect? in
+        let name = row[kCGWindowName as String] as? String ?? ""
+        guard name == expectedName else {
+          return nil
+        }
+        let onScreen =
+          (row[kCGWindowIsOnscreen as String] as? NSNumber)?.boolValue ??
+          false
+        guard
+          onScreen,
+          let dictionary =
+            row[kCGWindowBounds as String] as? [String: Any]
+        else {
+          return nil
+        }
+        return CGRect(
+          dictionaryRepresentation:
+            dictionary as CFDictionary
+        )
       }
-      return CGRect(
-        dictionaryRepresentation:
-          dictionary as CFDictionary
-      )
     }
-    guard rects.count == names.count else {
+    let tacticalRects = visibleRects(named: tacticalName)
+    let effectRects = visibleRects(named: effectName)
+    guard tacticalRects.count == 1 else {
       exit(5)
     }
-    let union = rects.dropFirst().reduce(rects[0]) {
-      $0.union($1)
+    guard effectRects.isEmpty else {
+      exit(5)
     }
-    let capture = union.insetBy(dx: -12, dy: -12)
+    let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)
     print(
       "\(Int(floor(capture.minX)))," +
       "\(Int(floor(capture.minY)))," +

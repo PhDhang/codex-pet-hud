@@ -3,9 +3,9 @@ import PetHUDCore
 import SwiftUI
 
 @MainActor
-final class LifePodPanelController {
+final class TacticalHUDPanelController {
     private let panel: NSPanel
-    private let hostingView: NSHostingView<LifePodView>
+    private let hostingView: NSHostingView<TacticalHUDView>
 
     init() {
         let initial = HUDPresentationData.make(
@@ -14,7 +14,10 @@ final class LifePodPanelController {
             now: Date()
         )
         hostingView = NSHostingView(
-            rootView: LifePodView(data: initial)
+            rootView: TacticalHUDView(
+                data: initial,
+                frameSize: .zero
+            )
         )
         panel = ClickThroughPanel(
             contentRect: CGRect(
@@ -22,9 +25,10 @@ final class LifePodPanelController {
                 y: 0,
                 width: 1,
                 height: 1
-            )
+            ),
+            level: .floating
         )
-        panel.title = "Codex Pet HUD Life Pod"
+        panel.title = "Codex Pet HUD Tactical"
         panel.contentView = hostingView
     }
 
@@ -32,7 +36,10 @@ final class LifePodPanelController {
         frame: CGRect,
         data: HUDPresentationData
     ) {
-        hostingView.rootView = LifePodView(data: data)
+        hostingView.rootView = TacticalHUDView(
+            data: data,
+            frameSize: frame.size
+        )
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
     }
@@ -44,7 +51,10 @@ final class LifePodPanelController {
 
 @MainActor
 final class ClickThroughPanel: NSPanel {
-    init(contentRect: CGRect) {
+    init(
+        contentRect: CGRect,
+        level: NSWindow.Level
+    ) {
         super.init(
             contentRect: contentRect,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -55,7 +65,7 @@ final class ClickThroughPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = false
         ignoresMouseEvents = true
-        level = .floating
+        self.level = level
         collectionBehavior = [
             .canJoinAllSpaces,
             .fullScreenAuxiliary,

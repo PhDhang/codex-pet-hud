@@ -25,6 +25,13 @@ public enum PanelGeometry {
             return nil
         }
 
+        return appKitPetFrame(pet: pet, on: display)
+    }
+
+    private static func appKitPetFrame(
+        pet: CGRect,
+        on display: DisplayDescriptor
+    ) -> CGRect {
         let localX = pet.minX - display.cgBounds.minX
         let localY = pet.minY - display.cgBounds.minY
         return CGRect(
@@ -35,38 +42,57 @@ public enum PanelGeometry {
         )
     }
 
-    public static func lifePodFrame(
+    public static func tacticalHUDFrame(
         pet: CGRect,
         displays: [DisplayDescriptor],
         scale: CGFloat,
         offset: CGPoint
     ) -> CGRect? {
-        guard
-            let appKitPet = appKitPetFrame(
-                pet: pet,
-                displays: displays
-            )
-        else {
+        guard let display = display(
+            containingMostOf: pet,
+            from: displays
+        ) else {
+            return nil
+        }
+        let appKitPet = appKitPetFrame(pet: pet, on: display)
+
+        let width = min(
+            360,
+            max(210, appKitPet.width * 1.05)
+        ) * scale
+        let height = 58 * scale
+        let gap = max(8, appKitPet.height * 0.04)
+        let frame = CGRect(
+            x: appKitPet.midX - width / 2 + offset.x,
+            y: appKitPet.maxY + gap + offset.y,
+            width: width,
+            height: height
+        )
+        return clamp(frame, to: display.appKitFrame)
+    }
+
+    private static func clamp(
+        _ frame: CGRect,
+        to display: CGRect?
+    ) -> CGRect? {
+        guard let display else {
             return nil
         }
 
-        let size = CGSize(
-            width: appKitPet.width * scale,
-            height: appKitPet.height * scale
-        )
+        let width = min(frame.width, display.width)
+        let height = min(frame.height, display.height)
         return CGRect(
-            x: appKitPet.midX - size.width / 2 + offset.x,
-            y: appKitPet.midY - size.height / 2 + offset.y,
-            width: size.width,
-            height: size.height
+            x: min(
+                max(frame.minX, display.minX),
+                display.maxX - width
+            ),
+            y: min(
+                max(frame.minY, display.minY),
+                display.maxY - height
+            ),
+            width: width,
+            height: height
         )
-    }
-
-    public static func criticalFrame(
-        pet: CGRect,
-        displays: [DisplayDescriptor]
-    ) -> CGRect? {
-        appKitPetFrame(pet: pet, displays: displays)
     }
 
     private static func display(

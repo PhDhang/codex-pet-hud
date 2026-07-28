@@ -10,40 +10,52 @@
 | 4 | Provider or network failure | Retry once; inspect only redacted stderr |
 | 5 | Pet window not found | Open the Codex pet overlay and retry |
 
-## Life Pod Does Not Follow
+## Tactical HUD Does Not Follow While Idle
 
-Run `--diagnose`. If `petWindow` is missing while the pet is visible, inspect
-on-screen ChatGPT window metadata with Core Graphics. LaunchAgent may redact
-window titles, so the fallback requires exactly one plausible empty-title
-mascot containing a same-PID, layer-3, `20...32` point voice control. If titles
-remain visible, update `PetWindowLocator.exactWindowName` only after confirming
-the upstream name changed.
+Run `--diagnose`. Exact geometry comes from the native mascot window, but idle
+presence also accepts:
 
-If the ring is visible but misaligned, adjust `podScale`, `podOffsetX`, and
-`podOffsetY`, restart the LaunchAgent, then resize the pet again. The ring
-should return within one polling interval after resize completes.
+- `Codex Pet Composition Surface`
+- `Codex Pet Voice Controls Backing`
+- `Codex Pet Activity Stack Backing`
+
+When LaunchAgent redacts titles, require same-PID layer-3 companion evidence:
+a `20...32` point voice control, composition surface, and activity stack. Do
+not loosen the match when multiple candidates exist.
+
+The tactical HUD remains visible while stable presence is observed and hides only
+after three consecutive missing observations spanning at least two seconds. If it
+stays visible after closure, wait two seconds and retry `--diagnose`. If it
+disappears while idle, confirm these titles or the title-redacted companion set
+before changing locator rules.
+
+If alignment is wrong, adjust `podScale`, `podOffsetX`, and `podOffsetY`,
+restart the LaunchAgent, then move and resize while idle. The HUD should return
+within one polling interval.
 
 ## Quota Is Offline
 
-Confirm Codex itself can display usage. Do not copy tokens into logs or issue reports. A provider payload change should be repaired in `WhamUsageParser` with an invented fixture and a failing test first.
+Confirm Codex can display usage. Do not copy tokens into logs or issue reports.
+Repair provider parsing with an invented fixture and a failing test first.
 
-## Critical Clone Is Missing
+## Low-Quota HUD Label Is Unexpected
 
-The HP/SP life pod remains functional when sprite extraction fails. Confirm:
+Fresh `4–9%` quota shows `PANIC · QUOTA LOW`; fresh `≤3%` quota shows
+`EXHAUSTED · SIGNAL CRITICAL`. These are HUD-only label and color changes and
+never change the native pet. Confirm:
 
 - `spriteVersionNumber` is `2`.
-- The spritesheet exists inside the pet directory.
-- Atlas dimensions are divisible by 8 columns and 11 rows.
+- The selected `pet.json` is a valid standard v2 manifest.
+- `--diagnose` reports a found pet window and reachable provider.
+- The rendered snapshot age is fresh (`≤300s`), rather than `STALE` or `OFFLINE`.
 
-Use `hatch-pet` to repair invalid pet assets.
+Do not modify files in the selected pet directory to change low-quota status.
 
 ## Safe Reinstall
-
-Run:
 
 ```bash
 scripts/build-app.sh
 scripts/install.sh --pet-path "$PET_PATH"
 ```
 
-The installer backs up an existing configuration before replacement.
+The installer backs up existing configuration before replacement.

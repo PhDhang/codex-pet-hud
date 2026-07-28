@@ -94,9 +94,9 @@ public struct AppConfiguration: Codable, Equatable, Sendable {
                 )
             ),
             podScale: min(
-                1.8,
+                1.6,
                 max(
-                    1.0,
+                    0.65,
                     document.podScale ?? defaults.podScale
                 )
             ),
