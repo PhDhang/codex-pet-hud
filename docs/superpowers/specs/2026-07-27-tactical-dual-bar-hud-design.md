@@ -1,3 +1,5 @@
+> **Historical design record.** This specification is superseded by the [HUD-Only Pet Compatibility Implementation Plan](../plans/2026-07-28-hud-only-pet-compatibility.md); historical records are not active release contracts.
+
 # Tactical Dual-Bar HUD and Pet Distress States
 
 **Date:** 2026-07-27  

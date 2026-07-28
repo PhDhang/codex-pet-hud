@@ -270,8 +270,74 @@ git add Sources/PetHUDCore/HUDPresentationData.swift \
 git commit -m "test: cover HUD-only v2 pet compatibility"
 ```
 
+### Task 4: Close Final Release Review Gaps
+
+**Files:**
+- Modify: `scripts/capture-hud.sh`
+- Modify: `Tests/Shell/tactical-ui.bats`
+- Modify: `Tests/Shell/release-validation.bats`
+- Modify: `docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md`
+- Modify: `docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md`
+- Modify: `docs/superpowers/plans/2026-07-28-hud-only-pet-compatibility.md`
+
+**Interfaces:**
+- Consumes: named Core Graphics windows from `capture-hud.sh` and the retained historical documents.
+- Produces: a capture helper that fails unless it sees exactly one tactical HUD and zero effect windows, plus clearly superseded historical records that preserve their original body.
+
+- [ ] **Step 1: Write failing release-guard tests**
+
+In `Tests/Shell/tactical-ui.bats`, replace the capture-script ban on effect identifiers with a required negative detector:
+
+```bash
+grep -F 'let effectName = "Codex Pet HUD Pet Effect"' "$CAPTURE_SCRIPT"
+grep -F 'let effectRects = visibleRects(named: effectName)' "$CAPTURE_SCRIPT"
+grep -F 'guard effectRects.isEmpty else {' "$CAPTURE_SCRIPT"
+```
+
+In `Tests/Shell/release-validation.bats`, require both historical files to carry this exact meaning and a link to the HUD-only plan:
+
+```bash
+grep -F 'Historical design record' \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
+grep -F 'HUD-Only Pet Compatibility Implementation Plan' \
+  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md
+```
+
+- [ ] **Step 2: Run focused contracts and verify RED**
+
+Run: `bash Tests/Shell/tactical-ui.bats && bash Tests/Shell/release-validation.bats`
+
+Expected: the capture contract fails because it does not currently count effect windows, and release validation fails because the retained documents lack supersession notices.
+
+- [ ] **Step 3: Add runtime negative detection and supersession notices**
+
+Keep `capture-hud.sh` centered on the tactical window rectangle, but enumerate `Codex Pet HUD Pet Effect` solely to fail if any instance is on screen:
+
+```swift
+let effectRects = visibleRects(named: effectName)
+guard tacticalRects.count == 1 else { exit(5) }
+guard effectRects.isEmpty else { exit(5) }
+let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)
+```
+
+Prepend both retained documents with a short blockquote stating that they are historical records, superseded by the HUD-only plan, and are not active release contracts. Preserve every original design/body section unchanged.
+
+- [ ] **Step 4: Run focused contracts and verify GREEN**
+
+Run: `bash Tests/Shell/tactical-ui.bats && bash Tests/Shell/release-validation.bats && git diff --check`
+
+Expected: exit status `0`; capture validation rejects a residual effect window and retained documents cannot be mistaken for current release requirements.
+
+- [ ] **Step 5: Commit the final review fixes**
+
+```bash
+git add scripts/capture-hud.sh Tests/Shell/tactical-ui.bats \
+  Tests/Shell/release-validation.bats docs/superpowers
+git commit -m "fix: harden HUD-only release guards"
+```
+
 ## Self-Review
 
-- **Spec coverage:** Task 1 removes all 4–9% and ≤3% pet actions while preserving low/critical HUD labels. Task 2 removes optional effect assets, docs, capture logic, and validation contracts. Task 3 tests multiple metadata-free v2 pets and records the live-pet availability limit.
+- **Spec coverage:** Task 1 removes all 4–9% and ≤3% pet actions while preserving low/critical HUD labels. Task 2 removes optional effect assets, docs, capture logic, and validation contracts. Task 3 tests multiple metadata-free v2 pets and records the live-pet availability limit. Task 4 makes runtime screenshot capture reject a residual effect window and identifies retained effect plans as superseded history.
 - **Placeholder scan:** No task contains TODO/TBD text or unspecified commands; each implementation change has concrete files, expected API, and exact verification command.
 - **Type consistency:** `PanelPresentation` is consistently reduced to `showHUD`, `hudState`, and `petWindow`; all remaining low/critical display logic flows through `HUDState` and `HUDPresentationData`.

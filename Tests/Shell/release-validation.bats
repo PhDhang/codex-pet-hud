@@ -85,3 +85,16 @@ if rg -n \
   printf 'Active documentation still exposes a pet-effect feature.\n' >&2
   exit 1
 fi
+
+grep -F 'Historical design record' \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
+grep -F '[HUD-Only Pet Compatibility Implementation Plan](2026-07-28-hud-only-pet-compatibility.md)' \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
+grep -F 'not active release contracts' \
+  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
+grep -F 'Historical design record' \
+  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md
+grep -F '[HUD-Only Pet Compatibility Implementation Plan](../plans/2026-07-28-hud-only-pet-compatibility.md)' \
+  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md
+grep -F 'not active release contracts' \
+  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md

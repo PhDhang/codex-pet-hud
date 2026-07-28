@@ -104,9 +104,12 @@ grep -F 'let tacticalName = "Codex Pet HUD Tactical"' "$CAPTURE_SCRIPT"
 grep -F 'guard tacticalRects.count == 1 else' "$CAPTURE_SCRIPT"
 grep -F 'let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)' \
   "$CAPTURE_SCRIPT"
+grep -F 'let effectName = "Codex Pet HUD Pet Effect"' "$CAPTURE_SCRIPT"
+grep -F 'let effectRects = visibleRects(named: effectName)' "$CAPTURE_SCRIPT"
+grep -F 'guard effectRects.isEmpty else {' "$CAPTURE_SCRIPT"
 if rg -n \
   'Pet Effect|effectRects|hud-effects|hud-panic|hud-critical' \
-  "$CAPTURE_SCRIPT" "$ROOT/README.md" "$ROOT/docs/architecture.md" \
+  "$ROOT/README.md" "$ROOT/docs/architecture.md" \
   "$ROOT/skills/codex-pet-hud"; then
   printf 'Active HUD documentation still describes pet effects.\n' >&2
   exit 1
