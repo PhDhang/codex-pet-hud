@@ -78,3 +78,16 @@ if rg -n 'PetEffect|PetDistressState|distressState|effectAssets' \
   printf 'HUD runtime still contains pet-effect behavior.\n' >&2
   exit 1
 fi
+
+CAPTURE_SCRIPT="$ROOT/scripts/capture-hud.sh"
+test -f "$CAPTURE_SCRIPT"
+grep -F 'let tacticalName = "Codex Pet HUD Tactical"' "$CAPTURE_SCRIPT"
+grep -F 'guard tacticalRects.count == 1 else' "$CAPTURE_SCRIPT"
+grep -F 'let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)' \
+  "$CAPTURE_SCRIPT"
+if rg -n \
+  'Pet Effect|effectName|effectRects|let rects[[:space:]]*=|dropFirst\(\)\.reduce|\.union\(' \
+  "$CAPTURE_SCRIPT"; then
+  printf 'Capture script must capture only the tactical HUD window.\n' >&2
+  exit 1
+fi
