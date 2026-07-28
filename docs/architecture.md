@@ -9,12 +9,12 @@ cannot hide an otherwise healthy HUD.
 ```text
 Window observations ──> PetPresenceTracker ──> retained pet geometry
 Usage source ─────────> SnapshotCache ───────> HUD state evaluator
-Pet manifest ─────────> Effect asset loader ─> panic/critical resources
+Pet manifest ─────────> pet display name
 
-retained geometry + HUD state + assets
+retained geometry + HUD state + pet display name
                   └──> presentation model
-                        ├──> TacticalHUD panel
-                        └──> PetEffect panel
+                        └──> TacticalHUDPanelController
+                              └──> Tactical HUD panel
 ```
 
 Quota refresh and window tracking are independent. A refresh failure cannot hide
@@ -24,23 +24,23 @@ the HUD, and a task-state window change cannot discard valid quota data.
 2. `WhamUsageClient` performs the read-only usage request.
 3. `WhamUsageParser` normalizes the weekly window into `QuotaSnapshot`.
 4. `SnapshotCache` preserves only normalized quota for stale rendering.
-5. `ApplicationModel` produces quota, stale, offline, and auth states;
-   `PetDistressState` produces normal, panic, or critical only from fresh data.
+5. `ApplicationModel` produces quota, stale, offline, and auth states.
 6. `HUDPresentationData` produces numeric HP and seven-flame SP data.
-7. `TacticalHUDPanelController` and `PetEffectPanelController` render
-   presentation data without receiving credentials or raw provider responses.
+7. `TacticalHUDPanelController` renders the one tactical HUD window without
+   receiving credentials or raw provider responses.
 
 ## Tactical State
 
-HP bands are `>90%`, `51–90%`, `10–50%`, `4–9%`, and `≤3%`. Panic enters
-at `4–9%` and exits at `≥10%`; critical enters at `≤3%` and exits only above
-`5%`. Stale and missing quota never trigger effects. SP has seven three-layer
-flames; lit count equals the elapsed seventh of the weekly reset window.
+HP bands are `>90%`, `51–90%`, `10–50%`, `4–9%`, and `≤3%`. Fresh `4–9%`
+shows the red `PANIC · QUOTA LOW` HUD label, and fresh `≤3%` shows the bright
+red `EXHAUSTED · SIGNAL CRITICAL` label. The labels and colors are HUD-only;
+they never change the native pet. SP has seven three-layer flames; lit count
+equals the elapsed seventh of the weekly reset window.
 
 ## Presence and Geometry
 
-`PetWindowLocator` uses `Codex Pet Mascot Effect` for exact geometry. During
-idle periods, `Codex Pet Composition Surface`, `Codex Pet Voice Controls
+`PetWindowLocator` uses the native mascot window for exact geometry. During idle
+periods, `Codex Pet Composition Surface`, `Codex Pet Voice Controls
 Backing`, and `Codex Pet Activity Stack Backing` confirm stable presence. A
 title-redacted fallback requires exactly one complete matching ChatGPT owner,
 PID, layer, size, and companion cluster; multiple complete PID clusters fail
@@ -55,41 +55,17 @@ hides panels only after three absent observations spanning two seconds. It fails
 closed when no safe current or cached geometry is available.
 
 `PanelGeometry` centers the tactical HUD above the pet, then applies
-`podScale`, `podOffsetX`, and `podOffsetY`. Both panels are transparent,
-non-activating, mouse-transparent accessory windows across Spaces.
+`podScale`, `podOffsetX`, and `podOffsetY`. The tactical panel is transparent,
+non-activating, and mouse-transparent across Spaces.
 
-## Optional Per-Pet Effects
+## Pet Compatibility
 
-Effect assets remain optional inside the selected pet directory:
-
-```text
-<pet>/
-  manifest.json
-  spritesheet.png
-  hud-effects.json          optional
-  hud-panic.png             optional
-  hud-critical.png          optional
-```
-
-Version-1 `hud-effects.json` supplies optional asset paths and legacy anchors.
-Generic pets use standard directional running frames plus a non-facial aura and
-no procedural eye overlay. A custom panic strip carries integrated eye art and
-may omit legacy eye anchors. Yicha ships eight right-running `192x208` RGBA
-frames; the renderer mirrors the strip for left travel. Missing critical art
-uses the v2 `failed` animation, never a rotated neutral frame.
-
-The loader rejects absolute or escaping paths, missing files, malformed metadata,
-and invalid images. It falls back safely without hiding the HUD. Panic and
-critical are pet-state replacements rendered by `PetEffectPanelController`, not
-content in the tactical bars. The critical renderer uses the calibrated
-`headAnchor` for two birds and two sparkles, shrinking their orbit and glyph
-boxes to remain inside the effect panel at display edges. Orbit glyphs stay in `PetEffectView` and never enter `TacticalHUDView`.
-Use `hatch-pet` for custom panic or critical art rather than replacing the
-original atlas.
+Pet compatibility requires only standard v2 `pet.json` metadata. `PetManifest`
+validates the v2 manifest and exposes its display name to the tactical HUD; the
+native pet stays responsible for its own rendering.
 
 ## Accessibility and Lifecycle
 
 No Accessibility or Screen Recording permission is required. The per-user
 LaunchAgent refreshes quota no more often than every five minutes while the
-main-run-loop window sampler follows movement and resize events. Reduce Motion
-freezes the four orbit glyphs at separated cardinal positions.
+main-run-loop window sampler follows movement and resize events.

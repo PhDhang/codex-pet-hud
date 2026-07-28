@@ -1,6 +1,6 @@
 ---
 name: codex-pet-hud
-description: Use when a macOS 14 Codex v2 pet needs a live tactical quota HUD, idle-presence diagnostics, HP/SP bars, panic or critical effects, source installation, repair, or safe removal.
+description: Use when a macOS 14 Codex v2 pet needs a live tactical quota HUD, idle-presence diagnostics, HP/SP bars, source installation, repair, or safe removal.
 ---
 
 # Codex Pet HUD
@@ -8,8 +8,9 @@ description: Use when a macOS 14 Codex v2 pet needs a live tactical quota HUD, i
 ## Overview
 
 Install and verify the macOS companion that centers a tactical HP and seven-flame
-SP HUD above one selected Codex v2 pet. Keep credentials local, fail closed on
-ambiguous windows or assets, and use redacted diagnostics.
+SP HUD above one selected Codex v2 pet with standard `pet.json` metadata. Keep
+credentials local, fail closed on ambiguous windows or pets, and use redacted
+diagnostics.
 
 ## Safety Rules
 
@@ -17,10 +18,10 @@ ambiguous windows or assets, and use redacted diagnostics.
 - Never print tokens, account IDs, emails, cookies, or raw provider responses.
 - Never read browser cookies or request Accessibility or Screen Recording.
 - Select exactly one v2 pet; do not guess when checks find multiple candidates.
-- Prefer `Codex Pet Mascot Effect`. With title-redacted LaunchAgent windows,
+- Prefer the native mascot window. With title-redacted LaunchAgent windows,
   require same PID companion evidence including a layer-3 `20...32` point voice
   control; hide on ambiguity.
-- Build and test before installing or copying assets.
+- Build and test before installing.
 
 ## Workflow
 
@@ -88,55 +89,20 @@ launchctl kickstart -k gui/$(id -u)/com.codex-pet-hud.agent
 
 Missing keys use defaults; legacy `nameplateOffset` does not move the tactical HUD.
 
-## HP, Flame, Panic, and Critical States
+## HP, Flame, and Low-Quota States
 
 HP is weekly quota. Seven SP flame cells show elapsed reset progress: lit
-red/orange/yellow, unlit blue/cyan/ice-blue. Fresh `4–9%` quota replaces the pet
-with a compact panic run. Fresh `≤3%` quota replaces the pet with critical art,
-which clears only above `5%`. These states are not HUD content. Stale or missing
-data never enables panic or critical effects.
+red/orange/yellow, unlit blue/cyan/ice-blue. Fresh `4–9%` quota changes the
+HUD to the red `PANIC · QUOTA LOW` label. Fresh `≤3%` quota changes it to the
+bright-red `EXHAUSTED · SIGNAL CRITICAL` label. These are HUD-only label and
+color changes. The HUD never changes the native pet. Stale and missing data
+retain their normal HUD state without changing the native pet.
 
-## Optional Pet Effects
+## Pet Compatibility
 
-- Generic fallback: standard directional running frames, non-facial aura, no procedural eye overlay.
-- Custom strip: integrated eye art; legacy eye anchors may be omitted.
-
-Yicha ships the custom strip; the runtime mirrors its right-running frames for
-left travel. Two birds and two sparkles orbit the calibrated critical head anchor
-for both custom and generic replacements. Reduce Motion freezes the four glyphs
-at separated positions, and edge containment may shrink their radii and size.
-They remain in the pet-effect window, never the tactical bars. For custom panic,
-critical art, or a new pet, **REQUIRED SUB-SKILL:** Use `hatch-pet`; do not
-generate, rotate, or composite facial artwork in this Skill.
-
-Copy optional effects only after confirming the selected pet directory and example files exist:
-
-```bash
-test -d "$PET_PATH"
-test -f Examples/yicha/hud-panic.png
-test -f Examples/yicha/hud-critical.png
-test -f Examples/yicha/hud-effects.json
-cp -n Examples/yicha/hud-panic.png "$PET_PATH/hud-panic.png" ||
-  test -e "$PET_PATH/hud-panic.png"
-cp -n Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png" ||
-  test -e "$PET_PATH/hud-critical.png"
-cp -n Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json" ||
-  test -e "$PET_PATH/hud-effects.json"
-cmp -s Examples/yicha/hud-panic.png "$PET_PATH/hud-panic.png" ||
-  { printf 'Existing hud-panic.png differs; left unchanged.\n' >&2; exit 1; }
-cmp -s Examples/yicha/hud-critical.png "$PET_PATH/hud-critical.png" ||
-  { printf 'Existing hud-critical.png differs; left unchanged.\n' >&2; exit 1; }
-cmp -s Examples/yicha/hud-effects.json "$PET_PATH/hud-effects.json" ||
-  { printf 'Existing hud-effects.json differs; left unchanged.\n' >&2; exit 1; }
-```
-
-Yicha is an example only. `hud-effects.json` must keep relative asset paths
-inside the selected pet directory; malformed metadata, missing images, and unsafe
-paths fall back safely without hiding the HUD. Repository fixture tests validate
-Yicha's eight `192x208` RGBA panic cells, alpha, and connected components. These
-shell checks do not validate arbitrary images or manifests; the app validates
-loaded effect assets. `cp -n` refuses to overwrite existing installed assets,
-and `cmp -s` reports a different pre-existing asset without replacing it.
+The HUD requires only standard v2 `pet.json` metadata. It uses the selected
+pet's display name in the tactical HUD and leaves the native rendering untouched.
+Do not add repository files to the selected pet directory.
 
 ## Repair and Rollback
 

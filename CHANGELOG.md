@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 ## [0.3.0-rc.1] - 2026-07-27
 
+### Removed
+
+- Low-quota pet replacements; fresh `4–9%` and `≤3%` now update only tactical
+  HUD labels and colors.
+- Optional per-pet effect manifests and checked Yicha effect assets.
+
 ### Added
 
 - Tactical HP and seven-flame SP bars in a compact tactical dual-bar HUD.

@@ -17,11 +17,6 @@ do
   test -s "$required_file"
 done
 
-test -s \
-  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md
-test -s \
-  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
-
 grep -F 'macOS 14' README.md
 grep -F 'Version 0.3.0-rc.1' README.md
 grep -F 'tactical dual-bar HUD' CHANGELOG.md
@@ -32,10 +27,19 @@ grep -F 'Tests/Shell/' .github/workflows/ci.yml
 scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'
 release_content=()
 while IFS= read -r tracked_file; do
-  if [ "$tracked_file" != "Tests/Shell/release-validation.bats" ]; then
+  if [ "$tracked_file" != "Tests/Shell/release-validation.bats" ] && \
+    [ -e "$tracked_file" ]; then
     release_content+=("$tracked_file")
   fi
 done < <(git ls-files)
+
+for release_file in "${release_content[@]}"; do
+  if [ ! -e "$release_file" ]; then
+    printf 'Release scan includes a missing tracked file: %s\n' \
+      "$release_file" >&2
+    exit 1
+  fi
+done
 
 if rg -n "$scan_pattern" "${release_content[@]}"; then
   printf 'Release files contain a local path or credential-like value.\n' >&2
@@ -57,62 +61,28 @@ grep -F '`>1800s`, the HUD is `OFFLINE` with `--`' README.md
 grep -F 'Without `--purge`, configuration, caches, and logs remain.' README.md
 grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'" \
   docs/privacy.md
-grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'" \
-  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
 grep -F 'Tests/Shell/release-validation.bats' docs/privacy.md
 grep -F 'done < <(git ls-files)' docs/privacy.md
-grep -F 'Tests/Shell/release-validation.bats' \
-  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
-grep -F 'done < <(git ls-files)' \
-  docs/superpowers/plans/2026-07-27-tactical-dual-bar-hud.md
 if rg -n 'critical threshold is `0\.\.\.10%`' README.md; then
   printf 'README documents a configurable critical threshold.\n' >&2
   exit 1
 fi
 
-for release_doc in \
-  README.md \
-  docs/architecture.md \
-  skills/codex-pet-hud/SKILL.md \
-  skills/codex-pet-hud/references/troubleshooting.md
+grep -F 'HUD-only' README.md
+grep -F 'never changes the native pet' skills/codex-pet-hud/SKILL.md
+
+for removed_asset in \
+  Examples/yicha/hud-effects.json \
+  Examples/yicha/hud-panic.png \
+  Examples/yicha/hud-critical.png \
+  docs/screenshots/tactical-hud-panic.png
 do
-  grep -F 'standard directional running frames' "$release_doc"
-  grep -F 'non-facial aura' "$release_doc"
-  grep -F 'no procedural eye overlay' "$release_doc"
-  grep -F 'integrated eye art' "$release_doc"
+  test ! -e "$removed_asset"
 done
 
-grep -F 'Yicha ships `hud-panic.png`' README.md
-grep -F 'cp -n Examples/yicha/hud-panic.png' README.md
-grep -F 'test -f Examples/yicha/hud-panic.png' README.md
-if grep -F 'docs/screenshots/tactical-hud-critical.png' README.md; then
-  printf 'README still references the obsolete critical screenshot.\n' >&2
+if rg -n \
+  'Pet Effect|PetEffect|PetDistressState|hud-effects|hud-panic|hud-critical|pet-replacement|orbit glyph|headAnchor|non-facial aura|integrated eye art|procedural eye overlay' \
+  README.md docs/architecture.md skills/codex-pet-hud; then
+  printf 'Active documentation still exposes a pet-effect feature.\n' >&2
   exit 1
 fi
-grep -F \
-  '![Tracked Yicha critical asset](Examples/yicha/hud-critical.png)' \
-  README.md
-grep -F \
-  'Live panic and critical screenshots will be recaptured before release.' \
-  README.md
-grep -F \
-  'The tracked critical asset intentionally omits runtime orbit glyphs.' \
-  README.md
-grep -F \
-  'two `🐦` birds and two `✨` sparkles around the calibrated head anchor' \
-  README.md
-grep -F \
-  'Orbit glyphs stay in `PetEffectView` and never enter `TacticalHUDView`.' \
-  docs/architecture.md
-grep -F \
-  'Freeze the birds and sparkles at four separated positions.' \
-  docs/superpowers/specs/2026-07-27-tactical-dual-bar-hud-design.md
-grep -F \
-  'Two birds and two sparkles orbit the calibrated critical head anchor' \
-  skills/codex-pet-hud/SKILL.md
-grep -F \
-  'Only high-confidence shell-derived geometry is cached.' \
-  docs/architecture.md
-grep -F \
-  'Mascot fallback geometry is transient and is never persisted.' \
-  docs/architecture.md

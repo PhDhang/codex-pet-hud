@@ -12,8 +12,8 @@
 
 ## Tactical HUD Does Not Follow While Idle
 
-Run `--diagnose`. Exact geometry comes from `Codex Pet Mascot Effect`, but
-idle presence also accepts:
+Run `--diagnose`. Exact geometry comes from the native mascot window, but idle
+presence also accepts:
 
 - `Codex Pet Composition Surface`
 - `Codex Pet Voice Controls Backing`
@@ -38,26 +38,18 @@ within one polling interval.
 Confirm Codex can display usage. Do not copy tokens into logs or issue reports.
 Repair provider parsing with an invented fixture and a failing test first.
 
-## Panic or Critical Effect Is Missing
+## Low-Quota HUD Label Is Unexpected
 
-The tactical HUD remains functional when optional effects fail. Confirm:
+Fresh `4–9%` quota shows `PANIC · QUOTA LOW`; fresh `≤3%` quota shows
+`EXHAUSTED · SIGNAL CRITICAL`. These are HUD-only label and color changes and
+never change the native pet. Confirm:
 
 - `spriteVersionNumber` is `2`.
-- The spritesheet exists in the selected pet directory and is 8 columns by 11 rows.
-- `hud-effects.json` uses only relative files inside that directory.
-- A custom `hud-panic.png` decodes as one horizontal strip with the declared columns.
-- The critical asset is a regular, readable image file.
+- The selected `pet.json` is a valid standard v2 manifest.
+- `--diagnose` reports a found pet window and reachable provider.
+- The rendered snapshot age is fresh (`≤300s`), rather than `STALE` or `OFFLINE`.
 
-Generic pets use standard directional running frames plus a non-facial aura and
-no procedural eye overlay. Custom strips carry integrated eye art; Yicha's strip
-contains eight right-running `192x208` RGBA frames and is mirrored at runtime for
-left travel. Malformed or unsafe metadata falls back to the standard running
-rows for panic and the v2 failed animation for critical. Use `hatch-pet` for
-custom art; never rotate a standing sprite or paste facial glyphs over it.
-
-When reinstalling Yicha effects, use `cp -n` and compare the installed files to
-the examples. A failed `cmp -s` means an existing asset differs; inspect it
-instead of overwriting unrelated pet artwork.
+Do not modify files in the selected pet directory to change low-quota status.
 
 ## Safe Reinstall
 

@@ -21,7 +21,7 @@ for keyword in pet HUD quota HP SP macOS; do
   grep -i "$keyword" "$SKILL/SKILL.md" >/dev/null
 done
 
-for keyword in tactical flame panic idle critical; do
+for keyword in tactical flame idle; do
   grep -i "$keyword" "$SKILL/SKILL.md" >/dev/null
 done
 
@@ -31,18 +31,11 @@ done
 grep -i 'resize' "$SKILL/SKILL.md" >/dev/null
 grep -F 'same PID' "$SKILL/SKILL.md" >/dev/null
 grep -F '20...32' "$SKILL/references/troubleshooting.md" >/dev/null
-grep -F 'confirming the selected pet directory and example files exist' \
-  "$SKILL/SKILL.md" >/dev/null
-grep -F 'do not validate arbitrary images or manifests' \
-  "$SKILL/SKILL.md" >/dev/null
-grep -F 'cp -n Examples/yicha/hud-critical.png' \
-  "$SKILL/SKILL.md" >/dev/null
-grep -F 'test -f Examples/yicha/hud-panic.png' \
-  "$SKILL/SKILL.md" >/dev/null
-grep -F 'cp -n Examples/yicha/hud-panic.png' \
-  "$SKILL/SKILL.md" >/dev/null
-grep -F 'integrated eye art' "$SKILL/SKILL.md" >/dev/null
-grep -F 'no procedural eye overlay' "$SKILL/SKILL.md" >/dev/null
+grep -F 'HUD-only' "$SKILL/SKILL.md" >/dev/null
+grep -F 'never changes the native pet' "$SKILL/SKILL.md" >/dev/null
+grep -F 'standard v2 `pet.json` metadata' "$SKILL/SKILL.md" >/dev/null
+grep -F 'PANIC · QUOTA LOW' "$SKILL/SKILL.md" >/dev/null
+grep -F 'EXHAUSTED · SIGNAL CRITICAL' "$SKILL/SKILL.md" >/dev/null
 
 if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2

@@ -86,8 +86,9 @@ grep -F 'guard tacticalRects.count == 1 else' "$CAPTURE_SCRIPT"
 grep -F 'let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)' \
   "$CAPTURE_SCRIPT"
 if rg -n \
-  'Pet Effect|effectName|effectRects|let rects[[:space:]]*=|dropFirst\(\)\.reduce|\.union\(' \
-  "$CAPTURE_SCRIPT"; then
-  printf 'Capture script must capture only the tactical HUD window.\n' >&2
+  'Pet Effect|effectRects|hud-effects|hud-panic|hud-critical' \
+  "$CAPTURE_SCRIPT" "$ROOT/README.md" "$ROOT/docs/architecture.md" \
+  "$ROOT/skills/codex-pet-hud"; then
+  printf 'Active HUD documentation still describes pet effects.\n' >&2
   exit 1
 fi
