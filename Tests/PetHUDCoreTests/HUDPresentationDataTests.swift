@@ -71,6 +71,27 @@ final class HUDPresentationDataTests: XCTestCase {
         XCTAssertEqual(data.statusLabel, "PANIC · QUOTA LOW")
     }
 
+    func testNilManifestUsesDefaultPetNameAndLowQuotaLabel() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let snapshot = QuotaSnapshot(
+            weekly: QuotaWindow(
+                usedPercent: 92,
+                resetAt: now.addingTimeInterval(3_600),
+                windowDurationSeconds: 604_800
+            ),
+            fetchedAt: now
+        )
+
+        let data = HUDPresentationData.make(
+            manifest: nil,
+            state: .quota(snapshot: snapshot, band: .low),
+            now: now
+        )
+
+        XCTAssertEqual(data.petName, "CODEX PET")
+        XCTAssertEqual(data.statusLabel, "PANIC · QUOTA LOW")
+    }
+
     func testStaleStateKeepsNumericValuesAndBandColor() {
         let now = Date(timeIntervalSince1970: 10_000)
         let snapshot = QuotaSnapshot(
