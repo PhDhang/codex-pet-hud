@@ -9,7 +9,7 @@ test -f "$ROOT/Sources/CodexPetHUD/FlameCellView.swift"
 test -f "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 grep -F 'Codex Pet HUD Tactical' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
-if grep -E \
+if grep -Eq \
   'PetEffect|panicView|criticalView|panicFrames|criticalImage|criticalOrbit|orbitingGlyph|Text[(]"🌀"|🐦|✨|Image[(]' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"; then
   printf 'Tactical HUD must remain bars-only with no pet-state content.\n' >&2
@@ -61,7 +61,7 @@ DISPLAY_COLOR="$(awk '
   /private var dangerAnimation: Animation\?/ { inside = 0 }
   inside { print }
 ' "$METER_VIEW")"
-if printf '%s\n' "$DISPLAY_COLOR" | grep -F 'Color.white'; then
+if printf '%s\n' "$DISPLAY_COLOR" | grep -Fq 'Color.white'; then
   printf 'Critical fill must preserve the supplied base and danger colors.\n' \
     >&2
   exit 1
@@ -79,7 +79,7 @@ grep -F 'dangerLevel == .critical && !reduceMotion' "$METER_VIEW"
 grep -F 'transaction.disablesAnimations = true' "$METER_VIEW"
 grep -F '.onDisappear {' "$METER_VIEW"
 grep -F 'pulseGeneration += 1' "$METER_VIEW"
-if grep -F '.animation(' "$METER_VIEW"; then
+if grep -Fq '.animation(' "$METER_VIEW"; then
   printf 'Quota meter must use only explicit pulse animations.\n' >&2
   exit 1
 fi
@@ -149,7 +149,7 @@ do
   test ! -e "$ROOT/Sources/CodexPetHUD/$removed"
 done
 
-if rg -n 'PetEffect|PetDistressState|distressState|effectAssets' \
+if rg -q 'PetEffect|PetDistressState|distressState|effectAssets' \
   "$ROOT/Sources"; then
   printf 'HUD runtime still contains pet-effect behavior.\n' >&2
   exit 1
@@ -166,11 +166,11 @@ grep -F 'let effectWindowIDs = visibleWindowIDs(named: effectName)' \
 grep -F 'guard effectWindowIDs.isEmpty else {' "$CAPTURE_SCRIPT"
 grep -F 'screencapture -x -o -l "$WINDOW_ID" "$OUTPUT"' \
   "$CAPTURE_SCRIPT"
-if rg -n 'screencapture.*-R|CGRect|insetBy' "$CAPTURE_SCRIPT"; then
+if rg -q 'screencapture.*-R|CGRect|insetBy' "$CAPTURE_SCRIPT"; then
   printf 'HUD capture must target only the titled HUD window ID.\n' >&2
   exit 1
 fi
-if rg -n \
+if rg -q \
   'Pet Effect|effectRects|hud-effects|hud-panic|hud-critical' \
   "$ROOT/README.md" "$ROOT/docs/architecture.md" \
   "$ROOT/skills/codex-pet-hud"; then

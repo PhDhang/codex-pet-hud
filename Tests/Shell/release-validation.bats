@@ -9,7 +9,8 @@ line_printing_scan_pattern='rg[[:space:]]+-[[:alpha:]]*n[[:alpha:]]*[[:space:]]|
 if rg -q "$line_printing_scan_pattern" \
   Tests/Shell/diagnostics.bats \
   Tests/Shell/release-validation.bats \
-  Tests/Shell/skill-validation.bats; then
+  Tests/Shell/skill-validation.bats \
+  Tests/Shell/tactical-ui.bats; then
   printf 'Forbidden-content scans must never print matched lines.\n' >&2
   exit 1
 fi
