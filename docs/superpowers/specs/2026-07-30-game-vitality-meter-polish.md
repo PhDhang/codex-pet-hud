@@ -69,4 +69,3 @@ HP and MP evaluate these states independently.
 - HUD captures remain PID-bound and window-only.
 - Existing level-4 ordering, render cache, movement, resize, idle presence, and
   macOS 14 support remain unchanged.
-

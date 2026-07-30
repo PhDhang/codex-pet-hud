@@ -201,3 +201,10 @@ The selected Yicha directory still contains three pre-existing legacy
 reference or load them, the LaunchAgent has no effect arguments, and live
 verification found zero effect windows. They were intentionally left untouched
 because the current installer does not own or delete user pet files.
+
+## Cosmetic Merge Follow-Up
+
+The final reviewer approved merge with one whitespace-only Minor. The extra
+blank line at EOF in the game vitality meter polish specification was removed;
+no specification content, runtime behavior, visual output, or screenshot
+changed.
