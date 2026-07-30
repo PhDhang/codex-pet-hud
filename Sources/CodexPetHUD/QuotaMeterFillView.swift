@@ -20,6 +20,7 @@ struct QuotaMeterFillView: View {
                     .fill(Color.black.opacity(0.72))
                 Capsule()
                     .fill(displayColor)
+                    .brightness(criticalIntensity)
                     .frame(
                         width:
                             geometry.size.width *
@@ -70,8 +71,15 @@ struct QuotaMeterFillView: View {
         case .low:
             return showsDangerColor ? dangerColor : baseColor
         case .critical:
-            return showsDangerColor ? dangerColor : Color.white
+            return showsDangerColor ? dangerColor : baseColor
         }
+    }
+
+    private var criticalIntensity: Double {
+        guard dangerLevel == .critical && !reduceMotion else {
+            return 0
+        }
+        return showsDangerColor ? 0.22 : 0
     }
 
     private var dangerAnimation: Animation? {

@@ -56,8 +56,26 @@ grep -F 'duration: 0.9' \
 grep -F 'duration: 0.45' \
   "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
 METER_VIEW="$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
-grep -F 'return showsDangerColor ? dangerColor : Color.white' \
-  "$METER_VIEW"
+DISPLAY_COLOR="$(awk '
+  /private var displayColor: Color \{/ { inside = 1 }
+  /private var dangerAnimation: Animation\?/ { inside = 0 }
+  inside { print }
+' "$METER_VIEW")"
+if printf '%s\n' "$DISPLAY_COLOR" | grep -F 'Color.white'; then
+  printf 'Critical fill must preserve the supplied base and danger colors.\n' \
+    >&2
+  exit 1
+fi
+FILL_PAIR_COUNT="$(printf '%s\n' "$DISPLAY_COLOR" | \
+  grep -F 'return showsDangerColor ? dangerColor : baseColor' | \
+  wc -l | tr -d '[:space:]')"
+if [ "$FILL_PAIR_COUNT" -ne 2 ]; then
+  printf 'Low and critical fills must share the supplied color pair.\n' >&2
+  exit 1
+fi
+grep -F '.brightness(criticalIntensity)' "$METER_VIEW"
+grep -F 'private var criticalIntensity: Double' "$METER_VIEW"
+grep -F 'dangerLevel == .critical && !reduceMotion' "$METER_VIEW"
 grep -F 'transaction.disablesAnimations = true' "$METER_VIEW"
 grep -F '.onDisappear {' "$METER_VIEW"
 grep -F 'pulseGeneration += 1' "$METER_VIEW"
