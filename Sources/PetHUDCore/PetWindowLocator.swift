@@ -66,6 +66,7 @@ public struct PetWindowObservation: Equatable, Sendable {
     public let visualGeometry: PetVisualGeometry?
     public let hasStablePresence: Bool
     public let stablePresencePID: Int?
+    public let hasExactWindowAmbiguity: Bool
 
     public var visualWindow: WindowDescriptor? {
         visualGeometry?.window
@@ -75,12 +76,15 @@ public struct PetWindowObservation: Equatable, Sendable {
         exactWindow: WindowDescriptor?,
         visualGeometry: PetVisualGeometry? = nil,
         hasStablePresence: Bool,
-        stablePresencePID: Int? = nil
+        stablePresencePID: Int? = nil,
+        hasExactWindowAmbiguity: Bool = false
     ) {
         self.exactWindow = exactWindow
         self.visualGeometry = visualGeometry
         self.hasStablePresence = hasStablePresence
         self.stablePresencePID = stablePresencePID
+        self.hasExactWindowAmbiguity =
+            hasExactWindowAmbiguity
     }
 }
 
@@ -125,6 +129,9 @@ public enum PetWindowLocator {
     public static func observe(
         from windows: [WindowDescriptor]
     ) -> PetWindowObservation {
+        let exactWindowCount = windows.filter(
+            \.isExactMascotWindow
+        ).count
         let exactWindow = select(from: windows)
         let stablePresence = stablePresence(
             in: windows
@@ -140,7 +147,8 @@ public enum PetWindowLocator {
                 ) ?? mascotFallbackGeometry(for: $0)
             },
             hasStablePresence: stablePresence.isPresent,
-            stablePresencePID: stablePresence.ownerPID
+            stablePresencePID: stablePresence.ownerPID,
+            hasExactWindowAmbiguity: exactWindowCount > 1
         )
     }
 

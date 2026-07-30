@@ -36,7 +36,8 @@ HP bands are `>90%`, `51–90%`, `10–50%`, `4–9%`, and `≤3%`. Fresh `4–9
 shows the red `PANIC · QUOTA LOW` HUD label, and fresh `≤3%` shows the bright
 red `EXHAUSTED · SIGNAL CRITICAL` label. The labels and colors are HUD-only;
 they never change the native pet, animate it, or replace it. MP is the optional
-five-hour percentage, or orange `MAX` when no five-hour window is available.
+five-hour percentage, or full sky-blue `MAX` when no five-hour window is
+available.
 HP and MP pulse independently in the `4–9%` and `0–3%` danger bands; Reduce
 Motion fixes their danger colors. SP has seven three-layer flames; lit count
 equals the elapsed seventh of the weekly reset window.
@@ -77,8 +78,9 @@ beneath the translucent HUD out of screenshots.
 ## Pet Compatibility
 
 Pet compatibility requires only standard v2 `pet.json` metadata. `PetManifest`
-validates the v2 manifest and exposes its display name to the tactical HUD; the
-native pet stays responsible for its own rendering.
+validates the selected v2 pet; the current four-row HUD does not render the
+manifest display name, and the native pet stays responsible for its own
+rendering.
 
 ## Accessibility and Lifecycle
 

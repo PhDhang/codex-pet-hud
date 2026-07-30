@@ -74,6 +74,44 @@ final class PetWindowDiagnosticStatusTests: XCTestCase {
         )
     }
 
+    func testSamePIDDuplicateExactWindowsAreMissingWithCachedGeometry() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                exactWindow(id: 71, ownerPID: 7),
+                exactWindow(id: 72, ownerPID: 7),
+            ]
+        )
+
+        XCTAssertTrue(observation.hasExactWindowAmbiguity)
+        XCTAssertEqual(
+            PetWindowDiagnosticStatus.resolve(
+                observation: observation,
+                cachedGeometry: geometry(ownerPID: 7),
+                now: Date(timeIntervalSince1970: 100)
+            ),
+            .missing
+        )
+    }
+
+    private func exactWindow(
+        id: Int,
+        ownerPID: Int
+    ) -> WindowDescriptor {
+        WindowDescriptor(
+            owner: "ChatGPT",
+            name: PetWindowLocator.exactWindowName,
+            layer: 2,
+            bounds: CGRect(
+                x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: ownerPID,
+            windowID: id
+        )
+    }
+
     private func geometry(
         ownerPID: Int
     ) -> PetVisualGeometry {

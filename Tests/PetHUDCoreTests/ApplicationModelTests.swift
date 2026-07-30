@@ -169,6 +169,89 @@ final class ApplicationModelTests: XCTestCase {
         }
     }
 
+    func testSamePIDExactWindowAmbiguityHidesHUDAfterPresenceGrace() {
+        let start = Date(timeIntervalSince1970: 100)
+        let visualGeometry = PetVisualGeometry(
+            window: WindowDescriptor(
+                owner: "ChatGPT",
+                name: PetWindowLocator.visualWindowName,
+                layer: 3,
+                bounds: CGRect(
+                    x: 180,
+                    y: 749,
+                    width: 116,
+                    height: 126
+                ),
+                ownerPID: 7,
+                windowID: 12
+            ),
+            source: .shellDerived
+        )
+        var tracker = PetPresenceTracker()
+        var model = ApplicationModel()
+        let initialGeometry = tracker.update(
+            observation: PetWindowObservation(
+                exactWindow: exactWindow(id: 11, ownerPID: 7),
+                visualGeometry: visualGeometry,
+                hasStablePresence: true,
+                stablePresencePID: 7
+            ),
+            now: start
+        )
+        _ = model.reduce(
+            .petWindowChanged(initialGeometry?.window)
+        )
+        let ambiguous = PetWindowLocator.observe(
+            from: [
+                exactWindow(id: 21, ownerPID: 7),
+                exactWindow(id: 22, ownerPID: 7),
+            ]
+        )
+
+        let graceGeometry = tracker.update(
+            observation: ambiguous,
+            now: start.addingTimeInterval(0.5)
+        )
+        XCTAssertTrue(
+            model.reduce(
+                .petWindowChanged(graceGeometry?.window)
+            ).showHUD
+        )
+        _ = tracker.update(
+            observation: ambiguous,
+            now: start.addingTimeInterval(1.5)
+        )
+        let expiredGeometry = tracker.update(
+            observation: ambiguous,
+            now: start.addingTimeInterval(2.5)
+        )
+
+        XCTAssertFalse(
+            model.reduce(
+                .petWindowChanged(expiredGeometry?.window)
+            ).showHUD
+        )
+    }
+
+    private func exactWindow(
+        id: Int,
+        ownerPID: Int
+    ) -> WindowDescriptor {
+        WindowDescriptor(
+            owner: "ChatGPT",
+            name: PetWindowLocator.exactWindowName,
+            layer: 2,
+            bounds: CGRect(
+                x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: ownerPID,
+            windowID: id
+        )
+    }
+
     private func snapshot(
         remaining: Double
     ) -> QuotaSnapshot {

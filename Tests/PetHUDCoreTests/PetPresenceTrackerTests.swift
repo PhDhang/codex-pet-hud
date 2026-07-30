@@ -380,6 +380,48 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testSamePIDExactWindowAmbiguityExpiresRetainedGeometry() {
+        var tracker = PetPresenceTracker()
+        let start = Date(timeIntervalSince1970: 100)
+        let shell = shellGeometry(
+            id: 111,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126),
+            ownerPID: 7
+        )
+        _ = tracker.update(
+            observation: .init(
+                exactWindow: exactWindow(id: 110, ownerPID: 7),
+                visualGeometry: shell,
+                hasStablePresence: true,
+                stablePresencePID: 7
+            ),
+            now: start
+        )
+        let ambiguous = ambiguousExactObservation(ownerPID: 7)
+
+        XCTAssertTrue(ambiguous.hasExactWindowAmbiguity)
+        XCTAssertEqual(
+            tracker.update(
+                observation: ambiguous,
+                now: start.addingTimeInterval(0.5)
+            ),
+            shell
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: ambiguous,
+                now: start.addingTimeInterval(1.5)
+            ),
+            shell
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: ambiguous,
+                now: start.addingTimeInterval(2.5)
+            )
+        )
+    }
+
     func testRetainedGeometryRejectsStablePresencePIDMismatch() {
         var tracker = PetPresenceTracker()
         let start = Date(timeIntervalSince1970: 100)
@@ -467,7 +509,10 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
-    private func exactWindow(id: Int) -> WindowDescriptor {
+    private func exactWindow(
+        id: Int,
+        ownerPID: Int = 1
+    ) -> WindowDescriptor {
         WindowDescriptor(
             owner: "ChatGPT",
             name: PetWindowLocator.exactWindowName,
@@ -478,8 +523,19 @@ final class PetPresenceTrackerTests: XCTestCase {
                 width: 243,
                 height: 252
             ),
-            ownerPID: 1,
+            ownerPID: ownerPID,
             windowID: id
+        )
+    }
+
+    private func ambiguousExactObservation(
+        ownerPID: Int
+    ) -> PetWindowObservation {
+        PetWindowLocator.observe(
+            from: [
+                exactWindow(id: 210, ownerPID: ownerPID),
+                exactWindow(id: 211, ownerPID: ownerPID),
+            ]
         )
     }
 

@@ -113,9 +113,9 @@ desktop or windows beneath the translucent HUD.
 
 ## Pet Compatibility
 
-The HUD requires only standard v2 `pet.json` metadata. It uses the selected
-pet's display name in the tactical HUD and leaves the native rendering untouched.
-Do not add repository files to the selected pet directory.
+The HUD requires only standard v2 `pet.json` metadata. The current four-row HUD does not render the manifest display name.
+It leaves the native rendering untouched. Do not add repository files to the
+selected pet directory.
 
 ## Repair and Rollback
 

@@ -46,5 +46,8 @@ while IFS= read -r tracked_file; do
     release_content+=("$tracked_file")
   fi
 done < <(git ls-files)
-rg -n "$scan_pattern" "${release_content[@]}"
+if rg -q "$scan_pattern" "${release_content[@]}"; then
+  printf 'Release privacy scan failed.\n' >&2
+  exit 1
+fi
 ```

@@ -10,7 +10,8 @@ if rg -q "$line_printing_scan_pattern" \
   Tests/Shell/diagnostics.bats \
   Tests/Shell/release-validation.bats \
   Tests/Shell/skill-validation.bats \
-  Tests/Shell/tactical-ui.bats; then
+  Tests/Shell/tactical-ui.bats \
+  docs/privacy.md; then
   printf 'Forbidden-content scans must never print matched lines.\n' >&2
   exit 1
 fi
@@ -106,6 +107,10 @@ grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._
   docs/privacy.md
 grep -F 'Tests/Shell/release-validation.bats' docs/privacy.md
 grep -F 'done < <(git ls-files)' docs/privacy.md
+grep -F 'if rg -q "$scan_pattern" "${release_content[@]}"; then' \
+  docs/privacy.md
+grep -F "printf 'Release privacy scan failed.\\n' >&2" docs/privacy.md
+grep -F 'exit 1' docs/privacy.md
 if rg -q 'critical threshold is `0\.\.\.10%`' README.md; then
   printf 'README documents a configurable critical threshold.\n' >&2
   exit 1
@@ -113,6 +118,11 @@ fi
 
 grep -F 'HUD-only' README.md
 grep -F 'never changes the native pet' skills/codex-pet-hud/SKILL.md
+grep -F 'full sky-blue `MAX`' docs/architecture.md
+if rg -q 'orange `MAX`' docs/architecture.md; then
+  printf 'Architecture still documents the obsolete MAX color.\n' >&2
+  exit 1
+fi
 
 for removed_asset in \
   Examples/yicha/hud-effects.json \
