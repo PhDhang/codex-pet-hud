@@ -18,11 +18,28 @@ do
 done
 
 grep -F 'macOS 14' README.md
-grep -F 'Version 0.3.0-rc.1' README.md
+grep -F 'Version 0.4.0' README.md
 grep -F 'tactical dual-bar HUD' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml
 grep -F 'Tests/Shell/' .github/workflows/ci.yml
+grep -F 'fiveHourRemainingPercent' \
+  Sources/CodexPetHUD/Diagnostics.swift
+grep -F 'fiveHourStatus' Sources/CodexPetHUD/Diagnostics.swift
+grep -F '<string>0.4.0</string>' Resources/Info.plist
+grep -F '<string>4</string>' Resources/Info.plist
+grep -F 'MP' README.md
+grep -F '0.4.0' CHANGELOG.md
+grep -F 'five-hour' docs/architecture.md
+
+DIAGNOSTICS=Sources/CodexPetHUD/Diagnostics.swift
+if rg -n \
+  'access[_-]?token|refresh[_-]?token|id[_-]?token|account|email|cookie|credential|encoder\\.encode\\(snapshot\\)' \
+  "$DIAGNOSTICS"; then
+  printf 'Diagnostics must not name credentials or emit raw provider snapshots.\n' \
+    >&2
+  exit 1
+fi
 
 scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'
 release_content=()

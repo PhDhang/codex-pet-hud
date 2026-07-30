@@ -3,7 +3,7 @@
 set -euo pipefail
 
 OUTPUT="${1:?usage: capture-hud.sh OUTPUT}"
-RECT="$(
+WINDOW_ID="$(
   swift -e '
     import CoreGraphics
     import Foundation
@@ -14,8 +14,8 @@ RECT="$(
     ) as? [[String: Any]] ?? []
     let tacticalName = "Codex Pet HUD Tactical"
     let effectName = "Codex Pet HUD Pet Effect"
-    func visibleRects(named expectedName: String) -> [CGRect] {
-      rows.compactMap { row -> CGRect? in
+    func visibleWindowIDs(named expectedName: String) -> [UInt32] {
+      rows.compactMap { row -> UInt32? in
         let name = row[kCGWindowName as String] as? String ?? ""
         guard name == expectedName else {
           return nil
@@ -25,34 +25,25 @@ RECT="$(
           false
         guard
           onScreen,
-          let dictionary =
-            row[kCGWindowBounds as String] as? [String: Any]
+          let windowNumber =
+            row[kCGWindowNumber as String] as? NSNumber
         else {
           return nil
         }
-        return CGRect(
-          dictionaryRepresentation:
-            dictionary as CFDictionary
-        )
+        return windowNumber.uint32Value
       }
     }
-    let tacticalRects = visibleRects(named: tacticalName)
-    let effectRects = visibleRects(named: effectName)
-    guard tacticalRects.count == 1 else {
+    let tacticalWindowIDs = visibleWindowIDs(named: tacticalName)
+    let effectWindowIDs = visibleWindowIDs(named: effectName)
+    guard tacticalWindowIDs.count == 1 else {
       exit(5)
     }
-    guard effectRects.isEmpty else {
+    guard effectWindowIDs.isEmpty else {
       exit(5)
     }
-    let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)
-    print(
-      "\(Int(floor(capture.minX)))," +
-      "\(Int(floor(capture.minY)))," +
-      "\(Int(ceil(capture.width)))," +
-      "\(Int(ceil(capture.height)))"
-    )
+    print(tacticalWindowIDs[0])
   '
 )"
 
 mkdir -p "$(dirname "$OUTPUT")"
-screencapture -x -R"$RECT" "$OUTPUT"
+screencapture -x -o -l "$WINDOW_ID" "$OUTPUT"

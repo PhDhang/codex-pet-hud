@@ -36,6 +36,14 @@ grep -F 'never changes the native pet' "$SKILL/SKILL.md" >/dev/null
 grep -F 'standard v2 `pet.json` metadata' "$SKILL/SKILL.md" >/dev/null
 grep -F 'PANIC · QUOTA LOW' "$SKILL/SKILL.md" >/dev/null
 grep -F 'EXHAUSTED · SIGNAL CRITICAL' "$SKILL/SKILL.md" >/dev/null
+grep -F 'MP is the measured five-hour percentage or orange `MAX`.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'independent pulses for `4–9%` and `0–3%` meters' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'Reduce Motion fixes danger colors' "$SKILL/SKILL.md" >/dev/null
+grep -F 'no pet animation or replacement' "$SKILL/SKILL.md" >/dev/null
+grep -F 'fiveHourStatus' "$SKILL/SKILL.md" >/dev/null
+grep -F 'window-only screenshot' "$SKILL/SKILL.md" >/dev/null
 
 if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2

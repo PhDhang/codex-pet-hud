@@ -8,7 +8,8 @@ enum Diagnostics {
         let petWindow: String
         let provider: String
         let weeklyRemainingPercent: Int?
-        let resetAt: Date?
+        let fiveHourRemainingPercent: Int?
+        let fiveHourStatus: String
     }
 
     static func run(
@@ -23,7 +24,8 @@ enum Diagnostics {
             : "missing"
         var providerStatus = includeQuota ? "unavailable" : "skipped"
         var remaining: Int?
-        var resetAt: Date?
+        var fiveHourRemaining: Int?
+        var fiveHourStatus = includeQuota ? "unavailable" : "skipped"
 
         if includeQuota {
             do {
@@ -32,7 +34,14 @@ enum Diagnostics {
                 remaining = Int(
                     snapshot.weekly.remainingPercent.rounded()
                 )
-                resetAt = snapshot.weekly.resetAt
+                if let fiveHour = snapshot.fiveHour {
+                    fiveHourRemaining = Int(
+                        fiveHour.remainingPercent.rounded()
+                    )
+                    fiveHourStatus = "measured"
+                } else {
+                    fiveHourStatus = "max"
+                }
             } catch let error as QuotaProviderError {
                 providerStatus =
                     error == .authenticationRequired
@@ -49,7 +58,8 @@ enum Diagnostics {
             petWindow: petWindowStatus,
             provider: providerStatus,
             weeklyRemainingPercent: remaining,
-            resetAt: resetAt
+            fiveHourRemainingPercent: fiveHourRemaining,
+            fiveHourStatus: fiveHourStatus
         )
         write(report)
 
@@ -69,29 +79,7 @@ enum Diagnostics {
     }
 
     static func runOnce() async -> Int32 {
-        let context = loadContext()
-        do {
-            let snapshot = try await context.provider.fetch()
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            encoder.dateEncodingStrategy = .iso8601
-            FileHandle.standardOutput.write(
-                try encoder.encode(snapshot)
-            )
-            FileHandle.standardOutput.write(Data("\n".utf8))
-            return 0
-        } catch let error as QuotaProviderError {
-            let message = Redaction.sanitize(
-                "\(error)\n"
-            )
-            FileHandle.standardError.write(Data(message.utf8))
-            return error == .authenticationRequired ? 3 : 4
-        } catch {
-            FileHandle.standardError.write(
-                Data("Quota provider unavailable.\n".utf8)
-            )
-            return 4
-        }
+        await run(includeQuota: true)
     }
 
     private static func loadContext() -> (
@@ -149,7 +137,6 @@ enum Diagnostics {
     ) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(report) else {
             return
         }

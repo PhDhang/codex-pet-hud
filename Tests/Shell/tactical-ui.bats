@@ -158,12 +158,18 @@ fi
 CAPTURE_SCRIPT="$ROOT/scripts/capture-hud.sh"
 test -f "$CAPTURE_SCRIPT"
 grep -F 'let tacticalName = "Codex Pet HUD Tactical"' "$CAPTURE_SCRIPT"
-grep -F 'guard tacticalRects.count == 1 else' "$CAPTURE_SCRIPT"
-grep -F 'let capture = tacticalRects[0].insetBy(dx: -12, dy: -12)' \
-  "$CAPTURE_SCRIPT"
+grep -F 'kCGWindowNumber' "$CAPTURE_SCRIPT"
+grep -F 'guard tacticalWindowIDs.count == 1 else' "$CAPTURE_SCRIPT"
 grep -F 'let effectName = "Codex Pet HUD Pet Effect"' "$CAPTURE_SCRIPT"
-grep -F 'let effectRects = visibleRects(named: effectName)' "$CAPTURE_SCRIPT"
-grep -F 'guard effectRects.isEmpty else {' "$CAPTURE_SCRIPT"
+grep -F 'let effectWindowIDs = visibleWindowIDs(named: effectName)' \
+  "$CAPTURE_SCRIPT"
+grep -F 'guard effectWindowIDs.isEmpty else {' "$CAPTURE_SCRIPT"
+grep -F 'screencapture -x -o -l "$WINDOW_ID" "$OUTPUT"' \
+  "$CAPTURE_SCRIPT"
+if rg -n 'screencapture.*-R|CGRect|insetBy' "$CAPTURE_SCRIPT"; then
+  printf 'HUD capture must target only the titled HUD window ID.\n' >&2
+  exit 1
+fi
 if rg -n \
   'Pet Effect|effectRects|hud-effects|hud-panic|hud-critical' \
   "$ROOT/README.md" "$ROOT/docs/architecture.md" \

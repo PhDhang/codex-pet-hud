@@ -1,16 +1,16 @@
 ---
 name: codex-pet-hud
-description: Use when a macOS 14 Codex v2 pet needs a live tactical quota HUD, idle-presence diagnostics, HP/SP bars, source installation, repair, or safe removal.
+description: Use when a macOS 14 Codex v2 pet needs a live tactical quota HUD, idle-presence diagnostics, HP/MP/SP bars, source installation, repair, or safe removal.
 ---
 
 # Codex Pet HUD
 
 ## Overview
 
-Install and verify the macOS companion that centers a tactical HP and seven-flame
-SP HUD above one selected Codex v2 pet with standard `pet.json` metadata. Keep
-credentials local, fail closed on ambiguous windows or pets, and use redacted
-diagnostics.
+Install and verify the macOS companion that centers a tactical HP, MP, and
+seven-flame SP HUD above one selected Codex v2 pet with standard `pet.json`
+metadata. Keep credentials local, fail closed on ambiguous windows or pets, and
+use redacted diagnostics.
 
 ## Safety Rules
 
@@ -67,8 +67,10 @@ skills/codex-pet-hud/scripts/install-from-source.sh --ref main --pet-path "$PET_
 ```
 
 Require `configuration=ok`, `pet=found`, `petWindow=found`, and
-`provider=reachable`. Exit `5` means the pet overlay is closed. Stable presence
-keeps the tactical HUD visible while the task is idle.
+`provider=reachable`. `fiveHourStatus` is `measured`, `max`, `unavailable`, or
+`skipped`; it never includes a reset time or provider payload. Exit `5` means
+the pet overlay is closed. Stable presence keeps the tactical HUD visible while
+the task is idle.
 
 5. Verify idle linkage: with no active task, move and resize the pet. The tactical
 HUD stays centered and follows movement, then recovers after mascot reconstruction.
@@ -89,14 +91,20 @@ launchctl kickstart -k gui/$(id -u)/com.codex-pet-hud.agent
 
 Missing keys use defaults; legacy `nameplateOffset` does not move the tactical HUD.
 
-## HP, Flame, and Low-Quota States
+## HP, MP, Flame, and Low-Quota States
 
-HP is weekly quota. Seven SP flame cells show elapsed reset progress: lit
-red/orange/yellow, unlit blue/cyan/ice-blue. Fresh `4–9%` quota changes the
-HUD to the red `PANIC · QUOTA LOW` label. Fresh `≤3%` quota changes it to the
-bright-red `EXHAUSTED · SIGNAL CRITICAL` label. These are HUD-only label and
-color changes. The HUD never changes the native pet. Stale and missing data
-retain their normal HUD state without changing the native pet.
+HP is weekly quota. MP is the measured five-hour percentage or orange `MAX`.
+Seven SP flame cells show weekly reset progress: lit red/orange/yellow, unlit
+blue/cyan/ice-blue. HP and MP have independent pulses for `4–9%` and `0–3%` meters. Reduce Motion fixes danger colors rather than pulsing them. Fresh
+`4–9%` quota changes the HUD to the red `PANIC · QUOTA LOW` label. Fresh
+`≤3%` quota changes it to the bright-red `EXHAUSTED · SIGNAL CRITICAL` label.
+These are HUD-only label and color changes. The HUD never changes the native pet:
+there is no pet animation or replacement. Stale and missing data retain
+their normal HUD state without changing the native pet.
+
+For screenshots, use `scripts/capture-hud.sh OUTPUT`. It resolves exactly one
+on-screen tactical window and captures that window ID only. This window-only screenshot rejects any pet-effect window and never captures a rectangle of the
+desktop or windows beneath the translucent HUD.
 
 ## Pet Compatibility
 

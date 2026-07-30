@@ -22,10 +22,11 @@ the HUD, and a task-state window change cannot discard valid quota data.
 
 1. `CodexAuth` decodes only provider-required token fields.
 2. `WhamUsageClient` performs the read-only usage request.
-3. `WhamUsageParser` normalizes the weekly window into `QuotaSnapshot`.
+3. `WhamUsageParser` normalizes weekly and optional five-hour windows into
+   `QuotaSnapshot`.
 4. `SnapshotCache` preserves only normalized quota for stale rendering.
 5. `ApplicationModel` produces quota, stale, offline, and auth states.
-6. `HUDPresentationData` produces numeric HP and seven-flame SP data.
+6. `HUDPresentationData` produces HP, optional MP, and seven-flame SP data.
 7. `TacticalHUDPanelController` renders the one tactical HUD window without
    receiving credentials or raw provider responses.
 
@@ -34,8 +35,17 @@ the HUD, and a task-state window change cannot discard valid quota data.
 HP bands are `>90%`, `51–90%`, `10–50%`, `4–9%`, and `≤3%`. Fresh `4–9%`
 shows the red `PANIC · QUOTA LOW` HUD label, and fresh `≤3%` shows the bright
 red `EXHAUSTED · SIGNAL CRITICAL` label. The labels and colors are HUD-only;
-they never change the native pet. SP has seven three-layer flames; lit count
+they never change the native pet, animate it, or replace it. MP is the optional
+five-hour percentage, or orange `MAX` when no five-hour window is available.
+HP and MP pulse independently in the `4–9%` and `0–3%` danger bands; Reduce
+Motion fixes their danger colors. SP has seven three-layer flames; lit count
 equals the elapsed seventh of the weekly reset window.
+
+`Diagnostics` emits rounded weekly and optional five-hour percentages only.
+`fiveHourStatus` is `measured` when the source provides the five-hour window,
+`max` when it does not, and `unavailable` or `skipped` when it was not measured.
+It never writes reset times, provider payloads, credentials, account data,
+emails, or cookies.
 
 ## Presence and Geometry
 
@@ -57,6 +67,11 @@ closed when no safe current or cached geometry is available.
 `PanelGeometry` centers the tactical HUD above the pet, then applies
 `podScale`, `podOffsetX`, and `podOffsetY`. The tactical panel is transparent,
 non-activating, and mouse-transparent across Spaces.
+
+`capture-hud.sh` resolves exactly one on-screen tactical HUD window ID and
+rejects any pet-effect window before calling `screencapture` with that ID. It
+does not capture a screen rectangle, which keeps desktop and window content
+beneath the translucent HUD out of screenshots.
 
 ## Pet Compatibility
 

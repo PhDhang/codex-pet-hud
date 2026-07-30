@@ -2,7 +2,8 @@
 
 Codex Pet HUD is a macOS 14 companion for one selected Codex v2 pet. It keeps a
 compact tactical dual-bar HUD above the pet, including when Codex has no active
-task. HP shows weekly quota remaining; seven SP flames show reset progress.
+task. HP shows weekly quota remaining, MP shows an optional five-hour quota,
+and seven SP flames show weekly reset progress.
 
 ![Healthy tactical HUD](docs/screenshots/tactical-hud.png)
 
@@ -15,6 +16,11 @@ red, and `≤3%` bright red. At an age of `>300s` and `≤1800s`, the last value
 remain with `STALE`.
 At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
 
+MP is the measured five-hour percentage when the usage source provides that
+window. Otherwise it shows orange `MAX`; it never infers a value or reset time.
+HP and MP pulse independently only in their `4–9%` and `0–3%` danger bands.
+With Reduce Motion enabled, danger colors remain fixed instead of pulsing.
+
 SP always has seven rounded three-layer flames. Lit flames are
 red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
 one elapsed seventh of the weekly reset window, from zero lit at a new window to
@@ -22,7 +28,8 @@ seven at reset.
 
 For fresh `4–9%` quota, the HUD shows `PANIC · QUOTA LOW` in red. For fresh
 `≤3%` quota, it shows `EXHAUSTED · SIGNAL CRITICAL` in bright red. These are
-HUD-only label and color changes: the HUD never changes the native pet.
+HUD-only label and color changes: the HUD never changes the native pet, adds no
+pet animation, and performs no pet replacement.
 
 ## Idle Presence and Alignment
 
@@ -54,6 +61,11 @@ Run a redacted diagnostic check:
 ```bash
 "$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" --diagnose
 ```
+
+Diagnostics include only status values and rounded percentages. The optional
+five-hour fields are `fiveHourRemainingPercent` and `fiveHourStatus`:
+`measured` when a five-hour window exists, `max` when it does not, and
+`unavailable` or `skipped` when no measurement was made.
 
 The installer writes private configuration and a per-user LaunchAgent. Settings
 live at `$HOME/.config/codex-pet-hud/config.json`; refresh is at least five
@@ -110,6 +122,11 @@ IDs, emails, cookies, or raw provider responses. It uses public window metadata
 only and requests neither Accessibility nor Screen Recording. See
 `docs/privacy.md` for the full boundary and release scan command.
 
+`scripts/capture-hud.sh` resolves exactly one on-screen `Codex Pet HUD Tactical`
+window and captures only that window ID. It rejects any pet-effect window and
+never captures a screen rectangle, so a translucent HUD screenshot cannot reveal
+desktop or window content beneath it.
+
 ## Development
 
 ```bash
@@ -123,7 +140,7 @@ See `docs/architecture.md` for component boundaries and data flow.
 
 ## Status
 
-Version 0.3.0-rc.1 targets macOS 14 and newer. This is an independent community
+Version 0.4.0 targets macOS 14 and newer. This is an independent community
 project, not an official OpenAI product. Quota and window metadata can change.
 
 ## License
