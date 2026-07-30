@@ -14,6 +14,11 @@ final class SnapshotCacheTests: XCTestCase {
                     resetAt: Date(timeIntervalSince1970: 1_785_686_400),
                     windowDurationSeconds: 604_800
                 ),
+                fiveHour: QuotaWindow(
+                    usedPercent: 36.5,
+                    resetAt: Date(timeIntervalSince1970: 1_785_402_000),
+                    windowDurationSeconds: 18_000
+                ),
                 fetchedAt: Date(timeIntervalSince1970: 1_785_086_400)
             )
 
@@ -44,5 +49,28 @@ final class SnapshotCacheTests: XCTestCase {
             XCTAssertNil(try cache.load())
         }
     }
-}
 
+    func testDecodesLegacySnapshotWithoutFiveHourWindow() throws {
+        try withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("snapshot.json")
+            let cache = SnapshotCache(url: url)
+            let legacy = Data(
+                """
+                {
+                  "weekly": {
+                    "usedPercent": 18,
+                    "resetAt": -978307200,
+                    "windowDurationSeconds": 604800
+                  },
+                  "fetchedAt": -978307200
+                }
+                """.utf8
+            )
+            try legacy.write(to: url)
+
+            let loaded = try XCTUnwrap(cache.load())
+
+            XCTAssertNil(loaded.fiveHour)
+        }
+    }
+}

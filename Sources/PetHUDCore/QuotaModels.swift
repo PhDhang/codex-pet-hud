@@ -61,10 +61,16 @@ public struct QuotaWindow: Codable, Equatable, Sendable {
 
 public struct QuotaSnapshot: Codable, Equatable, Sendable {
     public let weekly: QuotaWindow
+    public let fiveHour: QuotaWindow?
     public let fetchedAt: Date
 
-    public init(weekly: QuotaWindow, fetchedAt: Date) {
+    public init(
+        weekly: QuotaWindow,
+        fiveHour: QuotaWindow? = nil,
+        fetchedAt: Date
+    ) {
         self.weekly = weekly
+        self.fiveHour = fiveHour
         self.fetchedAt = fetchedAt
     }
 }
