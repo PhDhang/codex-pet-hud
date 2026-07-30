@@ -38,7 +38,7 @@ grep -F 'PANIC · QUOTA LOW' "$SKILL/SKILL.md" >/dev/null
 grep -F 'EXHAUSTED · SIGNAL CRITICAL' "$SKILL/SKILL.md" >/dev/null
 grep -F 'MP is the measured five-hour percentage or orange `MAX`.' \
   "$SKILL/SKILL.md" >/dev/null
-grep -F 'independent pulses for `4–9%` and `0–3%` meters' \
+grep -F 'Each HP and MP meter pulses independently in the `4–9%` and `0–3%` danger bands.' \
   "$SKILL/SKILL.md" >/dev/null
 grep -F 'Reduce Motion fixes danger colors' "$SKILL/SKILL.md" >/dev/null
 grep -F 'no pet animation or replacement' "$SKILL/SKILL.md" >/dev/null

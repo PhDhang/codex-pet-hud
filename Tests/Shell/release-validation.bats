@@ -23,19 +23,23 @@ grep -F 'tactical dual-bar HUD' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml
 grep -F 'Tests/Shell/' .github/workflows/ci.yml
-grep -F 'fiveHourRemainingPercent' \
-  Sources/CodexPetHUD/Diagnostics.swift
-grep -F 'fiveHourStatus' Sources/CodexPetHUD/Diagnostics.swift
-grep -F '<string>0.4.0</string>' Resources/Info.plist
-grep -F '<string>4</string>' Resources/Info.plist
+REPORT=Sources/PetHUDCore/RedactedDiagnosticReport.swift
+grep -F 'fiveHourRemainingPercent' "$REPORT"
+grep -F 'fiveHourStatus' "$REPORT"
+test "$(plutil -extract CFBundleShortVersionString raw Resources/Info.plist)" \
+  = '0.4.0'
+test "$(plutil -extract CFBundleVersion raw Resources/Info.plist)" = '4'
 grep -F 'MP' README.md
 grep -F '0.4.0' CHANGELOG.md
 grep -F 'five-hour' docs/architecture.md
 
-DIAGNOSTICS=Sources/CodexPetHUD/Diagnostics.swift
+DIAGNOSTIC_SOURCES=(
+  Sources/CodexPetHUD/Diagnostics.swift
+  "$REPORT"
+)
 if rg -n \
   'access[_-]?token|refresh[_-]?token|id[_-]?token|account|email|cookie|credential|encoder\\.encode\\(snapshot\\)' \
-  "$DIAGNOSTICS"; then
+  "${DIAGNOSTIC_SOURCES[@]}"; then
   printf 'Diagnostics must not name credentials or emit raw provider snapshots.\n' \
     >&2
   exit 1

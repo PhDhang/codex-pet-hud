@@ -41,11 +41,12 @@ HP and MP pulse independently in the `4–9%` and `0–3%` danger bands; Reduce
 Motion fixes their danger colors. SP has seven three-layer flames; lit count
 equals the elapsed seventh of the weekly reset window.
 
-`Diagnostics` emits rounded weekly and optional five-hour percentages only.
-`fiveHourStatus` is `measured` when the source provides the five-hour window,
-`max` when it does not, and `unavailable` or `skipped` when it was not measured.
-It never writes reset times, provider payloads, credentials, account data,
-emails, or cookies.
+`Diagnostics` emits fixed configuration, pet, pet-window, provider, and
+five-hour status labels plus rounded weekly and optional five-hour remaining
+percentages. `fiveHourStatus` is `measured` when the source provides the
+five-hour window, `max` when it does not, and `unavailable` or `skipped` when it
+was not measured. It never writes reset times, provider payloads, credentials,
+account data, emails, or cookies.
 
 ## Presence and Geometry
 

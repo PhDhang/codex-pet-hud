@@ -2,16 +2,6 @@ import Foundation
 import PetHUDCore
 
 enum Diagnostics {
-    private struct Report: Codable {
-        let configuration: String
-        let pet: String
-        let petWindow: String
-        let provider: String
-        let weeklyRemainingPercent: Int?
-        let fiveHourRemainingPercent: Int?
-        let fiveHourStatus: String
-    }
-
     static func run(
         includeQuota: Bool
     ) async -> Int32 {
@@ -23,25 +13,12 @@ enum Diagnostics {
             ? "found"
             : "missing"
         var providerStatus = includeQuota ? "unavailable" : "skipped"
-        var remaining: Int?
-        var fiveHourRemaining: Int?
-        var fiveHourStatus = includeQuota ? "unavailable" : "skipped"
+        var snapshot: QuotaSnapshot?
 
         if includeQuota {
             do {
-                let snapshot = try await context.provider.fetch()
+                snapshot = try await context.provider.fetch()
                 providerStatus = "reachable"
-                remaining = Int(
-                    snapshot.weekly.remainingPercent.rounded()
-                )
-                if let fiveHour = snapshot.fiveHour {
-                    fiveHourRemaining = Int(
-                        fiveHour.remainingPercent.rounded()
-                    )
-                    fiveHourStatus = "measured"
-                } else {
-                    fiveHourStatus = "max"
-                }
             } catch let error as QuotaProviderError {
                 providerStatus =
                     error == .authenticationRequired
@@ -52,14 +29,13 @@ enum Diagnostics {
             }
         }
 
-        let report = Report(
+        let report = RedactedDiagnosticReport(
             configuration: context.configurationStatus,
             pet: context.petStatus,
             petWindow: petWindowStatus,
             provider: providerStatus,
-            weeklyRemainingPercent: remaining,
-            fiveHourRemainingPercent: fiveHourRemaining,
-            fiveHourStatus: fiveHourStatus
+            snapshot: snapshot,
+            includeQuota: includeQuota
         )
         write(report)
 
@@ -133,7 +109,7 @@ enum Diagnostics {
     }
 
     private static func write(
-        _ report: Report
+        _ report: RedactedDiagnosticReport
     ) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

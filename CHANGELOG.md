@@ -15,7 +15,8 @@ All notable changes to this project are documented here.
 
 ### Changed
 
-- Redacted diagnostics now report rounded five-hour status without reset times
+- Redacted diagnostics now report rounded weekly and optional five-hour
+  remaining percentages plus five-hour measurement status, without reset times
   or provider payloads.
 - The tactical HUD remains bars-only: no pet effects, animation, or replacement.
 

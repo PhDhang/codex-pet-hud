@@ -95,12 +95,13 @@ Missing keys use defaults; legacy `nameplateOffset` does not move the tactical H
 
 HP is weekly quota. MP is the measured five-hour percentage or orange `MAX`.
 Seven SP flame cells show weekly reset progress: lit red/orange/yellow, unlit
-blue/cyan/ice-blue. HP and MP have independent pulses for `4–9%` and `0–3%` meters. Reduce Motion fixes danger colors rather than pulsing them. Fresh
-`4–9%` quota changes the HUD to the red `PANIC · QUOTA LOW` label. Fresh
+blue/cyan/ice-blue. Each HP and MP meter pulses independently in the `4–9%` and `0–3%` danger bands.
+Reduce Motion fixes danger colors rather than pulsing them.
+Fresh `4–9%` quota changes the HUD to the red `PANIC · QUOTA LOW` label. Fresh
 `≤3%` quota changes it to the bright-red `EXHAUSTED · SIGNAL CRITICAL` label.
 These are HUD-only label and color changes. The HUD never changes the native pet:
-there is no pet animation or replacement. Stale and missing data retain
-their normal HUD state without changing the native pet.
+there is no pet animation or replacement. Stale and missing data retain their
+normal HUD state without changing the native pet.
 
 For screenshots, use `scripts/capture-hud.sh OUTPUT`. It resolves exactly one
 on-screen tactical window and captures that window ID only. This window-only screenshot rejects any pet-effect window and never captures a rectangle of the
