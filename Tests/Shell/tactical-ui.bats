@@ -21,6 +21,18 @@ grep -F 'ForEach(0..<7' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'frameSize: frame.size' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
+SHOW_BODY="$(sed -n \
+  '/func show(/,/^    func hide()/p' \
+  "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift")"
+FRAME_LINE="$(printf '%s\n' "$SHOW_BODY" | nl -ba | \
+  grep -F 'panel.setFrame' | head -n 1 | awk '{ print $1 }')"
+ROOT_VIEW_LINE="$(printf '%s\n' "$SHOW_BODY" | nl -ba | \
+  grep -F 'hostingView.rootView' | head -n 1 | awk '{ print $1 }')"
+if [ -z "$FRAME_LINE" ] || [ -z "$ROOT_VIEW_LINE" ] || \
+  [ "$FRAME_LINE" -gt "$ROOT_VIEW_LINE" ]; then
+  printf 'HUD panel must size before replacing its SwiftUI root view.\n' >&2
+  exit 1
+fi
 grep -F 'TacticalHUDLayoutMetrics' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'metrics.flameWidth' \
@@ -62,7 +74,7 @@ grep -F 'accessibilityValue: spAccessibilityValue' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F '.accessibilityValue(accessibilityValue ?? trailing)' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
-grep -F 'level: .floating' \
+grep -F 'NSWindow.Level.floating.rawValue + 1' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"
 PANEL_INITIALIZER="$(sed -n \
   '/final class ClickThroughPanel: NSPanel {/,/override var canBecomeKey/p' \

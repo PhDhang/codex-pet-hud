@@ -6,6 +6,7 @@ import SwiftUI
 final class TacticalHUDPanelController {
     private let panel: NSPanel
     private let hostingView: NSHostingView<TacticalHUDView>
+    private var renderState = HUDRenderState()
 
     init() {
         let initial = HUDPresentationData.make(
@@ -26,7 +27,9 @@ final class TacticalHUDPanelController {
                 width: 1,
                 height: 1
             ),
-            level: .floating
+            level: NSWindow.Level(
+                rawValue: NSWindow.Level.floating.rawValue + 1
+            )
         )
         panel.title = "Codex Pet HUD Tactical"
         panel.contentView = hostingView
@@ -36,11 +39,19 @@ final class TacticalHUDPanelController {
         frame: CGRect,
         data: HUDPresentationData
     ) {
-        hostingView.rootView = TacticalHUDView(
+        if panel.frame != frame {
+            panel.setFrame(frame, display: true)
+        }
+        if renderState.shouldRefreshContent(
             data: data,
             frameSize: frame.size
-        )
-        panel.setFrame(frame, display: true)
+        ) {
+            hostingView.rootView = TacticalHUDView(
+                data: data,
+                frameSize: frame.size
+            )
+            hostingView.layoutSubtreeIfNeeded()
+        }
         panel.orderFrontRegardless()
     }
 
