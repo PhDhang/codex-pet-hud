@@ -21,7 +21,7 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
     public init(frameSize: CGSize) {
         let fit = min(
             frameSize.width / 210,
-            frameSize.height / 58
+            frameSize.height / 75
         )
         let progress = min(1, max(0, (fit - 0.65) / 0.35))
 
@@ -54,10 +54,10 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
 
     public var contentHeight: CGFloat {
         verticalPadding * 2 +
-            hpRowHeight +
+            hpRowHeight * 2 +
             flameHeight +
             statusRowHeight +
-            rowSpacing * 2
+            rowSpacing * 3
     }
 
     private static func interpolate(

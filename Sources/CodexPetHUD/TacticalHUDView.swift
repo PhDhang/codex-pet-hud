@@ -19,19 +19,38 @@ struct TacticalHUDView: View {
                     trailing: data.hpText,
                     rowHeight: metrics.hpRowHeight
                 ) {
-                    GeometryReader { geometry in
-                        Capsule()
-                            .fill(Color.black.opacity(0.72))
-                            .overlay(alignment: .leading) {
-                                Capsule()
-                                    .fill(hpColor)
-                                    .frame(
-                                        width:
-                                            geometry.size.width *
-                                            data.hpFraction
-                                    )
-                            }
-                    }
+                    QuotaMeterFillView(
+                        fraction: data.hpFraction,
+                        baseColor: hpBaseColor,
+                        dangerColor: .red,
+                        dangerLevel: data.hpDangerLevel,
+                        centeredText: nil
+                    )
+                    .frame(height: metrics.hpBarHeight)
+                }
+                meterRow(
+                    label: "MP",
+                    trailing:
+                        data.mpMode == .unlimited ? "" : data.mpText,
+                    rowHeight: metrics.hpRowHeight,
+                    accessibilityValue: mpAccessibilityValue
+                ) {
+                    QuotaMeterFillView(
+                        fraction: data.mpFraction,
+                        baseColor: Color(
+                            red: 1,
+                            green: 0.52,
+                            blue: 0.12
+                        ),
+                        dangerColor: Color(
+                            red: 0.78,
+                            green: 0.93,
+                            blue: 1
+                        ),
+                        dangerLevel: data.mpDangerLevel,
+                        centeredText:
+                            data.mpMode == .unlimited ? "MAX" : nil
+                    )
                     .frame(height: metrics.hpBarHeight)
                 }
                 meterRow(
@@ -84,6 +103,17 @@ struct TacticalHUDView: View {
     private var spAccessibilityValue: String {
         "\(data.spCellsLit) of 7 elapsed; reset in " +
             data.resetText
+    }
+
+    private var mpAccessibilityValue: String {
+        switch data.mpMode {
+        case .measured:
+            return data.mpText
+        case .unlimited:
+            return "Maximum; no five-hour limit"
+        case .unavailable:
+            return "Unavailable"
+        }
     }
 
     private var tacticalAccentColor: Color {
@@ -149,18 +179,19 @@ struct TacticalHUDView: View {
             }
     }
 
-    private var hpColor: Color {
-        switch data.band {
+    private var hpBaseColor: Color {
+        if data.hpDangerLevel != .none {
+            return Color(red: 0.26, green: 0.93, blue: 0.60)
+        }
+        return switch data.band {
         case .healthy:
             Color(red: 0.26, green: 0.93, blue: 0.60)
         case .normal:
             Color(red: 0.45, green: 0.85, blue: 0.36)
         case .warning:
             Color(red: 1.00, green: 0.71, blue: 0.23)
-        case .low:
-            Color(red: 1.00, green: 0.24, blue: 0.31)
-        case .critical:
-            Color(red: 1.00, green: 0.12, blue: 0.22)
+        case .low, .critical:
+            Color(red: 0.26, green: 0.93, blue: 0.60)
         case nil:
             Color.gray
         }

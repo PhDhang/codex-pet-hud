@@ -44,6 +44,17 @@ grep -F 'rowHeight: metrics.flameHeight' \
 grep -F 'data.statusLabel' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 HUD_VIEW="$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+grep -F 'label: "MP"' "$HUD_VIEW"
+grep -F 'data.mpText' "$HUD_VIEW"
+grep -F 'data.mpFraction' "$HUD_VIEW"
+grep -F 'data.mpDangerLevel' "$HUD_VIEW"
+grep -F 'data.mpMode == .unlimited' "$HUD_VIEW"
+grep -F 'accessibilityReduceMotion' \
+  "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
+grep -F 'duration: 0.9' \
+  "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
+grep -F 'duration: 0.45' \
+  "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
 ACCENT_HELPER="$(sed -n \
   '/private var tacticalAccentColor: Color {/,/^    }/p' \
   "$HUD_VIEW")"
