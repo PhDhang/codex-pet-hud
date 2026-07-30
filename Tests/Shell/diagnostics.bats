@@ -40,7 +40,7 @@ actual_keys="$(
 )"
 test "$actual_keys" = "$expected_keys"
 
-if rg -ni \
+if rg -qi \
   'resetAt|fetchedAt|usedPercent|windowDurationSeconds|rawPayload|access[_-]?token|account|email|cookie|snapshot' \
   "$TEST_HOME/once.json"; then
   printf '%s\n' '--once emitted normalized snapshot or private data.' >&2

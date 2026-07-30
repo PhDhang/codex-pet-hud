@@ -45,7 +45,7 @@ grep -F 'no pet animation or replacement' "$SKILL/SKILL.md" >/dev/null
 grep -F 'fiveHourStatus' "$SKILL/SKILL.md" >/dev/null
 grep -F 'window-only screenshot' "$SKILL/SKILL.md" >/dev/null
 
-if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
+if rg -q 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2
   exit 1
 fi

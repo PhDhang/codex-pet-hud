@@ -5,6 +5,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+line_printing_scan_pattern='rg[[:space:]]+-[[:alpha:]]*n[[:alpha:]]*[[:space:]]|rg[[:space:]]+--line-number([=[:space:]]|$)'
+if rg -q "$line_printing_scan_pattern" \
+  Tests/Shell/diagnostics.bats \
+  Tests/Shell/release-validation.bats \
+  Tests/Shell/skill-validation.bats; then
+  printf 'Forbidden-content scans must never print matched lines.\n' >&2
+  exit 1
+fi
+
 for required_file in \
   README.md \
   CHANGELOG.md \
@@ -37,7 +46,7 @@ DIAGNOSTIC_SOURCES=(
   Sources/CodexPetHUD/Diagnostics.swift
   "$REPORT"
 )
-if rg -n \
+if rg -q \
   'access[_-]?token|refresh[_-]?token|id[_-]?token|account|email|cookie|credential|encoder\\.encode\\(snapshot\\)' \
   "${DIAGNOSTIC_SOURCES[@]}"; then
   printf 'Diagnostics must not name credentials or emit raw provider snapshots.\n' \
@@ -61,7 +70,7 @@ for release_file in "${release_content[@]}"; do
   fi
 done
 
-if rg -n "$scan_pattern" "${release_content[@]}"; then
+if rg -q "$scan_pattern" "${release_content[@]}"; then
   printf 'Release files contain a local path or credential-like value.\n' >&2
   exit 1
 fi
@@ -83,7 +92,7 @@ grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._
   docs/privacy.md
 grep -F 'Tests/Shell/release-validation.bats' docs/privacy.md
 grep -F 'done < <(git ls-files)' docs/privacy.md
-if rg -n 'critical threshold is `0\.\.\.10%`' README.md; then
+if rg -q 'critical threshold is `0\.\.\.10%`' README.md; then
   printf 'README documents a configurable critical threshold.\n' >&2
   exit 1
 fi
@@ -100,7 +109,7 @@ do
   test ! -e "$removed_asset"
 done
 
-if rg -n \
+if rg -q \
   'Pet Effect|PetEffect|PetDistressState|hud-effects|hud-panic|hud-critical|pet-replacement|orbit glyph|headAnchor|non-facial aura|integrated eye art|procedural eye overlay' \
   README.md docs/architecture.md skills/codex-pet-hud; then
   printf 'Active documentation still exposes a pet-effect feature.\n' >&2
