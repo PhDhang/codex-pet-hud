@@ -110,12 +110,12 @@ grep -F 'transaction.disablesAnimations = true' "$METER_VIEW"
 grep -F '.onDisappear {' "$METER_VIEW"
 grep -F 'motionGeneration += 1' "$METER_VIEW"
 if grep -Fq '.animation(' "$METER_VIEW"; then
-  printf 'Quota meter must use only explicit pulse animations.\n' >&2
+  printf 'Quota meter must use only explicit flow and pulse animations.\n' >&2
   exit 1
 fi
-PULSE_ANIMATION_COUNT="$(grep -F 'withAnimation(' "$METER_VIEW" | \
+METER_ANIMATION_COUNT="$(grep -F 'withAnimation(' "$METER_VIEW" | \
   wc -l | tr -d '[:space:]')"
-if [ "$PULSE_ANIMATION_COUNT" -ne 2 ]; then
+if [ "$METER_ANIMATION_COUNT" -ne 2 ]; then
   printf 'Quota meter must start flow and pulse with explicit animations.\n' >&2
   exit 1
 fi

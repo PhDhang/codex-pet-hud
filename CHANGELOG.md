@@ -6,7 +6,7 @@ All notable changes to this project are documented here.
 
 ### Added
 
-- Optional five-hour MP monitoring with an orange `MAX` fallback when the
+- Optional five-hour MP monitoring with a full sky-blue `MAX` fallback when the
   provider does not report that window.
 - Independent low and critical HP/MP pulses, with fixed danger colors under
   Reduce Motion.

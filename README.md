@@ -22,10 +22,11 @@ time. HP uses a blood-red `#680B18` → `#C51F35` → `#FF5268` gradient, and MP
 uses a sky-blue `#0758A8` → `#179DFF` → `#77D9FF` gradient.
 
 Safe measured values below exactly `100%` carry a subtle same-color highlight
-flow clipped to the filled capsule. Exactly `100%`, `MAX`, unavailable, danger,
-and Reduce Motion states remain static. Low HP/MP pulses independently to white
-every `0.9s`; critical pulses every `0.45s` with stronger intensity. Reduce
-Motion leaves dangerous meters in their solid bright red or blue identity color.
+flow clipped to the filled capsule. Exactly `100%`, `MAX`, unavailable, and
+Reduce Motion states remain static. Danger states have no flowing highlight:
+low HP/MP pulses independently to white every `0.9s`, while critical pulses
+every `0.45s` with stronger intensity. Reduce Motion leaves dangerous meters in
+their solid bright red or blue identity color.
 
 SP always has seven rounded three-layer flames. Lit flames are
 red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
