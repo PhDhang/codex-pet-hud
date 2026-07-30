@@ -93,10 +93,14 @@ Missing keys use defaults; legacy `nameplateOffset` does not move the tactical H
 
 ## HP, MP, Flame, and Low-Quota States
 
-HP is weekly quota. MP is the measured five-hour percentage or orange `MAX`.
+HP is weekly quota with a blood-red gradient. MP is the measured five-hour percentage or sky-blue `MAX`.
+Safe measured values below `100%` carry a subtle same-color flow.
+Exactly `100%`, `MAX`, unavailable data, danger states, and Reduce Motion have
+no meter flow. Danger pulses HP or MP independently to white at `0.9s` or `0.45s`.
+Reduce Motion leaves bright identity colors static instead of pulsing to white.
 Seven SP flame cells show weekly reset progress: lit red/orange/yellow, unlit
-blue/cyan/ice-blue. Each HP and MP meter pulses independently in the `4–9%` and `0–3%` danger bands.
-Reduce Motion fixes danger colors rather than pulsing them.
+blue/cyan/ice-blue. Lit SP flames use a `1.10` base scale with bottom-anchored
+flicker that stops under Reduce Motion.
 Fresh `4–9%` quota changes the HUD to the red `PANIC · QUOTA LOW` label. Fresh
 `≤3%` quota changes it to the bright-red `EXHAUSTED · SIGNAL CRITICAL` label.
 These are HUD-only label and color changes. The HUD never changes the native pet:

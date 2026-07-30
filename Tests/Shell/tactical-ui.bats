@@ -51,56 +51,76 @@ grep -F 'rowHeight: metrics.flameHeight' \
 grep -F 'data.statusLabel' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 HUD_VIEW="$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
+METER_VIEW="$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
+MOTION_POLICY="$ROOT/Sources/PetHUDCore/QuotaMeterMotionPolicy.swift"
 grep -F 'label: "MP"' "$HUD_VIEW"
 grep -F 'data.mpText' "$HUD_VIEW"
 grep -F 'data.mpFraction' "$HUD_VIEW"
 grep -F 'data.mpDangerLevel' "$HUD_VIEW"
 grep -F 'data.mpMode == .unlimited' "$HUD_VIEW"
-grep -F 'accessibilityReduceMotion' \
-  "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
-grep -F 'duration: 0.9' \
-  "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
-grep -F 'duration: 0.45' \
-  "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
-METER_VIEW="$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
-DISPLAY_COLOR="$(awk '
-  /private var displayColor: Color \{/ { inside = 1 }
-  /private var dangerAnimation: Animation\?/ { inside = 0 }
-  inside { print }
-' "$METER_VIEW")"
-if printf '%s\n' "$DISPLAY_COLOR" | grep -Fq 'Color.white'; then
-  printf 'Critical fill must preserve the supplied base and danger colors.\n' \
-    >&2
-  exit 1
-fi
-FILL_PAIR_COUNT="$(printf '%s\n' "$DISPLAY_COLOR" | \
-  grep -F 'return showsDangerColor ? dangerColor : baseColor' | \
-  wc -l | tr -d '[:space:]')"
-if [ "$FILL_PAIR_COUNT" -ne 2 ]; then
-  printf 'Low and critical fills must share the supplied color pair.\n' >&2
-  exit 1
-fi
+for palette_token in \
+  'paletteColor(red: 0x68, green: 0x0B, blue: 0x18)' \
+  'paletteColor(red: 0xC5, green: 0x1F, blue: 0x35)' \
+  'paletteColor(red: 0xFF, green: 0x52, blue: 0x68)' \
+  'paletteColor(red: 0x07, green: 0x58, blue: 0xA8)' \
+  'paletteColor(red: 0x17, green: 0x9D, blue: 0xFF)' \
+  'paletteColor(red: 0x77, green: 0xD9, blue: 0xFF)'
+do
+  if ! grep -Fq "$palette_token" "$HUD_VIEW"; then
+    printf 'HUD must define the exact blood-red and sky-blue palettes.\n' >&2
+    exit 1
+  fi
+done
+grep -F 'palette: Self.hpPalette' "$HUD_VIEW"
+grep -F 'palette: Self.mpPalette' "$HUD_VIEW"
+grep -F 'mode: data.mpMode' "$HUD_VIEW"
+grep -F 'centeredText:' "$HUD_VIEW"
+grep -F 'data.mpMode == .unlimited ? "MAX" : nil' "$HUD_VIEW"
+grep -F 'let palette: QuotaMeterPalette' "$METER_VIEW"
+grep -F 'let mode: MPPresentationMode' "$METER_VIEW"
+grep -F 'accessibilityReduceMotion' "$METER_VIEW"
+grep -F 'QuotaMeterMotionPolicy.evaluate(' "$METER_VIEW"
+grep -F 'if motionPolicy.allowsFlow {' "$METER_VIEW"
+grep -F 'guard let pulseDuration = motionPolicy.pulseDuration else {' \
+  "$METER_VIEW"
+grep -F 'palette.highlight.opacity(0.15)' "$METER_VIEW"
+grep -F '.clipShape(Capsule())' "$METER_VIEW"
+grep -F 'Color.white.opacity(pulseOpacity)' "$METER_VIEW"
+grep -F 'if dangerLevel != .none && reduceMotion {' "$METER_VIEW"
+grep -F '.fill(palette.highlight)' "$METER_VIEW"
+grep -F 'withAnimation(flowAnimation)' "$METER_VIEW"
+grep -F 'withAnimation(pulseAnimation(duration: pulseDuration))' \
+  "$METER_VIEW"
+grep -F 'allowsFlow: fraction < 1' "$MOTION_POLICY"
+grep -F 'case .unlimited, .unavailable:' "$MOTION_POLICY"
+grep -F 'allowsFlow: false' "$MOTION_POLICY"
+grep -F 'pulseDuration: 0.9' \
+  "$MOTION_POLICY"
+grep -F 'pulseDuration: 0.45' \
+  "$MOTION_POLICY"
 grep -F '.brightness(criticalIntensity)' "$METER_VIEW"
 grep -F 'private var criticalIntensity: Double' "$METER_VIEW"
 grep -F 'dangerLevel == .critical && !reduceMotion' "$METER_VIEW"
 grep -F 'private static let criticalIntensityMagnitude = 0.22' \
   "$METER_VIEW"
 grep -F \
-  'return showsDangerColor ? Self.criticalIntensityMagnitude : 0' \
+  'return showsWhitePulse ? Self.criticalIntensityMagnitude : 0' \
   "$METER_VIEW"
 grep -F 'transaction.disablesAnimations = true' "$METER_VIEW"
 grep -F '.onDisappear {' "$METER_VIEW"
-grep -F 'pulseGeneration += 1' "$METER_VIEW"
+grep -F 'motionGeneration += 1' "$METER_VIEW"
 if grep -Fq '.animation(' "$METER_VIEW"; then
   printf 'Quota meter must use only explicit pulse animations.\n' >&2
   exit 1
 fi
 PULSE_ANIMATION_COUNT="$(grep -F 'withAnimation(' "$METER_VIEW" | \
   wc -l | tr -d '[:space:]')"
-if [ "$PULSE_ANIMATION_COUNT" -ne 1 ]; then
-  printf 'Quota meter must start its pulse with one explicit animation.\n' >&2
+if [ "$PULSE_ANIMATION_COUNT" -ne 2 ]; then
+  printf 'Quota meter must start flow and pulse with explicit animations.\n' >&2
   exit 1
 fi
+grep -F 'isLit ? 1.10 : 1' "$FLAME_VIEW"
+grep -F 'anchor: .bottom' "$FLAME_VIEW"
 ACCENT_HELPER="$(sed -n \
   '/private var tacticalAccentColor: Color {/,/^    }/p' \
   "$HUD_VIEW")"

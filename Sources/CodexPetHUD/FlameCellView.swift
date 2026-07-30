@@ -8,6 +8,11 @@ struct FlameCellView: View {
     @State private var flickerGeneration = 0
 
     var body: some View {
+        let litScale = isLit ? 1.10 : 1
+        let flickerScale =
+            isLit && flicker && !reduceMotion
+            ? 1.04
+            : 1
         ZStack {
             FlameShape()
                 .fill(isLit ? outerLit : outerUnlit)
@@ -26,11 +31,8 @@ struct FlameCellView: View {
             radius: isLit ? 6 : 3
         )
         .scaleEffect(
-            x: 1,
-            y:
-                isLit && flicker && !reduceMotion
-                ? 1.04
-                : 0.96,
+            x: litScale,
+            y: litScale * flickerScale,
             anchor: .bottom
         )
         .onAppear {

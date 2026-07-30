@@ -97,7 +97,7 @@ git commit -m "feat: polish HP MP and SP visuals"
 
 - [ ] Run all Swift and shell tests, production build, and strict codesign.
 - [ ] Install version `0.4.0` for
-  `/Users/hang_macmini/.codex/pets/yicha`.
+  `$HOME/.codex/pets/yicha`.
 - [ ] Verify real `MAX`, measured MP, safe flowing HP/MP, exact `100%` static,
   low and critical white pulses, Reduce Motion static behavior, SP `110%`
   scale, movement, resize, and idle persistence.
@@ -113,4 +113,3 @@ git commit -m "docs: refresh vitality HUD screenshot"
   zero mock processes, healthy redacted diagnostics, and a clean worktree.
 - [ ] Request a whole-branch review and fix all Critical/Important findings.
 - [ ] Push the feature branch and update draft PR `#1`; do not merge.
-

@@ -10,21 +10,28 @@ and seven SP flames show weekly reset progress.
 ## Tactical HUD
 
 Snapshots whose age is `≤300s` are fresh. Weekly HP is clamped to `0...100`
-and floored to one decimal place, with integral labels omitting `.0`. Bands
-are `>90%` emerald, `51–90%` green, `10–50%` amber, `4–9%` red, and `≤3%`
-bright red. At an age of `>300s` and `≤1800s`, the last values remain with
+and floored to one decimal place, with integral labels omitting `.0`. Quota
+bands are `>90%` healthy, `51–90%` normal, `10–50%` warning, `4–9%` low, and
+`≤3%` critical. At an age of `>300s` and `≤1800s`, the last values remain with
 `STALE`.
 At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
 
 MP is the measured five-hour percentage when the usage source provides that
-window. Otherwise it shows orange `MAX`; it never infers a value or reset time.
-HP and MP pulse independently only in their `4–9%` and `0–3%` danger bands.
-With Reduce Motion enabled, danger colors remain fixed instead of pulsing.
+window. Otherwise it shows sky-blue `MAX`; it never infers a value or reset
+time. HP uses a blood-red `#680B18` → `#C51F35` → `#FF5268` gradient, and MP
+uses a sky-blue `#0758A8` → `#179DFF` → `#77D9FF` gradient.
+
+Safe measured values below exactly `100%` carry a subtle same-color highlight
+flow clipped to the filled capsule. Exactly `100%`, `MAX`, unavailable, danger,
+and Reduce Motion states remain static. Low HP/MP pulses independently to white
+every `0.9s`; critical pulses every `0.45s` with stronger intensity. Reduce
+Motion leaves dangerous meters in their solid bright red or blue identity color.
 
 SP always has seven rounded three-layer flames. Lit flames are
 red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
 one elapsed seventh of the weekly reset window, from zero lit at a new window to
-seven at reset.
+seven at reset. Lit flames use a `1.10` base scale, with bottom-anchored flicker
+disabled by Reduce Motion.
 
 For fresh `4–9%` quota, the HUD shows `PANIC · QUOTA LOW` in red. For fresh
 `≤3%` quota, it shows `EXHAUSTED · SIGNAL CRITICAL` in bright red. These are

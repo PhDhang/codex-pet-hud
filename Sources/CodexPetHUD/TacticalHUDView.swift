@@ -21,8 +21,11 @@ struct TacticalHUDView: View {
                 ) {
                     QuotaMeterFillView(
                         fraction: data.hpFraction,
-                        baseColor: hpBaseColor,
-                        dangerColor: .red,
+                        palette: Self.hpPalette,
+                        mode:
+                            data.band == nil
+                            ? .unavailable
+                            : .measured,
                         dangerLevel: data.hpDangerLevel,
                         centeredText: nil
                     )
@@ -37,16 +40,8 @@ struct TacticalHUDView: View {
                 ) {
                     QuotaMeterFillView(
                         fraction: data.mpFraction,
-                        baseColor: Color(
-                            red: 1,
-                            green: 0.52,
-                            blue: 0.12
-                        ),
-                        dangerColor: Color(
-                            red: 0.78,
-                            green: 0.93,
-                            blue: 1
-                        ),
+                        palette: Self.mpPalette,
+                        mode: data.mpMode,
                         dangerLevel: data.mpDangerLevel,
                         centeredText:
                             data.mpMode == .unlimited ? "MAX" : nil
@@ -179,22 +174,32 @@ struct TacticalHUDView: View {
             }
     }
 
-    private var hpBaseColor: Color {
-        if data.hpDangerLevel != .none {
-            return Color(red: 0.26, green: 0.93, blue: 0.60)
-        }
-        return switch data.band {
-        case .healthy:
-            Color(red: 0.26, green: 0.93, blue: 0.60)
-        case .normal:
-            Color(red: 0.45, green: 0.85, blue: 0.36)
-        case .warning:
-            Color(red: 1.00, green: 0.71, blue: 0.23)
-        case .low, .critical:
-            Color(red: 0.26, green: 0.93, blue: 0.60)
-        case nil:
-            Color.gray
-        }
+    private static var hpPalette: QuotaMeterPalette {
+        QuotaMeterPalette(
+            shadow: paletteColor(red: 0x68, green: 0x0B, blue: 0x18),
+            body: paletteColor(red: 0xC5, green: 0x1F, blue: 0x35),
+            highlight: paletteColor(red: 0xFF, green: 0x52, blue: 0x68)
+        )
+    }
+
+    private static var mpPalette: QuotaMeterPalette {
+        QuotaMeterPalette(
+            shadow: paletteColor(red: 0x07, green: 0x58, blue: 0xA8),
+            body: paletteColor(red: 0x17, green: 0x9D, blue: 0xFF),
+            highlight: paletteColor(red: 0x77, green: 0xD9, blue: 0xFF)
+        )
+    }
+
+    private static func paletteColor(
+        red: Int,
+        green: Int,
+        blue: Int
+    ) -> Color {
+        Color(
+            red: Double(red) / 255,
+            green: Double(green) / 255,
+            blue: Double(blue) / 255
+        )
     }
 }
 

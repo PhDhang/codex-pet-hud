@@ -1,17 +1,32 @@
 import PetHUDCore
 import SwiftUI
 
+struct QuotaMeterPalette {
+    let shadow: Color
+    let body: Color
+    let highlight: Color
+
+    var gradient: LinearGradient {
+        LinearGradient(
+            colors: [shadow, body, highlight],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+}
+
 struct QuotaMeterFillView: View {
     let fraction: Double
-    let baseColor: Color
-    let dangerColor: Color
+    let palette: QuotaMeterPalette
+    let mode: MPPresentationMode
     let dangerLevel: QuotaDangerLevel
     let centeredText: String?
 
     @Environment(\.accessibilityReduceMotion)
     private var reduceMotion
-    @State private var showsDangerColor = false
-    @State private var pulseGeneration = 0
+    @State private var flowAtEnd = false
+    @State private var showsWhitePulse = false
+    @State private var motionGeneration = 0
     private static let criticalIntensityMagnitude = 0.22
 
     var body: some View {
@@ -19,18 +34,11 @@ struct QuotaMeterFillView: View {
             ZStack {
                 Capsule()
                     .fill(Color.black.opacity(0.72))
-                Capsule()
-                    .fill(displayColor)
-                    .brightness(criticalIntensity)
-                    .frame(
-                        width:
-                            geometry.size.width *
-                            min(1, max(0, fraction))
-                    )
-                    .frame(
-                        maxWidth: .infinity,
-                        alignment: .leading
-                    )
+                filledCapsule(
+                    width:
+                        geometry.size.width *
+                        min(1, max(0, fraction))
+                )
                 if let centeredText {
                     Text(centeredText)
                         .font(
@@ -45,88 +53,124 @@ struct QuotaMeterFillView: View {
             }
         }
         .onAppear {
-            restartPulse()
+            restartMotion()
         }
-        .onChange(of: dangerLevel) {
-            restartPulse()
-        }
-        .onChange(of: reduceMotion) {
-            restartPulse()
+        .onChange(of: motionPolicy) {
+            restartMotion()
         }
         .onDisappear {
-            pulseGeneration += 1
-            setDangerColor(false)
+            motionGeneration += 1
+            resetMotion()
         }
     }
 
-    private var displayColor: Color {
-        guard dangerLevel != .none else {
-            return baseColor
+    private func filledCapsule(width: CGFloat) -> some View {
+        ZStack {
+            if dangerLevel != .none && reduceMotion {
+                Capsule()
+                    .fill(palette.highlight)
+            } else {
+                Capsule()
+                    .fill(palette.gradient)
+            }
+            GeometryReader { geometry in
+                Capsule()
+                    .fill(flowGradient)
+                    .frame(width: max(10, geometry.size.width * 0.28))
+                    .offset(
+                        x:
+                            flowAtEnd
+                            ? geometry.size.width
+                            : -max(10, geometry.size.width * 0.28)
+                    )
+            }
+            Capsule()
+                .fill(Color.white.opacity(pulseOpacity))
         }
-        if reduceMotion {
-            return dangerColor
-        }
-        switch dangerLevel {
-        case .none:
-            return baseColor
-        case .low:
-            return showsDangerColor ? dangerColor : baseColor
-        case .critical:
-            return showsDangerColor ? dangerColor : baseColor
-        }
+        .brightness(criticalIntensity)
+        .frame(width: width)
+        .clipShape(Capsule())
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var flowGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                palette.highlight.opacity(0),
+                palette.highlight.opacity(0.15),
+                palette.highlight.opacity(0),
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
+    private var pulseOpacity: Double {
+        showsWhitePulse ? 1 : 0
+    }
+
+    private var motionPolicy: QuotaMeterMotionPolicy {
+        QuotaMeterMotionPolicy.evaluate(
+            mode: mode,
+            fraction: fraction,
+            dangerLevel: dangerLevel,
+            reduceMotion: reduceMotion
+        )
     }
 
     private var criticalIntensity: Double {
         guard dangerLevel == .critical && !reduceMotion else {
             return 0
         }
-        return showsDangerColor ? Self.criticalIntensityMagnitude : 0
+        return showsWhitePulse ? Self.criticalIntensityMagnitude : 0
     }
 
-    private var dangerAnimation: Animation? {
-        guard !reduceMotion else {
-            return nil
-        }
-        switch dangerLevel {
-        case .none:
-            return nil
-        case .low:
-            return .easeInOut(duration: 0.9)
-                .repeatForever(autoreverses: true)
-        case .critical:
-            return .easeInOut(duration: 0.45)
-                .repeatForever(autoreverses: true)
-        }
+    private var flowAnimation: Animation {
+        .linear(duration: 2.4)
+            .repeatForever(autoreverses: false)
     }
 
-    private func restartPulse() {
-        pulseGeneration += 1
-        let generation = pulseGeneration
-        setDangerColor(false)
+    private func pulseAnimation(duration: TimeInterval) -> Animation {
+        .easeInOut(duration: duration)
+            .repeatForever(autoreverses: true)
+    }
 
-        guard dangerLevel != .none else {
+    private func restartMotion() {
+        motionGeneration += 1
+        let generation = motionGeneration
+        resetMotion()
+
+        if motionPolicy.allowsFlow {
+            DispatchQueue.main.async {
+                guard generation == motionGeneration else {
+                    return
+                }
+                withAnimation(flowAnimation) {
+                    flowAtEnd = true
+                }
+            }
             return
         }
-        if reduceMotion {
-            setDangerColor(true)
+
+        guard let pulseDuration = motionPolicy.pulseDuration else {
             return
         }
-
         DispatchQueue.main.async {
-            guard generation == pulseGeneration else {
+            guard generation == motionGeneration else {
                 return
             }
-            withAnimation(dangerAnimation) {
-                showsDangerColor = true
+            withAnimation(pulseAnimation(duration: pulseDuration)) {
+                showsWhitePulse = true
             }
         }
     }
 
-    private func setDangerColor(_ visible: Bool) {
+    private func resetMotion() {
         var transaction = Transaction()
         transaction.disablesAnimations = true
         withTransaction(transaction) {
-            showsDangerColor = visible
+            flowAtEnd = false
+            showsWhitePulse = false
         }
     }
 }
