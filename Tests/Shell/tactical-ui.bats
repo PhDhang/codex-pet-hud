@@ -17,6 +17,13 @@ if grep -Eq \
 fi
 grep -F 'struct FlameCellView' \
   "$ROOT/Sources/CodexPetHUD/FlameCellView.swift"
+FLAME_VIEW="$ROOT/Sources/CodexPetHUD/FlameCellView.swift"
+grep -F '.onChange(of: reduceMotion)' "$FLAME_VIEW"
+grep -F '.onChange(of: isLit)' "$FLAME_VIEW"
+grep -F 'private func restartFlicker()' "$FLAME_VIEW"
+grep -F 'guard isLit, !reduceMotion else {' "$FLAME_VIEW"
+grep -F 'guard generation == flickerGeneration else {' "$FLAME_VIEW"
+grep -F 'transaction.disablesAnimations = true' "$FLAME_VIEW"
 grep -F 'ForEach(0..<7' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'frameSize: frame.size' \
@@ -76,6 +83,11 @@ fi
 grep -F '.brightness(criticalIntensity)' "$METER_VIEW"
 grep -F 'private var criticalIntensity: Double' "$METER_VIEW"
 grep -F 'dangerLevel == .critical && !reduceMotion' "$METER_VIEW"
+grep -F 'private static let criticalIntensityMagnitude = 0.22' \
+  "$METER_VIEW"
+grep -F \
+  'return showsDangerColor ? Self.criticalIntensityMagnitude : 0' \
+  "$METER_VIEW"
 grep -F 'transaction.disablesAnimations = true' "$METER_VIEW"
 grep -F '.onDisappear {' "$METER_VIEW"
 grep -F 'pulseGeneration += 1' "$METER_VIEW"
@@ -156,20 +168,111 @@ if rg -q 'PetEffect|PetDistressState|distressState|effectAssets' \
 fi
 
 CAPTURE_SCRIPT="$ROOT/scripts/capture-hud.sh"
+CAPTURE_SELECTOR="$ROOT/scripts/capture-hud-window-id.swift"
 test -f "$CAPTURE_SCRIPT"
-grep -F 'let tacticalName = "Codex Pet HUD Tactical"' "$CAPTURE_SCRIPT"
-grep -F 'kCGWindowNumber' "$CAPTURE_SCRIPT"
-grep -F 'guard tacticalWindowIDs.count == 1 else' "$CAPTURE_SCRIPT"
-grep -F 'let effectName = "Codex Pet HUD Pet Effect"' "$CAPTURE_SCRIPT"
-grep -F 'let effectWindowIDs = visibleWindowIDs(named: effectName)' \
+test -f "$CAPTURE_SELECTOR"
+grep -F 'let tacticalName = "Codex Pet HUD Tactical"' "$CAPTURE_SELECTOR"
+grep -F 'let effectName = "Codex Pet HUD Pet Effect"' "$CAPTURE_SELECTOR"
+grep -F 'let bundleIdentifier = "com.codex-pet-hud.app"' \
+  "$CAPTURE_SELECTOR"
+grep -F 'kCGWindowOwnerPID' "$CAPTURE_SELECTOR"
+grep -F 'runningApplications(withBundleIdentifier: bundleIdentifier)' \
+  "$CAPTURE_SELECTOR"
+grep -F 'effectWindows.isEmpty' "$CAPTURE_SELECTOR"
+grep -F 'swift "$SCRIPT_DIR/capture-hud-window-id.swift"' \
   "$CAPTURE_SCRIPT"
-grep -F 'guard effectWindowIDs.isEmpty else {' "$CAPTURE_SCRIPT"
 grep -F 'screencapture -x -o -l "$WINDOW_ID" "$OUTPUT"' \
   "$CAPTURE_SCRIPT"
 if rg -q 'screencapture.*-R|CGRect|insetBy' "$CAPTURE_SCRIPT"; then
   printf 'HUD capture must target only the titled HUD window ID.\n' >&2
   exit 1
 fi
+
+CAPTURE_TEST_ROOT="$(mktemp -d)"
+trap 'rm -rf "$CAPTURE_TEST_ROOT"' EXIT
+cat > "$CAPTURE_TEST_ROOT/valid.json" <<'JSON'
+{
+  "runningPIDs": [700],
+  "windows": [
+    {
+      "name": "Codex Pet HUD Tactical",
+      "onScreen": true,
+      "windowID": 42,
+      "ownerPID": 700
+    },
+    {
+      "name": "Private Other Window",
+      "onScreen": true,
+      "windowID": 99,
+      "ownerPID": 900
+    }
+  ]
+}
+JSON
+CAPTURE_OUTPUT="$(
+  SWIFT_MODULECACHE_PATH="$CAPTURE_TEST_ROOT/swift-cache" \
+  CLANG_MODULE_CACHE_PATH="$CAPTURE_TEST_ROOT/clang-cache" \
+    swift "$CAPTURE_SELECTOR" \
+      --fixture "$CAPTURE_TEST_ROOT/valid.json"
+)"
+test "$CAPTURE_OUTPUT" = "42"
+
+cat > "$CAPTURE_TEST_ROOT/spoof.json" <<'JSON'
+{
+  "runningPIDs": [700],
+  "windows": [
+    {
+      "name": "Codex Pet HUD Tactical",
+      "onScreen": true,
+      "windowID": 99,
+      "ownerPID": 900
+    }
+  ]
+}
+JSON
+set +e
+SPOOF_OUTPUT="$(
+  SWIFT_MODULECACHE_PATH="$CAPTURE_TEST_ROOT/swift-cache" \
+  CLANG_MODULE_CACHE_PATH="$CAPTURE_TEST_ROOT/clang-cache" \
+    swift "$CAPTURE_SELECTOR" \
+      --fixture "$CAPTURE_TEST_ROOT/spoof.json"
+)"
+SPOOF_RESULT=$?
+set -e
+test "$SPOOF_RESULT" -eq 5
+test -z "$SPOOF_OUTPUT"
+
+cat > "$CAPTURE_TEST_ROOT/mixed.json" <<'JSON'
+{
+  "runningPIDs": [700],
+  "windows": [
+    {
+      "name": "Codex Pet HUD Tactical",
+      "onScreen": true,
+      "windowID": 42,
+      "ownerPID": 700
+    },
+    {
+      "name": "Codex Pet HUD Tactical",
+      "onScreen": true,
+      "windowID": 99,
+      "ownerPID": 900
+    }
+  ]
+}
+JSON
+set +e
+MIXED_OUTPUT="$(
+  SWIFT_MODULECACHE_PATH="$CAPTURE_TEST_ROOT/swift-cache" \
+  CLANG_MODULE_CACHE_PATH="$CAPTURE_TEST_ROOT/clang-cache" \
+    swift "$CAPTURE_SELECTOR" \
+      --fixture "$CAPTURE_TEST_ROOT/mixed.json"
+)"
+MIXED_RESULT=$?
+set -e
+test "$MIXED_RESULT" -eq 5
+test -z "$MIXED_OUTPUT"
+
 if rg -q \
   'Pet Effect|effectRects|hud-effects|hud-panic|hud-critical' \
   "$ROOT/README.md" "$ROOT/docs/architecture.md" \

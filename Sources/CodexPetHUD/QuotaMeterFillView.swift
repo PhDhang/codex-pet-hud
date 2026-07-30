@@ -12,6 +12,7 @@ struct QuotaMeterFillView: View {
     private var reduceMotion
     @State private var showsDangerColor = false
     @State private var pulseGeneration = 0
+    private static let criticalIntensityMagnitude = 0.22
 
     var body: some View {
         GeometryReader { geometry in
@@ -79,7 +80,7 @@ struct QuotaMeterFillView: View {
         guard dangerLevel == .critical && !reduceMotion else {
             return 0
         }
-        return showsDangerColor ? 0.22 : 0
+        return showsDangerColor ? Self.criticalIntensityMagnitude : 0
     }
 
     private var dangerAnimation: Animation? {

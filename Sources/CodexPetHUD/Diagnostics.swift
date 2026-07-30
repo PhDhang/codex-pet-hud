@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import PetHUDCore
 
@@ -7,11 +8,11 @@ enum Diagnostics {
     ) async -> Int32 {
         let context = loadContext()
         let observation = PetWindowLocator.currentObservation()
-        let petWindowStatus =
-            observation.exactWindow != nil ||
-            observation.hasStablePresence
-            ? "found"
-            : "missing"
+        let petWindowStatus = PetWindowDiagnosticStatus.resolve(
+            observation: observation,
+            cachedGeometry: context.cachedGeometry,
+            now: Date()
+        ).rawValue
         var providerStatus = includeQuota ? "unavailable" : "skipped"
         var snapshot: QuotaSnapshot?
 
@@ -61,7 +62,8 @@ enum Diagnostics {
     private static func loadContext() -> (
         provider: WhamUsageClient,
         configurationStatus: String,
-        petStatus: String
+        petStatus: String,
+        cachedGeometry: PetVisualGeometry?
     ) {
         let home = FileManager.default
             .homeDirectoryForCurrentUser
@@ -97,6 +99,23 @@ enum Diagnostics {
                 isDirectory: true
             )
         )
+        let applicationSupport = home
+            .appendingPathComponent(
+                "Library/Application Support",
+                isDirectory: true
+            )
+            .appendingPathComponent(
+                "CodexPetHUD",
+                isDirectory: true
+            )
+        let geometryCache = PetGeometryCache(
+            url: applicationSupport.appendingPathComponent(
+                "pet-geometry.json"
+            )
+        )
+        let cachedGeometry = try? geometryCache
+            .load(intersecting: currentDisplayBounds())?
+            .geometry
         return (
             WhamUsageClient(
                 authURL: codexHome.appendingPathComponent(
@@ -104,8 +123,38 @@ enum Diagnostics {
                 )
             ),
             configuration == nil ? "invalid" : "ok",
-            pet == nil ? "missing-or-ambiguous" : "found"
+            pet == nil ? "missing-or-ambiguous" : "found",
+            cachedGeometry
         )
+    }
+
+    private static func currentDisplayBounds() -> [CGRect] {
+        var displayCount: UInt32 = 0
+        guard
+            CGGetActiveDisplayList(
+                0,
+                nil,
+                &displayCount
+            ) == .success
+        else {
+            return []
+        }
+        var displayIDs = [CGDirectDisplayID](
+            repeating: 0,
+            count: Int(displayCount)
+        )
+        guard
+            CGGetActiveDisplayList(
+                displayCount,
+                &displayIDs,
+                &displayCount
+            ) == .success
+        else {
+            return []
+        }
+        return displayIDs
+            .prefix(Int(displayCount))
+            .map(CGDisplayBounds)
     }
 
     private static func write(

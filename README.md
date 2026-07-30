@@ -9,11 +9,11 @@ and seven SP flames show weekly reset progress.
 
 ## Tactical HUD
 
-Snapshots whose age is `≤300s` are fresh and show the raw weekly HP percentage,
-using one decimal only for non-integral values. Bands are `>90%` emerald,
-`51–90%` green, `10–50%` amber, `4–9%`
-red, and `≤3%` bright red. At an age of `>300s` and `≤1800s`, the last values
-remain with `STALE`.
+Snapshots whose age is `≤300s` are fresh. Weekly HP is clamped to `0...100`
+and floored to one decimal place, with integral labels omitting `.0`. Bands
+are `>90%` emerald, `51–90%` green, `10–50%` amber, `4–9%` red, and `≤3%`
+bright red. At an age of `>300s` and `≤1800s`, the last values remain with
+`STALE`.
 At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
 
 MP is the measured five-hour percentage when the usage source provides that
@@ -39,7 +39,7 @@ complete same-PID companion cluster and fails closed when multiple complete
 clusters exist. The local geometry cache retains only high-confidence
 shell-derived bounds, PID, window ID, and timestamp; mascot fallback geometry is
 transient. Cached geometry restores only for matching stable presence on a
-connected display. Both panels hide only after three missing observations
+connected display. The tactical panel hides only after three missing observations
 spanning at least two seconds.
 
 The HUD centers above the pet. `podScale`, `podOffsetX`, and `podOffsetY`
@@ -75,13 +75,14 @@ behavior remains fixed at `≤3%` for `EXHAUSTED · SIGNAL CRITICAL`.
 
 ## Pet Compatibility
 
-Any Codex v2 pet with standard `pet.json` metadata is supported. The HUD uses
-the manifest display name and positions its one tactical window above the native
-pet; no repository asset or per-pet extension is required.
+Any Codex v2 pet with standard `pet.json` metadata is supported. The manifest
+selects and validates the pet used for positioning; no repository asset or
+per-pet extension is required. The current four-row HUD does not visibly render
+the manifest display name.
 
 Automated coverage creates two distinct valid v2 manifests that contain only
 standard `pet.json` metadata and a `spritesheetPath`. It verifies that each
-manifest display name follows the same HUD data path used by the app at `8%`
+manifest follows the same HUD presentation data path at `8%`
 (`PANIC · QUOTA LOW`) and `2%` (`EXHAUSTED · SIGNAL CRITICAL`), without effect
 metadata or assets.
 

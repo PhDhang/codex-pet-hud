@@ -88,6 +88,19 @@ grep -F 'fixed at `≤3%`' README.md
 grep -F 'age is `≤300s`' README.md
 grep -F '`>300s` and `≤1800s`' README.md
 grep -F '`>1800s`, the HUD is `OFFLINE` with `--`' README.md
+grep -F 'Weekly HP is clamped to `0...100`' README.md
+grep -F 'and floored to one decimal place' README.md
+grep -F 'The tactical panel hides only after three missing observations' \
+  README.md
+grep -F 'The current four-row HUD does not visibly render' \
+  README.md
+if rg -q \
+  'raw weekly HP percentage|Both panels hide|HUD uses the manifest display name' \
+  README.md; then
+  printf 'README still contains reviewed HUD presentation inaccuracies.\n' \
+    >&2
+  exit 1
+fi
 grep -F 'Without `--purge`, configuration, caches, and logs remain.' README.md
 grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'" \
   docs/privacy.md

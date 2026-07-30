@@ -5,6 +5,7 @@ struct FlameCellView: View {
     @Environment(\.accessibilityReduceMotion)
     private var reduceMotion
     @State private var flicker = false
+    @State private var flickerGeneration = 0
 
     var body: some View {
         ZStack {
@@ -33,7 +34,17 @@ struct FlameCellView: View {
             anchor: .bottom
         )
         .onAppear {
-            flicker = true
+            restartFlicker()
+        }
+        .onChange(of: reduceMotion) {
+            restartFlicker()
+        }
+        .onChange(of: isLit) {
+            restartFlicker()
+        }
+        .onDisappear {
+            flickerGeneration += 1
+            setFlicker(false)
         }
         .animation(
             reduceMotion || !isLit
@@ -45,6 +56,30 @@ struct FlameCellView: View {
         .accessibilityLabel(
             isLit ? "SP elapsed" : "SP remaining"
         )
+    }
+
+    private func restartFlicker() {
+        flickerGeneration += 1
+        let generation = flickerGeneration
+        setFlicker(false)
+
+        guard isLit, !reduceMotion else {
+            return
+        }
+        DispatchQueue.main.async {
+            guard generation == flickerGeneration else {
+                return
+            }
+            flicker = true
+        }
+    }
+
+    private func setFlicker(_ visible: Bool) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            flicker = visible
+        }
     }
 
     private let outerLit =

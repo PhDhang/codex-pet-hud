@@ -4,8 +4,20 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/dist/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD"
+SOURCE="$ROOT/Sources/CodexPetHUD/Diagnostics.swift"
 TEST_HOME="$(mktemp -d)"
 trap 'rm -rf "$TEST_HOME"' EXIT
+
+grep -F 'PetWindowDiagnosticStatus.resolve(' "$SOURCE"
+grep -F 'PetGeometryCache(' "$SOURCE"
+grep -F 'load(intersecting: currentDisplayBounds())' "$SOURCE"
+if rg -q \
+  'observation[.]exactWindow != nil|observation[.]hasStablePresence' \
+  "$SOURCE"; then
+  printf 'Diagnostics must require renderable current or cached geometry.\n' \
+    >&2
+  exit 1
+fi
 
 test -x "$APP"
 set +e
