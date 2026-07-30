@@ -55,6 +55,22 @@ grep -F 'duration: 0.9' \
   "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
 grep -F 'duration: 0.45' \
   "$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
+METER_VIEW="$ROOT/Sources/CodexPetHUD/QuotaMeterFillView.swift"
+grep -F 'return showsDangerColor ? dangerColor : Color.white' \
+  "$METER_VIEW"
+grep -F 'transaction.disablesAnimations = true' "$METER_VIEW"
+grep -F '.onDisappear {' "$METER_VIEW"
+grep -F 'pulseGeneration += 1' "$METER_VIEW"
+if grep -F '.animation(' "$METER_VIEW"; then
+  printf 'Quota meter must use only explicit pulse animations.\n' >&2
+  exit 1
+fi
+PULSE_ANIMATION_COUNT="$(grep -F 'withAnimation(' "$METER_VIEW" | \
+  wc -l | tr -d '[:space:]')"
+if [ "$PULSE_ANIMATION_COUNT" -ne 1 ]; then
+  printf 'Quota meter must start its pulse with one explicit animation.\n' >&2
+  exit 1
+fi
 ACCENT_HELPER="$(sed -n \
   '/private var tacticalAccentColor: Color {/,/^    }/p' \
   "$HUD_VIEW")"

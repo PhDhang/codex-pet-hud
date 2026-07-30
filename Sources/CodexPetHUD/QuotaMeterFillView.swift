@@ -55,10 +55,6 @@ struct QuotaMeterFillView: View {
             pulseGeneration += 1
             setDangerColor(false)
         }
-        .animation(
-            dangerAnimation,
-            value: showsDangerColor
-        )
     }
 
     private var displayColor: Color {
@@ -68,7 +64,14 @@ struct QuotaMeterFillView: View {
         if reduceMotion {
             return dangerColor
         }
-        return showsDangerColor ? dangerColor : baseColor
+        switch dangerLevel {
+        case .none:
+            return baseColor
+        case .low:
+            return showsDangerColor ? dangerColor : baseColor
+        case .critical:
+            return showsDangerColor ? dangerColor : Color.white
+        }
     }
 
     private var dangerAnimation: Animation? {
@@ -112,7 +115,7 @@ struct QuotaMeterFillView: View {
 
     private func setDangerColor(_ visible: Bool) {
         var transaction = Transaction()
-        transaction.animation = nil
+        transaction.disablesAnimations = true
         withTransaction(transaction) {
             showsDangerColor = visible
         }
