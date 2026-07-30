@@ -245,6 +245,99 @@ final class HUDPresentationDataTests: XCTestCase {
         XCTAssertEqual(data.spCellsLit, 0)
     }
 
+    func testMeasuredMPUsesFiveHourQuota() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let snapshot = QuotaSnapshot(
+            weekly: QuotaWindow(
+                usedPercent: 18,
+                resetAt: now.addingTimeInterval(172_800),
+                windowDurationSeconds: 604_800
+            ),
+            fiveHour: QuotaWindow(
+                usedPercent: 36.5,
+                resetAt: now.addingTimeInterval(7_200),
+                windowDurationSeconds: 18_000
+            ),
+            fetchedAt: now
+        )
+
+        let data = HUDPresentationData.make(
+            petName: "Pet",
+            state: .quota(snapshot: snapshot, band: .normal),
+            now: now
+        )
+
+        XCTAssertEqual(data.mpText, "63.5%")
+        XCTAssertEqual(data.mpFraction, 0.635, accuracy: 0.000_001)
+        XCTAssertEqual(data.mpMode, .measured)
+        XCTAssertEqual(data.mpDangerLevel, .none)
+    }
+
+    func testWeeklyOnlySnapshotUsesUnlimitedMP() {
+        let snapshot = snapshot(remaining: 82)
+        let data = HUDPresentationData.make(
+            petName: "Pet",
+            state: .quota(snapshot: snapshot, band: .normal),
+            now: snapshot.fetchedAt
+        )
+
+        XCTAssertEqual(data.mpText, "MAX")
+        XCTAssertEqual(data.mpFraction, 1)
+        XCTAssertEqual(data.mpMode, .unlimited)
+        XCTAssertEqual(data.mpDangerLevel, .none)
+    }
+
+    func testUnavailableStatesUseMPPlaceholderValues() {
+        for state in [HUDState.offline, .authenticationRequired] {
+            let data = HUDPresentationData.make(
+                petName: "Pet",
+                state: state,
+                now: .distantPast
+            )
+
+            XCTAssertEqual(data.mpText, "--")
+            XCTAssertEqual(data.mpFraction, 0)
+            XCTAssertEqual(data.mpMode, .unavailable)
+        }
+    }
+
+    func testMeasuredMPDangerLevelsUseIndependentThresholds() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        let samples: [(remaining: Double, danger: QuotaDangerLevel)] = [
+            (9, .low),
+            (4, .low),
+            (3, .critical),
+        ]
+
+        for sample in samples {
+            let snapshot = QuotaSnapshot(
+                weekly: QuotaWindow(
+                    usedPercent: 18,
+                    resetAt: now.addingTimeInterval(172_800),
+                    windowDurationSeconds: 604_800
+                ),
+                fiveHour: QuotaWindow(
+                    usedPercent: 100 - sample.remaining,
+                    resetAt: now.addingTimeInterval(7_200),
+                    windowDurationSeconds: 18_000
+                ),
+                fetchedAt: now
+            )
+            let data = HUDPresentationData.make(
+                petName: "Pet",
+                state: .quota(snapshot: snapshot, band: .normal),
+                now: now
+            )
+
+            XCTAssertEqual(
+                data.mpDangerLevel,
+                sample.danger,
+                "remaining=\(sample.remaining)"
+            )
+            XCTAssertEqual(data.hpDangerLevel, .none)
+        }
+    }
+
     private func snapshot(
         remaining: Double
     ) -> QuotaSnapshot {

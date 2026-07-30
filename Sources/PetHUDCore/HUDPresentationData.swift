@@ -1,13 +1,29 @@
 import Foundation
 
+public enum MPPresentationMode:
+    String,
+    Codable,
+    Equatable,
+    Sendable
+{
+    case measured
+    case unlimited
+    case unavailable
+}
+
 public struct HUDPresentationData: Equatable, Sendable {
     public let petName: String
     public let statusLabel: String
     public let hpText: String
     public let hpFraction: Double
+    public let mpText: String
+    public let mpFraction: Double
+    public let mpMode: MPPresentationMode
     public let spCellsLit: Int
     public let resetText: String
     public let band: HPBand?
+    public let hpDangerLevel: QuotaDangerLevel
+    public let mpDangerLevel: QuotaDangerLevel
 
     public static func make(
         manifest: PetManifest?,
@@ -82,11 +98,33 @@ public struct HUDPresentationData: Equatable, Sendable {
             0,
             snapshot.weekly.resetAt.timeIntervalSince(now)
         )
+        let mp: (
+            text: String,
+            fraction: Double,
+            mode: MPPresentationMode,
+            danger: QuotaDangerLevel
+        )
+        if let fiveHour = snapshot.fiveHour {
+            let remaining = HPPrecision.canonical(
+                fiveHour.remainingPercent
+            )
+            mp = (
+                hpText(for: remaining),
+                remaining / 100,
+                .measured,
+                QuotaDangerLevel.evaluate(remaining)
+            )
+        } else {
+            mp = ("MAX", 1, .unlimited, .none)
+        }
         return HUDPresentationData(
             petName: petName,
             statusLabel: statusLabel,
             hpText: hpText(for: remainingPercent),
             hpFraction: remainingPercent / 100,
+            mpText: mp.text,
+            mpFraction: mp.fraction,
+            mpMode: mp.mode,
             spCellsLit: ResetProgress.cellsLit(
                 secondsRemaining: secondsRemaining,
                 windowDuration:
@@ -95,7 +133,9 @@ public struct HUDPresentationData: Equatable, Sendable {
             resetText: ResetProgress.countdown(
                 secondsRemaining: secondsRemaining
             ),
-            band: band
+            band: band,
+            hpDangerLevel: QuotaDangerLevel.evaluate(remainingPercent),
+            mpDangerLevel: mp.danger
         )
     }
 
@@ -121,9 +161,14 @@ public struct HUDPresentationData: Equatable, Sendable {
             statusLabel: statusLabel,
             hpText: "--",
             hpFraction: 0,
+            mpText: "--",
+            mpFraction: 0,
+            mpMode: .unavailable,
             spCellsLit: 0,
             resetText: "--",
-            band: nil
+            band: nil,
+            hpDangerLevel: .none,
+            mpDangerLevel: .none
         )
     }
 }

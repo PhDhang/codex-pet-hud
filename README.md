@@ -2,27 +2,42 @@
 
 Codex Pet HUD is a macOS 14 companion for one selected Codex v2 pet. It keeps a
 compact tactical dual-bar HUD above the pet, including when Codex has no active
-task. HP shows weekly quota remaining; seven SP flames show reset progress.
+task. HP shows weekly quota remaining, MP shows an optional five-hour quota,
+and seven SP flames show weekly reset progress.
 
 ![Healthy tactical HUD](docs/screenshots/tactical-hud.png)
 
 ## Tactical HUD
 
-Snapshots whose age is `≤300s` are fresh and show the raw weekly HP percentage,
-using one decimal only for non-integral values. Bands are `>90%` emerald,
-`51–90%` green, `10–50%` amber, `4–9%`
-red, and `≤3%` bright red. At an age of `>300s` and `≤1800s`, the last values
-remain with `STALE`.
+Snapshots whose age is `≤300s` are fresh. Weekly HP is clamped to `0...100`
+and floored to one decimal place, with integral labels omitting `.0`. Quota
+bands are `>90%` healthy, `51–90%` normal, `10–50%` warning, `4–9%` low, and
+`≤3%` critical. At an age of `>300s` and `≤1800s`, the last values remain with
+`STALE`.
 At an age of `>1800s`, the HUD is `OFFLINE` with `--` values.
+
+MP is the measured five-hour percentage when the usage source provides that
+window. Otherwise it shows sky-blue `MAX`; it never infers a value or reset
+time. HP uses a blood-red `#680B18` → `#C51F35` → `#FF5268` gradient, and MP
+uses a sky-blue `#0758A8` → `#179DFF` → `#77D9FF` gradient.
+
+Safe measured values below exactly `100%` carry a subtle same-color highlight
+flow clipped to the filled capsule. Exactly `100%`, `MAX`, unavailable, and
+Reduce Motion states remain static. Danger states have no flowing highlight:
+low HP/MP pulses independently to white every `0.9s`, while critical pulses
+every `0.45s` with stronger intensity. Reduce Motion leaves dangerous meters in
+their solid bright red or blue identity color.
 
 SP always has seven rounded three-layer flames. Lit flames are
 red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
 one elapsed seventh of the weekly reset window, from zero lit at a new window to
-seven at reset.
+seven at reset. Lit flames use a `1.10` base scale, with bottom-anchored flicker
+disabled by Reduce Motion.
 
 For fresh `4–9%` quota, the HUD shows `PANIC · QUOTA LOW` in red. For fresh
 `≤3%` quota, it shows `EXHAUSTED · SIGNAL CRITICAL` in bright red. These are
-HUD-only label and color changes: the HUD never changes the native pet.
+HUD-only label and color changes: the HUD never changes the native pet, adds no
+pet animation, and performs no pet replacement.
 
 ## Idle Presence and Alignment
 
@@ -32,7 +47,7 @@ complete same-PID companion cluster and fails closed when multiple complete
 clusters exist. The local geometry cache retains only high-confidence
 shell-derived bounds, PID, window ID, and timestamp; mascot fallback geometry is
 transient. Cached geometry restores only for matching stable presence on a
-connected display. Both panels hide only after three missing observations
+connected display. The tactical panel hides only after three missing observations
 spanning at least two seconds.
 
 The HUD centers above the pet. `podScale`, `podOffsetX`, and `podOffsetY`
@@ -55,6 +70,11 @@ Run a redacted diagnostic check:
 "$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" --diagnose
 ```
 
+Diagnostics include only status values and rounded percentages. The optional
+five-hour fields are `fiveHourRemainingPercent` and `fiveHourStatus`:
+`measured` when a five-hour window exists, `max` when it does not, and
+`unavailable` or `skipped` when no measurement was made.
+
 The installer writes private configuration and a per-user LaunchAgent. Settings
 live at `$HOME/.config/codex-pet-hud/config.json`; refresh is at least five
 minutes and X/Y offsets are `-300...300`. The legacy
@@ -63,13 +83,14 @@ behavior remains fixed at `≤3%` for `EXHAUSTED · SIGNAL CRITICAL`.
 
 ## Pet Compatibility
 
-Any Codex v2 pet with standard `pet.json` metadata is supported. The HUD uses
-the manifest display name and positions its one tactical window above the native
-pet; no repository asset or per-pet extension is required.
+Any Codex v2 pet with standard `pet.json` metadata is supported. The manifest
+selects and validates the pet used for positioning; no repository asset or
+per-pet extension is required. The current four-row HUD does not visibly render
+the manifest display name.
 
 Automated coverage creates two distinct valid v2 manifests that contain only
 standard `pet.json` metadata and a `spritesheetPath`. It verifies that each
-manifest display name follows the same HUD data path used by the app at `8%`
+manifest follows the same HUD presentation data path at `8%`
 (`PANIC · QUOTA LOW`) and `2%` (`EXHAUSTED · SIGNAL CRITICAL`), without effect
 metadata or assets.
 
@@ -110,6 +131,11 @@ IDs, emails, cookies, or raw provider responses. It uses public window metadata
 only and requests neither Accessibility nor Screen Recording. See
 `docs/privacy.md` for the full boundary and release scan command.
 
+`scripts/capture-hud.sh` resolves exactly one on-screen `Codex Pet HUD Tactical`
+window and captures only that window ID. It rejects any pet-effect window and
+never captures a screen rectangle, so a translucent HUD screenshot cannot reveal
+desktop or window content beneath it.
+
 ## Development
 
 ```bash
@@ -123,7 +149,7 @@ See `docs/architecture.md` for component boundaries and data flow.
 
 ## Status
 
-Version 0.3.0-rc.1 targets macOS 14 and newer. This is an independent community
+Version 0.4.0 targets macOS 14 and newer. This is an independent community
 project, not an official OpenAI product. Quota and window metadata can change.
 
 ## License

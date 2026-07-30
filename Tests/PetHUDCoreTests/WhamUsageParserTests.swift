@@ -51,6 +51,57 @@ final class WhamUsageParserTests: XCTestCase {
         )
     }
 
+    func testParsesWeeklyAndFiveHourWindows() throws {
+        let data = try fixture(named: "wham-usage-five-hour.json")
+        let snapshot = try WhamUsageParser.parse(
+            data: data,
+            fetchedAt: .distantPast
+        )
+
+        XCTAssertEqual(snapshot.weekly.remainingPercent, 82)
+        XCTAssertEqual(snapshot.weekly.windowDurationSeconds, 604_800)
+        XCTAssertEqual(snapshot.fiveHour?.remainingPercent, 63.5)
+        XCTAssertEqual(snapshot.fiveHour?.windowDurationSeconds, 18_000)
+    }
+
+    func testPrimaryWeeklyResponseHasNoFiveHourWindow() throws {
+        let data = try fixture(named: "wham-usage-primary-weekly.json")
+        let snapshot = try WhamUsageParser.parse(
+            data: data,
+            fetchedAt: .distantPast
+        )
+
+        XCTAssertNil(snapshot.fiveHour)
+    }
+
+    func testIgnoresUnknownPrimaryWhenSecondaryIsWeekly() throws {
+        let data = Data(
+            """
+            {
+              "rate_limit": {
+                "primary_window": {
+                  "used_percent": 20,
+                  "reset_at": 1785091200,
+                  "limit_window_seconds": 3600
+                },
+                "secondary_window": {
+                  "used_percent": 18,
+                  "reset_at": 1785904104,
+                  "limit_window_seconds": 604800
+                }
+              }
+            }
+            """.utf8
+        )
+        let snapshot = try WhamUsageParser.parse(
+            data: data,
+            fetchedAt: .distantPast
+        )
+
+        XCTAssertEqual(snapshot.weekly.remainingPercent, 82)
+        XCTAssertNil(snapshot.fiveHour)
+    }
+
     func testRejectsPrimaryWindowWhenItIsNotWeekly() {
         let data = Data(
             """

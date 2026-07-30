@@ -34,7 +34,7 @@ final class PanelGeometryTests: XCTestCase {
         )
 
         XCTAssertEqual(frame.width, 210, accuracy: 0.001)
-        XCTAssertEqual(frame.height, 58, accuracy: 0.001)
+        XCTAssertEqual(frame.height, 75, accuracy: 0.001)
         XCTAssertEqual(frame.midX, 124, accuracy: 0.001)
         XCTAssertGreaterThan(frame.minY, 305)
     }
@@ -56,6 +56,7 @@ final class PanelGeometryTests: XCTestCase {
             )
         )
         XCTAssertEqual(hud.width, 239.4, accuracy: 0.001)
+        XCTAssertEqual(hud.height, 85.5, accuracy: 0.001)
         XCTAssertEqual(hud.midX, 244, accuracy: 0.001)
         XCTAssertEqual(hud.minY, 339, accuracy: 0.001)
     }

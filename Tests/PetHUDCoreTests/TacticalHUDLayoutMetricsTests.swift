@@ -5,7 +5,7 @@ import XCTest
 final class TacticalHUDLayoutMetricsTests: XCTestCase {
     func testStandardPanelUsesIntendedReadableMetrics() {
         let metrics = TacticalHUDLayoutMetrics(
-            frameSize: CGSize(width: 210, height: 58)
+            frameSize: CGSize(width: 210, height: 75)
         )
 
         XCTAssertEqual(metrics.meterFontSize, 10)
@@ -13,12 +13,12 @@ final class TacticalHUDLayoutMetricsTests: XCTestCase {
         XCTAssertEqual(metrics.flameWidth, 13)
         XCTAssertEqual(metrics.flameSpacing, 3)
         XCTAssertLessThanOrEqual(metrics.spRowWidth, 210)
-        XCTAssertLessThanOrEqual(metrics.contentHeight, 58)
+        XCTAssertLessThanOrEqual(metrics.contentHeight, 75)
     }
 
     func testCompactPanelUsesFloorsAndFitsSevenFlames() {
         let metrics = TacticalHUDLayoutMetrics(
-            frameSize: CGSize(width: 136.5, height: 37.7)
+            frameSize: CGSize(width: 136.5, height: 48.75)
         )
 
         XCTAssertEqual(metrics.meterFontSize, 8)
@@ -26,12 +26,12 @@ final class TacticalHUDLayoutMetricsTests: XCTestCase {
         XCTAssertEqual(metrics.flameWidth, 9)
         XCTAssertEqual(metrics.flameSpacing, 1.5)
         XCTAssertLessThanOrEqual(metrics.spRowWidth, 136.5)
-        XCTAssertLessThanOrEqual(metrics.contentHeight, 37.7)
+        XCTAssertLessThanOrEqual(metrics.contentHeight, 48.75)
     }
 
     func testCompactPanelReservesFiveCharacterHPLabel() {
         let metrics = TacticalHUDLayoutMetrics(
-            frameSize: CGSize(width: 136.5, height: 37.7)
+            frameSize: CGSize(width: 136.5, height: 48.75)
         )
 
         XCTAssertGreaterThanOrEqual(metrics.trailingWidth, 31)
@@ -40,10 +40,10 @@ final class TacticalHUDLayoutMetricsTests: XCTestCase {
 
     func testExpandedPanelCapsMetricsAtStandardSize() {
         let standard = TacticalHUDLayoutMetrics(
-            frameSize: CGSize(width: 210, height: 58)
+            frameSize: CGSize(width: 210, height: 75)
         )
         let expanded = TacticalHUDLayoutMetrics(
-            frameSize: CGSize(width: 576, height: 92.8)
+            frameSize: CGSize(width: 576, height: 120)
         )
 
         XCTAssertEqual(expanded, standard)

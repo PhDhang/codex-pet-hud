@@ -5,8 +5,14 @@ struct FlameCellView: View {
     @Environment(\.accessibilityReduceMotion)
     private var reduceMotion
     @State private var flicker = false
+    @State private var flickerGeneration = 0
 
     var body: some View {
+        let litScale = isLit ? 1.10 : 1
+        let flickerScale =
+            isLit && flicker && !reduceMotion
+            ? 1.04
+            : 1
         ZStack {
             FlameShape()
                 .fill(isLit ? outerLit : outerUnlit)
@@ -25,15 +31,22 @@ struct FlameCellView: View {
             radius: isLit ? 6 : 3
         )
         .scaleEffect(
-            x: 1,
-            y:
-                isLit && flicker && !reduceMotion
-                ? 1.04
-                : 0.96,
+            x: litScale,
+            y: litScale * flickerScale,
             anchor: .bottom
         )
         .onAppear {
-            flicker = true
+            restartFlicker()
+        }
+        .onChange(of: reduceMotion) {
+            restartFlicker()
+        }
+        .onChange(of: isLit) {
+            restartFlicker()
+        }
+        .onDisappear {
+            flickerGeneration += 1
+            setFlicker(false)
         }
         .animation(
             reduceMotion || !isLit
@@ -45,6 +58,30 @@ struct FlameCellView: View {
         .accessibilityLabel(
             isLit ? "SP elapsed" : "SP remaining"
         )
+    }
+
+    private func restartFlicker() {
+        flickerGeneration += 1
+        let generation = flickerGeneration
+        setFlicker(false)
+
+        guard isLit, !reduceMotion else {
+            return
+        }
+        DispatchQueue.main.async {
+            guard generation == flickerGeneration else {
+                return
+            }
+            flicker = true
+        }
+    }
+
+    private func setFlicker(_ visible: Bool) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            flicker = visible
+        }
     }
 
     private let outerLit =

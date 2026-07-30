@@ -346,6 +346,35 @@ final class PetWindowLocatorTests: XCTestCase {
         XCTAssertEqual(observation.stablePresencePID, 7)
     }
 
+    func testDuplicateExactMascotWindowsFromSamePIDAreExplicitlyAmbiguous() {
+        let observation = PetWindowLocator.observe(
+            from: [
+                descriptor(
+                    name: PetWindowLocator.exactWindowName,
+                    layer: 2,
+                    width: 243,
+                    height: 252,
+                    id: 345,
+                    ownerPID: 7
+                ),
+                descriptor(
+                    name: PetWindowLocator.exactWindowName,
+                    layer: 2,
+                    width: 243,
+                    height: 252,
+                    id: 346,
+                    ownerPID: 7
+                ),
+            ]
+        )
+
+        XCTAssertNil(observation.exactWindow)
+        XCTAssertNil(observation.visualGeometry)
+        XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(observation.stablePresencePID, 7)
+        XCTAssertTrue(observation.hasExactWindowAmbiguity)
+    }
+
     func testExactMascotEffectWins() {
         let selected = PetWindowLocator.select(
             from: [

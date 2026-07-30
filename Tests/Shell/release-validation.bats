@@ -5,6 +5,17 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+line_printing_scan_pattern='rg[[:space:]]+-[[:alpha:]]*n[[:alpha:]]*[[:space:]]|rg[[:space:]]+--line-number([=[:space:]]|$)'
+if rg -q "$line_printing_scan_pattern" \
+  Tests/Shell/diagnostics.bats \
+  Tests/Shell/release-validation.bats \
+  Tests/Shell/skill-validation.bats \
+  Tests/Shell/tactical-ui.bats \
+  docs/privacy.md; then
+  printf 'Forbidden-content scans must never print matched lines.\n' >&2
+  exit 1
+fi
+
 for required_file in \
   README.md \
   CHANGELOG.md \
@@ -18,11 +29,32 @@ do
 done
 
 grep -F 'macOS 14' README.md
-grep -F 'Version 0.3.0-rc.1' README.md
+grep -F 'Version 0.4.0' README.md
 grep -F 'tactical dual-bar HUD' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml
 grep -F 'Tests/Shell/' .github/workflows/ci.yml
+REPORT=Sources/PetHUDCore/RedactedDiagnosticReport.swift
+grep -F 'fiveHourRemainingPercent' "$REPORT"
+grep -F 'fiveHourStatus' "$REPORT"
+test "$(plutil -extract CFBundleShortVersionString raw Resources/Info.plist)" \
+  = '0.4.0'
+test "$(plutil -extract CFBundleVersion raw Resources/Info.plist)" = '4'
+grep -F 'MP' README.md
+grep -F '0.4.0' CHANGELOG.md
+grep -F 'five-hour' docs/architecture.md
+
+DIAGNOSTIC_SOURCES=(
+  Sources/CodexPetHUD/Diagnostics.swift
+  "$REPORT"
+)
+if rg -q \
+  'access[_-]?token|refresh[_-]?token|id[_-]?token|account|email|cookie|credential|encoder\\.encode\\(snapshot\\)' \
+  "${DIAGNOSTIC_SOURCES[@]}"; then
+  printf 'Diagnostics must not name credentials or emit raw provider snapshots.\n' \
+    >&2
+  exit 1
+fi
 
 scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'
 release_content=()
@@ -40,7 +72,7 @@ for release_file in "${release_content[@]}"; do
   fi
 done
 
-if rg -n "$scan_pattern" "${release_content[@]}"; then
+if rg -q "$scan_pattern" "${release_content[@]}"; then
   printf 'Release files contain a local path or credential-like value.\n' >&2
   exit 1
 fi
@@ -57,18 +89,40 @@ grep -F 'fixed at `≤3%`' README.md
 grep -F 'age is `≤300s`' README.md
 grep -F '`>300s` and `≤1800s`' README.md
 grep -F '`>1800s`, the HUD is `OFFLINE` with `--`' README.md
+grep -F 'Weekly HP is clamped to `0...100`' README.md
+grep -F 'and floored to one decimal place' README.md
+grep -F 'The tactical panel hides only after three missing observations' \
+  README.md
+grep -F 'The current four-row HUD does not visibly render' \
+  README.md
+if rg -q \
+  'raw weekly HP percentage|Both panels hide|HUD uses the manifest display name' \
+  README.md; then
+  printf 'README still contains reviewed HUD presentation inaccuracies.\n' \
+    >&2
+  exit 1
+fi
 grep -F 'Without `--purge`, configuration, caches, and logs remain.' README.md
 grep -F "scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'" \
   docs/privacy.md
 grep -F 'Tests/Shell/release-validation.bats' docs/privacy.md
 grep -F 'done < <(git ls-files)' docs/privacy.md
-if rg -n 'critical threshold is `0\.\.\.10%`' README.md; then
+grep -F 'if rg -q "$scan_pattern" "${release_content[@]}"; then' \
+  docs/privacy.md
+grep -F "printf 'Release privacy scan failed.\\n' >&2" docs/privacy.md
+grep -F 'exit 1' docs/privacy.md
+if rg -q 'critical threshold is `0\.\.\.10%`' README.md; then
   printf 'README documents a configurable critical threshold.\n' >&2
   exit 1
 fi
 
 grep -F 'HUD-only' README.md
 grep -F 'never changes the native pet' skills/codex-pet-hud/SKILL.md
+grep -F 'full sky-blue `MAX`' docs/architecture.md
+if rg -q 'orange `MAX`' docs/architecture.md; then
+  printf 'Architecture still documents the obsolete MAX color.\n' >&2
+  exit 1
+fi
 
 for removed_asset in \
   Examples/yicha/hud-effects.json \
@@ -79,7 +133,7 @@ do
   test ! -e "$removed_asset"
 done
 
-if rg -n \
+if rg -q \
   'Pet Effect|PetEffect|PetDistressState|hud-effects|hud-panic|hud-critical|pet-replacement|orbit glyph|headAnchor|non-facial aura|integrated eye art|procedural eye overlay' \
   README.md docs/architecture.md skills/codex-pet-hud; then
   printf 'Active documentation still exposes a pet-effect feature.\n' >&2

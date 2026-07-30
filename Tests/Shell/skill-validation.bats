@@ -34,11 +34,30 @@ grep -F '20...32' "$SKILL/references/troubleshooting.md" >/dev/null
 grep -F 'HUD-only' "$SKILL/SKILL.md" >/dev/null
 grep -F 'never changes the native pet' "$SKILL/SKILL.md" >/dev/null
 grep -F 'standard v2 `pet.json` metadata' "$SKILL/SKILL.md" >/dev/null
+grep -F \
+  'The current four-row HUD does not render the manifest display name.' \
+  "$SKILL/SKILL.md" >/dev/null
 grep -F 'PANIC · QUOTA LOW' "$SKILL/SKILL.md" >/dev/null
 grep -F 'EXHAUSTED · SIGNAL CRITICAL' "$SKILL/SKILL.md" >/dev/null
+grep -F 'MP is the measured five-hour percentage or sky-blue `MAX`.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'Safe measured values below `100%` carry a subtle same-color flow.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'Danger pulses HP or MP independently to white at `0.9s` or `0.45s`.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'Reduce Motion leaves bright identity colors static' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F 'Lit SP flames use a `1.10` base scale' "$SKILL/SKILL.md" >/dev/null
+grep -F 'no pet animation or replacement' "$SKILL/SKILL.md" >/dev/null
+grep -F 'fiveHourStatus' "$SKILL/SKILL.md" >/dev/null
+grep -F 'window-only screenshot' "$SKILL/SKILL.md" >/dev/null
 
-if rg -n 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
+if rg -q 'TODO|TBD|FIXME|/Users/' "$SKILL"; then
   printf 'Skill contains placeholders or local absolute paths.\n' >&2
+  exit 1
+fi
+if rg -q "pet's display name in the tactical HUD" "$SKILL/SKILL.md"; then
+  printf 'Skill still claims the manifest name is visible.\n' >&2
   exit 1
 fi
 

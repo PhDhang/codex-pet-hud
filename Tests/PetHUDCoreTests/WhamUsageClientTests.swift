@@ -76,7 +76,7 @@ final class WhamUsageClientTests: XCTestCase {
                         httpVersion: nil,
                         headerFields: nil
                     )!,
-                    try fixture(named: "wham-usage.json")
+                    try fixture(named: "wham-usage-five-hour.json")
                 )
             }
 
@@ -88,7 +88,8 @@ final class WhamUsageClientTests: XCTestCase {
 
             let snapshot = try await client.fetch()
 
-            XCTAssertEqual(snapshot.weekly.remainingPercent, 59)
+            XCTAssertEqual(snapshot.weekly.remainingPercent, 82)
+            XCTAssertEqual(snapshot.fiveHour?.remainingPercent, 63.5)
         }
     }
 

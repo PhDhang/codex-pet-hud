@@ -19,19 +19,33 @@ struct TacticalHUDView: View {
                     trailing: data.hpText,
                     rowHeight: metrics.hpRowHeight
                 ) {
-                    GeometryReader { geometry in
-                        Capsule()
-                            .fill(Color.black.opacity(0.72))
-                            .overlay(alignment: .leading) {
-                                Capsule()
-                                    .fill(hpColor)
-                                    .frame(
-                                        width:
-                                            geometry.size.width *
-                                            data.hpFraction
-                                    )
-                            }
-                    }
+                    QuotaMeterFillView(
+                        fraction: data.hpFraction,
+                        palette: Self.hpPalette,
+                        mode:
+                            data.band == nil
+                            ? .unavailable
+                            : .measured,
+                        dangerLevel: data.hpDangerLevel,
+                        centeredText: nil
+                    )
+                    .frame(height: metrics.hpBarHeight)
+                }
+                meterRow(
+                    label: "MP",
+                    trailing:
+                        data.mpMode == .unlimited ? "" : data.mpText,
+                    rowHeight: metrics.hpRowHeight,
+                    accessibilityValue: mpAccessibilityValue
+                ) {
+                    QuotaMeterFillView(
+                        fraction: data.mpFraction,
+                        palette: Self.mpPalette,
+                        mode: data.mpMode,
+                        dangerLevel: data.mpDangerLevel,
+                        centeredText:
+                            data.mpMode == .unlimited ? "MAX" : nil
+                    )
                     .frame(height: metrics.hpBarHeight)
                 }
                 meterRow(
@@ -84,6 +98,17 @@ struct TacticalHUDView: View {
     private var spAccessibilityValue: String {
         "\(data.spCellsLit) of 7 elapsed; reset in " +
             data.resetText
+    }
+
+    private var mpAccessibilityValue: String {
+        switch data.mpMode {
+        case .measured:
+            return data.mpText
+        case .unlimited:
+            return "Maximum; no five-hour limit"
+        case .unavailable:
+            return "Unavailable"
+        }
     }
 
     private var tacticalAccentColor: Color {
@@ -149,21 +174,32 @@ struct TacticalHUDView: View {
             }
     }
 
-    private var hpColor: Color {
-        switch data.band {
-        case .healthy:
-            Color(red: 0.26, green: 0.93, blue: 0.60)
-        case .normal:
-            Color(red: 0.45, green: 0.85, blue: 0.36)
-        case .warning:
-            Color(red: 1.00, green: 0.71, blue: 0.23)
-        case .low:
-            Color(red: 1.00, green: 0.24, blue: 0.31)
-        case .critical:
-            Color(red: 1.00, green: 0.12, blue: 0.22)
-        case nil:
-            Color.gray
-        }
+    private static var hpPalette: QuotaMeterPalette {
+        QuotaMeterPalette(
+            shadow: paletteColor(red: 0x68, green: 0x0B, blue: 0x18),
+            body: paletteColor(red: 0xC5, green: 0x1F, blue: 0x35),
+            highlight: paletteColor(red: 0xFF, green: 0x52, blue: 0x68)
+        )
+    }
+
+    private static var mpPalette: QuotaMeterPalette {
+        QuotaMeterPalette(
+            shadow: paletteColor(red: 0x07, green: 0x58, blue: 0xA8),
+            body: paletteColor(red: 0x17, green: 0x9D, blue: 0xFF),
+            highlight: paletteColor(red: 0x77, green: 0xD9, blue: 0xFF)
+        )
+    }
+
+    private static func paletteColor(
+        red: Int,
+        green: Int,
+        blue: Int
+    ) -> Color {
+        Color(
+            red: Double(red) / 255,
+            green: Double(green) / 255,
+            blue: Double(blue) / 255
+        )
     }
 }
 

@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.0] - 2026-07-30
+
+### Added
+
+- Optional five-hour MP monitoring with a full sky-blue `MAX` fallback when the
+  provider does not report that window.
+- Independent low and critical HP/MP pulses, with fixed danger colors under
+  Reduce Motion.
+- HUD-window-only screenshot capture that rejects pet-effect windows and never
+  captures desktop content beneath the translucent panel.
+
+### Changed
+
+- HP now uses a blood-red RPG gradient and MP uses a sky-blue gradient, with a
+  clipped same-color highlight flow only for safe measured values below `100%`.
+- Low and critical HP/MP states pulse their identity color to white at `0.9s`
+  and `0.45s`; Reduce Motion leaves a static bright identity color.
+- Lit SP flames now use a `1.10` base scale while retaining bottom-anchored,
+  Reduce Motion-aware flicker.
+- Redacted diagnostics now report rounded weekly and optional five-hour
+  remaining percentages plus five-hour measurement status, without reset times
+  or provider payloads.
+- The tactical HUD remains bars-only: no pet effects, animation, or replacement.
+
 ## [0.3.0-rc.1] - 2026-07-27
 
 ### Removed

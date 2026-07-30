@@ -46,6 +46,8 @@ final class PetHUDCoordinator {
     private let geometryCache: PetGeometryCache
 
     private var model = ApplicationModel(now: Date())
+    private var geometryPersistence:
+        PetGeometryPersistenceState
     private var presenceTracker: PetPresenceTracker
     private var windowTimer: Timer?
     private var freshnessTimer: Timer?
@@ -105,6 +107,9 @@ final class PetHUDCoordinator {
         let restored = try? geometryCache.load(
             intersecting: Self.currentDisplays().map(\.cgBounds)
         )?.geometry
+        geometryPersistence = PetGeometryPersistenceState(
+            persistedGeometry: restored
+        )
         presenceTracker = PetPresenceTracker(
             restoredGeometry: restored
         )
@@ -207,12 +212,13 @@ final class PetHUDCoordinator {
             PetWindowLocator.currentObservation()
         if
             let visualGeometry = observation.visualGeometry,
-            visualGeometry.source == .shellDerived
-        {
-            _ = try? geometryCache.save(
+            geometryPersistence.needsPersistence(visualGeometry),
+            (try? geometryCache.save(
                 visualGeometry,
                 updatedAt: now
-            )
+            )) == true
+        {
+            geometryPersistence.recordPersisted(visualGeometry)
         }
         let petGeometry = presenceTracker.update(
             observation: observation,

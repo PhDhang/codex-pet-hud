@@ -1,38 +1,25 @@
+import CoreGraphics
 import Foundation
 import PetHUDCore
 
 enum Diagnostics {
-    private struct Report: Codable {
-        let configuration: String
-        let pet: String
-        let petWindow: String
-        let provider: String
-        let weeklyRemainingPercent: Int?
-        let resetAt: Date?
-    }
-
     static func run(
         includeQuota: Bool
     ) async -> Int32 {
         let context = loadContext()
         let observation = PetWindowLocator.currentObservation()
-        let petWindowStatus =
-            observation.exactWindow != nil ||
-            observation.hasStablePresence
-            ? "found"
-            : "missing"
+        let petWindowStatus = PetWindowDiagnosticStatus.resolve(
+            observation: observation,
+            cachedGeometry: context.cachedGeometry,
+            now: Date()
+        ).rawValue
         var providerStatus = includeQuota ? "unavailable" : "skipped"
-        var remaining: Int?
-        var resetAt: Date?
+        var snapshot: QuotaSnapshot?
 
         if includeQuota {
             do {
-                let snapshot = try await context.provider.fetch()
+                snapshot = try await context.provider.fetch()
                 providerStatus = "reachable"
-                remaining = Int(
-                    snapshot.weekly.remainingPercent.rounded()
-                )
-                resetAt = snapshot.weekly.resetAt
             } catch let error as QuotaProviderError {
                 providerStatus =
                     error == .authenticationRequired
@@ -43,13 +30,13 @@ enum Diagnostics {
             }
         }
 
-        let report = Report(
+        let report = RedactedDiagnosticReport(
             configuration: context.configurationStatus,
             pet: context.petStatus,
             petWindow: petWindowStatus,
             provider: providerStatus,
-            weeklyRemainingPercent: remaining,
-            resetAt: resetAt
+            snapshot: snapshot,
+            includeQuota: includeQuota
         )
         write(report)
 
@@ -69,35 +56,14 @@ enum Diagnostics {
     }
 
     static func runOnce() async -> Int32 {
-        let context = loadContext()
-        do {
-            let snapshot = try await context.provider.fetch()
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            encoder.dateEncodingStrategy = .iso8601
-            FileHandle.standardOutput.write(
-                try encoder.encode(snapshot)
-            )
-            FileHandle.standardOutput.write(Data("\n".utf8))
-            return 0
-        } catch let error as QuotaProviderError {
-            let message = Redaction.sanitize(
-                "\(error)\n"
-            )
-            FileHandle.standardError.write(Data(message.utf8))
-            return error == .authenticationRequired ? 3 : 4
-        } catch {
-            FileHandle.standardError.write(
-                Data("Quota provider unavailable.\n".utf8)
-            )
-            return 4
-        }
+        await run(includeQuota: true)
     }
 
     private static func loadContext() -> (
         provider: WhamUsageClient,
         configurationStatus: String,
-        petStatus: String
+        petStatus: String,
+        cachedGeometry: PetVisualGeometry?
     ) {
         let home = FileManager.default
             .homeDirectoryForCurrentUser
@@ -133,6 +99,23 @@ enum Diagnostics {
                 isDirectory: true
             )
         )
+        let applicationSupport = home
+            .appendingPathComponent(
+                "Library/Application Support",
+                isDirectory: true
+            )
+            .appendingPathComponent(
+                "CodexPetHUD",
+                isDirectory: true
+            )
+        let geometryCache = PetGeometryCache(
+            url: applicationSupport.appendingPathComponent(
+                "pet-geometry.json"
+            )
+        )
+        let cachedGeometry = try? geometryCache
+            .load(intersecting: currentDisplayBounds())?
+            .geometry
         return (
             WhamUsageClient(
                 authURL: codexHome.appendingPathComponent(
@@ -140,16 +123,45 @@ enum Diagnostics {
                 )
             ),
             configuration == nil ? "invalid" : "ok",
-            pet == nil ? "missing-or-ambiguous" : "found"
+            pet == nil ? "missing-or-ambiguous" : "found",
+            cachedGeometry
         )
     }
 
+    private static func currentDisplayBounds() -> [CGRect] {
+        var displayCount: UInt32 = 0
+        guard
+            CGGetActiveDisplayList(
+                0,
+                nil,
+                &displayCount
+            ) == .success
+        else {
+            return []
+        }
+        var displayIDs = [CGDirectDisplayID](
+            repeating: 0,
+            count: Int(displayCount)
+        )
+        guard
+            CGGetActiveDisplayList(
+                displayCount,
+                &displayIDs,
+                &displayCount
+            ) == .success
+        else {
+            return []
+        }
+        return displayIDs
+            .prefix(Int(displayCount))
+            .map(CGDisplayBounds)
+    }
+
     private static func write(
-        _ report: Report
+        _ report: RedactedDiagnosticReport
     ) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(report) else {
             return
         }

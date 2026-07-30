@@ -36,7 +36,10 @@ public struct PetPresenceTracker: Sendable {
             lastGeometry = nil
         }
 
-        if let candidate = observation.visualGeometry {
+        if
+            !observation.hasExactWindowAmbiguity,
+            let candidate = observation.visualGeometry
+        {
             let retainsShell =
                 lastGeometry?.source == .shellDerived &&
                 candidate.source == .mascotFallback
@@ -45,8 +48,11 @@ public struct PetPresenceTracker: Sendable {
             }
         }
         if
-            observation.visualGeometry != nil ||
-            observation.hasStablePresence
+            !observation.hasExactWindowAmbiguity &&
+            (
+                observation.visualGeometry != nil ||
+                observation.hasStablePresence
+            )
         {
             hasConfirmedPresence = true
             absenceStartedAt = nil
