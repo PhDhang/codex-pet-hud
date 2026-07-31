@@ -6,7 +6,6 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
     public let rowSpacing: CGFloat
     public let columnSpacing: CGFloat
     public let labelWidth: CGFloat
-    public let trailingWidth: CGFloat
     public let flameWidth: CGFloat
     public let flameHeight: CGFloat
     public let flameSpacing: CGFloat
@@ -20,8 +19,8 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
 
     public init(frameSize: CGSize) {
         let fit = min(
-            frameSize.width / 210,
-            frameSize.height / 75
+            frameSize.width / 190,
+            frameSize.height / 72
         )
         let progress = min(1, max(0, (fit - 0.65) / 0.35))
 
@@ -30,7 +29,6 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
         rowSpacing = Self.interpolate(1, 3, progress: progress)
         columnSpacing = Self.interpolate(3, 5, progress: progress)
         labelWidth = Self.interpolate(16, 22, progress: progress)
-        trailingWidth = Self.interpolate(31, 40, progress: progress)
         flameWidth = Self.interpolate(9, 13, progress: progress)
         flameHeight = Self.interpolate(10, 16, progress: progress)
         flameSpacing = Self.interpolate(1.5, 3, progress: progress)
@@ -46,10 +44,9 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
     public var spRowWidth: CGFloat {
         horizontalPadding * 2 +
             labelWidth +
-            columnSpacing * 2 +
+            columnSpacing +
             flameWidth * 7 +
-            flameSpacing * 6 +
-            trailingWidth
+            flameSpacing * 6
     }
 
     public var contentHeight: CGFloat {

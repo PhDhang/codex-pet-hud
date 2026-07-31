@@ -6,6 +6,16 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$ROOT/dist/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD"
 SOURCE="$ROOT/Sources/CodexPetHUD/PetHUDApplication.swift"
 
+for actor_isolated_view in \
+  FlameCellView \
+  QuotaMeterFillView
+do
+  VIEW_SOURCE="$ROOT/Sources/CodexPetHUD/$actor_isolated_view.swift"
+  perl -0ne \
+    '$found ||= /(?:\A|\n)\@MainActor\nstruct '"$actor_isolated_view"': View \{/; END { exit($found ? 0 : 1) }' \
+    "$VIEW_SOURCE"
+done
+
 test "$(
   grep -Ec \
     'RunLoop\.main\.add\([^,]+, forMode: \.common\)' \

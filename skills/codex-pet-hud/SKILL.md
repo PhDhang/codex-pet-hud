@@ -19,8 +19,9 @@ use redacted diagnostics.
 - Never read browser cookies or request Accessibility or Screen Recording.
 - Select exactly one v2 pet; do not guess when checks find multiple candidates.
 - Prefer the native mascot window. With title-redacted LaunchAgent windows,
-  require same PID companion evidence including a layer-3 `20...32` point voice
-  control; hide on ambiguity.
+  require same PID companion evidence including a layer-3 narrow voice backing:
+  one side 20...32 and the other 6...80. Accept compact, vertical expanded, and
+  horizontal expanded backing while it animates, and hide on ambiguity.
 - Build and test before installing.
 
 ## Workflow
@@ -94,6 +95,8 @@ Missing keys use defaults; legacy `nameplateOffset` does not move the tactical H
 ## HP, MP, Flame, and Low-Quota States
 
 HP is weekly quota with a blood-red gradient. MP is the measured five-hour percentage or sky-blue `MAX`.
+HP and MP values are centered inside the bars.
+SP reset time is accessibility-only and has no visible suffix.
 Safe measured values below `100%` carry a subtle same-color flow.
 Exactly `100%`, `MAX`, unavailable data, danger states, and Reduce Motion have
 no meter flow. Danger pulses HP or MP independently to white at `0.9s` or `0.45s`.

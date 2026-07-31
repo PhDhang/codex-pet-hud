@@ -30,10 +30,62 @@ done
 
 grep -F 'macOS 14' README.md
 grep -F 'Version 0.4.0' README.md
+grep -F '![Warning tactical HUD showing 33% HP](docs/screenshots/tactical-hud.png)' \
+  README.md
 grep -F 'tactical dual-bar HUD' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml
 grep -F 'Tests/Shell/' .github/workflows/ci.yml
+CI_WORKFLOW=.github/workflows/ci.yml
+SETUP_SWIFT_SHA=7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a
+awk -v setup_sha="$SETUP_SWIFT_SHA" '
+  $0 == "        uses: swift-actions/setup-swift@" setup_sha " # v2.4.0" {
+    if ((getline) <= 0 || $0 != "        with:") {
+      exit 1
+    }
+    if ((getline) <= 0 || $0 != "          swift-version: \"6.2\"") {
+      exit 1
+    }
+    found = 1
+  }
+  END {
+    if (!found) {
+      exit 1
+    }
+  }
+' "$CI_WORKFLOW"
+workflow_line() {
+  awk -v expected="$1" '
+    $0 == expected {
+      print NR
+      found = 1
+      exit
+    }
+    END {
+      if (!found) {
+        exit 1
+      }
+    }
+  ' "$CI_WORKFLOW"
+}
+setup_line="$(
+  workflow_line \
+    "        uses: swift-actions/setup-swift@$SETUP_SWIFT_SHA # v2.4.0"
+)"
+version_line="$(workflow_line '        run: swift --version')"
+swift_test_line="$(
+  workflow_line '        run: swift test --disable-sandbox'
+)"
+ripgrep_install_line="$(
+  workflow_line '        run: brew install ripgrep'
+)"
+shell_test_line="$(
+  workflow_line '          for test_script in Tests/Shell/*.bats; do'
+)"
+test "$setup_line" -lt "$version_line"
+test "$version_line" -lt "$swift_test_line"
+test "$swift_test_line" -lt "$ripgrep_install_line"
+test "$ripgrep_install_line" -lt "$shell_test_line"
 REPORT=Sources/PetHUDCore/RedactedDiagnosticReport.swift
 grep -F 'fiveHourRemainingPercent' "$REPORT"
 grep -F 'fiveHourStatus' "$REPORT"
@@ -41,6 +93,17 @@ test "$(plutil -extract CFBundleShortVersionString raw Resources/Info.plist)" \
   = '0.4.0'
 test "$(plutil -extract CFBundleVersion raw Resources/Info.plist)" = '4'
 grep -F 'MP' README.md
+grep -F \
+  'HP and MP values are centered inside their bars.' \
+  README.md
+grep -F \
+  'The weekly reset countdown remains available to accessibility tools but is not shown visually.' \
+  README.md
+grep -F \
+  'Live same-PID fallback geometry follows dragging after current-process geometry confirmation.' \
+  docs/architecture.md
+tr '\n' ' ' < docs/architecture.md | grep -F \
+  'Restored shell geometry does not gain live confidence until a current-process geometry observation is accepted.'
 grep -F '0.4.0' CHANGELOG.md
 grep -F 'five-hour' docs/architecture.md
 

@@ -169,8 +169,7 @@ public enum PetWindowLocator {
         let voiceControls = windows.filter {
             $0.owner == "ChatGPT" &&
                 $0.layer == 3 &&
-                (20...32).contains($0.bounds.width) &&
-                (20...32).contains($0.bounds.height)
+                isVoiceControl($0)
         }
         let fallback = windows.filter { candidate in
             guard
@@ -350,8 +349,15 @@ public enum PetWindowLocator {
     private static func isVoiceControl(
         _ window: WindowDescriptor
     ) -> Bool {
-        (20...32).contains(window.bounds.width) &&
-            (20...32).contains(window.bounds.height)
+        let width = window.bounds.width
+        let height = window.bounds.height
+        return (
+            (20...32).contains(width) &&
+                (6...80).contains(height)
+        ) || (
+            (20...32).contains(height) &&
+                (6...80).contains(width)
+        )
     }
 
     private static func isCompositionSurface(

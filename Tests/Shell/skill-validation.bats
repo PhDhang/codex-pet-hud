@@ -30,7 +30,8 @@ for setting in podScale podOffsetX podOffsetY; do
 done
 grep -i 'resize' "$SKILL/SKILL.md" >/dev/null
 grep -F 'same PID' "$SKILL/SKILL.md" >/dev/null
-grep -F '20...32' "$SKILL/references/troubleshooting.md" >/dev/null
+grep -F 'one side 20...32 and the other 6...80' "$SKILL/SKILL.md" >/dev/null
+grep -F 'one side 20...32 and the other 6...80' "$SKILL/references/troubleshooting.md" >/dev/null
 grep -F 'HUD-only' "$SKILL/SKILL.md" >/dev/null
 grep -F 'never changes the native pet' "$SKILL/SKILL.md" >/dev/null
 grep -F 'standard v2 `pet.json` metadata' "$SKILL/SKILL.md" >/dev/null
@@ -40,6 +41,12 @@ grep -F \
 grep -F 'PANIC · QUOTA LOW' "$SKILL/SKILL.md" >/dev/null
 grep -F 'EXHAUSTED · SIGNAL CRITICAL' "$SKILL/SKILL.md" >/dev/null
 grep -F 'MP is the measured five-hour percentage or sky-blue `MAX`.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F \
+  'HP and MP values are centered inside the bars.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F \
+  'SP reset time is accessibility-only and has no visible suffix.' \
   "$SKILL/SKILL.md" >/dev/null
 grep -F 'Safe measured values below `100%` carry a subtle same-color flow.' \
   "$SKILL/SKILL.md" >/dev/null

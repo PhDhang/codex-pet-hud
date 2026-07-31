@@ -20,8 +20,10 @@ presence also accepts:
 - `Codex Pet Activity Stack Backing`
 
 When LaunchAgent redacts titles, require same-PID layer-3 companion evidence:
-a `20...32` point voice control, composition surface, and activity stack. Do
-not loosen the match when multiple candidates exist.
+a narrow voice backing with one side 20...32 and the other 6...80, composition
+surface, and activity stack. The voice backing can animate between compact,
+vertical expanded, and horizontal expanded sizes. Do not loosen the match when
+multiple candidates exist.
 
 The tactical HUD remains visible while stable presence is observed and hides only
 after three consecutive missing observations spanning at least two seconds. If it

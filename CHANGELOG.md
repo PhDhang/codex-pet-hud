@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- HUD positioning now follows same-PID fallback geometry during live pet dragging
+  without weakening cold-cache or ambiguity protection.
+
+### Changed
+
+- HP and measured MP values now render inside their bars, SP no longer shows a
+  visible reset suffix, and the default panel uses a denser `190 × 72` layout.
+
 ## [0.4.0] - 2026-07-30
 
 ### Added

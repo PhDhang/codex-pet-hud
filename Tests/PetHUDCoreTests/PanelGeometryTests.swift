@@ -22,7 +22,7 @@ final class PanelGeometryTests: XCTestCase {
     }
 
     func testTacticalHUDScalesAbovePetCenter() throws {
-        let pet = CGRect(x: 24, y: 775, width: 200, height: 250)
+        let pet = CGRect(x: 24, y: 775, width: 150, height: 250)
 
         let frame = try XCTUnwrap(
             PanelGeometry.tacticalHUDFrame(
@@ -33,9 +33,9 @@ final class PanelGeometryTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(frame.width, 210, accuracy: 0.001)
-        XCTAssertEqual(frame.height, 75, accuracy: 0.001)
-        XCTAssertEqual(frame.midX, 124, accuracy: 0.001)
+        XCTAssertEqual(frame.width, 190, accuracy: 0.001)
+        XCTAssertEqual(frame.height, 72, accuracy: 0.001)
+        XCTAssertEqual(frame.midX, 99, accuracy: 0.001)
         XCTAssertGreaterThan(frame.minY, 305)
     }
 
@@ -55,10 +55,25 @@ final class PanelGeometryTests: XCTestCase {
                 offset: .zero
             )
         )
-        XCTAssertEqual(hud.width, 239.4, accuracy: 0.001)
-        XCTAssertEqual(hud.height, 85.5, accuracy: 0.001)
+        XCTAssertEqual(hud.width, 216.6, accuracy: 0.001)
+        XCTAssertEqual(hud.height, 82.08, accuracy: 0.001)
         XCTAssertEqual(hud.midX, 244, accuracy: 0.001)
         XCTAssertEqual(hud.minY, 339, accuracy: 0.001)
+    }
+
+    func testLargePetUsesCompactMaximumHUDWidth() throws {
+        let frame = try XCTUnwrap(
+            PanelGeometry.tacticalHUDFrame(
+                pet: CGRect(x: 200, y: 400, width: 500, height: 520),
+                displays: [display],
+                scale: 1,
+                offset: .zero
+            )
+        )
+
+        XCTAssertEqual(frame.width, 320, accuracy: 0.001)
+        XCTAssertEqual(frame.height, 72, accuracy: 0.001)
+        XCTAssertEqual(frame.midX, 450, accuracy: 0.001)
     }
 
     func testTacticalHUDPreservesOffsetsAfterResize() throws {

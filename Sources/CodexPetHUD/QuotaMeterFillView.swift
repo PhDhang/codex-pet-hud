@@ -15,6 +15,7 @@ struct QuotaMeterPalette {
     }
 }
 
+@MainActor
 struct QuotaMeterFillView: View {
     let fraction: Double
     let palette: QuotaMeterPalette
