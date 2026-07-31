@@ -50,6 +50,9 @@ grep -F \
 grep -F \
   'Live same-PID fallback geometry follows dragging after current-process geometry confirmation.' \
   docs/architecture.md
+grep -F \
+  'Restored shell geometry does not gain live confidence until a current-process' \
+  docs/architecture.md
 grep -F '0.4.0' CHANGELOG.md
 grep -F 'five-hour' docs/architecture.md
 
@@ -68,10 +71,9 @@ fi
 scan_pattern='/Users/[A-Za-z0-9._-]+/|Bearer[[:space:]]+eyJ[A-Za-z0-9._-]{20,}|sk-[A-Za-z0-9_-]{20,}'
 release_content=()
 while IFS= read -r tracked_file; do
-  case "$tracked_file" in
-    Tests/Shell/release-validation.bats|docs/superpowers/*) ;;
-    *) release_content+=("$tracked_file") ;;
-  esac
+  if [ "$tracked_file" != "Tests/Shell/release-validation.bats" ]; then
+    release_content+=("$tracked_file")
+  fi
 done < <(git ls-files)
 
 for release_file in "${release_content[@]}"; do

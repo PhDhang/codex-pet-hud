@@ -665,7 +665,7 @@ git commit -m "docs: describe compact following HUD"
 - No additional source changes expected.
 
 **Interfaces:**
-- Consumes: all implementation commits, `/Users/hang_macmini/.codex/pets/yicha`, the installed LaunchAgent, the HUD-only capture script, origin `PhDhang/codex-pet-hud`, and draft PR `#2`.
+- Consumes: all implementation commits, `$HOME/.codex/pets/yicha`, the installed LaunchAgent, the HUD-only capture script, origin `PhDhang/codex-pet-hud`, and draft PR `#2`.
 - Produces: a verified installed app, private HUD-only visual evidence, pushed branch, and updated draft PR.
 
 - [ ] **Step 1: Run complete automated verification**
@@ -690,9 +690,9 @@ strict signature verification exits `0`.
 Run:
 
 ```bash
-scripts/install.sh --pet-path "/Users/hang_macmini/.codex/pets/yicha"
+scripts/install.sh --pet-path "$HOME/.codex/pets/yicha"
 sleep 3
-"/Users/hang_macmini/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" \
+"$HOME/Applications/Codex Pet HUD.app/Contents/MacOS/CodexPetHUD" \
   --diagnose
 ```
 

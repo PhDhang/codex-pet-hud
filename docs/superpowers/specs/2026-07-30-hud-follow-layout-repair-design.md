@@ -150,7 +150,7 @@ The HUD remains a four-row tactical panel:
 
 - Run all Swift tests and every `Tests/Shell/*.bats` suite.
 - Build and verify the signed production app.
-- Install against `/Users/hang_macmini/.codex/pets/yicha`.
+- Install against `$HOME/.codex/pets/yicha`.
 - With no active task, drag and resize the pet and confirm the HUD follows at
   the 0.25-second cadence without disappearing.
 - Check measured MP, `MAX`, unavailable, low, critical, exact 100%, and Reduce
