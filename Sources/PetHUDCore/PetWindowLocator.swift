@@ -349,8 +349,15 @@ public enum PetWindowLocator {
     private static func isVoiceControl(
         _ window: WindowDescriptor
     ) -> Bool {
-        (20...32).contains(window.bounds.width) &&
-            (6...80).contains(window.bounds.height)
+        let width = window.bounds.width
+        let height = window.bounds.height
+        return (
+            (20...32).contains(width) &&
+                (6...80).contains(height)
+        ) || (
+            (20...32).contains(height) &&
+                (6...80).contains(width)
+        )
     }
 
     private static func isCompositionSurface(
