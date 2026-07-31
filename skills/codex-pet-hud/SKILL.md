@@ -19,8 +19,8 @@ use redacted diagnostics.
 - Never read browser cookies or request Accessibility or Screen Recording.
 - Select exactly one v2 pet; do not guess when checks find multiple candidates.
 - Prefer the native mascot window. With title-redacted LaunchAgent windows,
-  require same PID companion evidence including a layer-3 `20...32` point voice
-  control; hide on ambiguity.
+  require same PID companion evidence including a layer-3 voice backing with
+  width 20...32 and height 6...32; hide on ambiguity.
 - Build and test before installing.
 
 ## Workflow

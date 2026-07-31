@@ -30,7 +30,8 @@ for setting in podScale podOffsetX podOffsetY; do
 done
 grep -i 'resize' "$SKILL/SKILL.md" >/dev/null
 grep -F 'same PID' "$SKILL/SKILL.md" >/dev/null
-grep -F '20...32' "$SKILL/references/troubleshooting.md" >/dev/null
+grep -F 'width 20...32 and height 6...32' "$SKILL/SKILL.md" >/dev/null
+grep -F 'width 20...32 and height 6...32' "$SKILL/references/troubleshooting.md" >/dev/null
 grep -F 'HUD-only' "$SKILL/SKILL.md" >/dev/null
 grep -F 'never changes the native pet' "$SKILL/SKILL.md" >/dev/null
 grep -F 'standard v2 `pet.json` metadata' "$SKILL/SKILL.md" >/dev/null

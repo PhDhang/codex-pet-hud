@@ -169,6 +169,19 @@ final class PetWindowLocatorTests: XCTestCase {
         XCTAssertEqual(observation.stablePresencePID, 1)
     }
 
+    func testTitleRedactedIdleShellAcceptsCompactVoiceBacking() {
+        let observation = PetWindowLocator.observe(
+            from: redactedCluster(
+                ownerPID: 7,
+                startingID: 90,
+                voiceHeight: 6
+            )
+        )
+
+        XCTAssertTrue(observation.hasStablePresence)
+        XCTAssertEqual(observation.stablePresencePID, 7)
+    }
+
     func testTitleRedactedIdleShellRejectsTwoCompletePIDClusters() {
         let observation = PetWindowLocator.observe(
             from: [
@@ -699,6 +712,67 @@ final class PetWindowLocatorTests: XCTestCase {
         )
     }
 
+    func testSingleConservativeFallbackAcceptsCompactVoiceBacking() {
+        let fallback = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "",
+            layer: 2,
+            bounds: CGRect(
+                x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: 1,
+            windowID: 14
+        )
+
+        XCTAssertEqual(
+            PetWindowLocator.select(
+                from: [
+                    fallback,
+                    voiceControl(
+                        x: 180,
+                        y: 820,
+                        id: 42,
+                        height: 6
+                    ),
+                ]
+            ),
+            fallback
+        )
+    }
+
+    func testConservativeFallbackRejectsVoiceBackingBelowHeightFloor() {
+        let fallback = WindowDescriptor(
+            owner: "ChatGPT",
+            name: "",
+            layer: 2,
+            bounds: CGRect(
+                x: 24,
+                y: 775,
+                width: 243,
+                height: 252
+            ),
+            ownerPID: 1,
+            windowID: 15
+        )
+
+        XCTAssertNil(
+            PetWindowLocator.select(
+                from: [
+                    fallback,
+                    voiceControl(
+                        x: 180,
+                        y: 820,
+                        id: 43,
+                        height: 5
+                    ),
+                ]
+            )
+        )
+    }
+
     func testFallbackMatchesLargeResizedPet() {
         let resized = WindowDescriptor(
             owner: "ChatGPT",
@@ -953,7 +1027,8 @@ final class PetWindowLocatorTests: XCTestCase {
         x: CGFloat,
         y: CGFloat,
         id: Int,
-        ownerPID: Int = 1
+        ownerPID: Int = 1,
+        height: CGFloat = 24
     ) -> WindowDescriptor {
         WindowDescriptor(
             owner: "ChatGPT",
@@ -963,7 +1038,7 @@ final class PetWindowLocatorTests: XCTestCase {
                 x: x,
                 y: y,
                 width: 24,
-                height: 24
+                height: height
             ),
             ownerPID: ownerPID,
             windowID: id
@@ -1041,7 +1116,8 @@ final class PetWindowLocatorTests: XCTestCase {
 
     private func redactedCluster(
         ownerPID: Int,
-        startingID: Int
+        startingID: Int,
+        voiceHeight: CGFloat = 24
     ) -> [WindowDescriptor] {
         [
             descriptor(
@@ -1056,7 +1132,7 @@ final class PetWindowLocatorTests: XCTestCase {
                 name: "",
                 layer: 3,
                 width: 24,
-                height: 24,
+                height: voiceHeight,
                 id: startingID + 1,
                 ownerPID: ownerPID
             ),
