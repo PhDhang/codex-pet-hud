@@ -41,10 +41,6 @@ public struct TacticalHUDLayoutMetrics: Equatable, Sendable {
         cornerCut = Self.interpolate(5, 8, progress: progress)
     }
 
-    public var trailingWidth: CGFloat {
-        0
-    }
-
     public var spRowWidth: CGFloat {
         horizontalPadding * 2 +
             labelWidth +

@@ -57,7 +57,6 @@ grep -F 'label: "MP"' "$HUD_VIEW"
 grep -F 'data.mpText' "$HUD_VIEW"
 grep -F 'data.mpFraction' "$HUD_VIEW"
 grep -F 'data.mpDangerLevel' "$HUD_VIEW"
-grep -F 'data.mpMode == .unlimited' "$HUD_VIEW"
 for palette_token in \
   'paletteColor(red: 0x68, green: 0x0B, blue: 0x18)' \
   'paletteColor(red: 0xC5, green: 0x1F, blue: 0x35)' \
@@ -74,8 +73,18 @@ done
 grep -F 'palette: Self.hpPalette' "$HUD_VIEW"
 grep -F 'palette: Self.mpPalette' "$HUD_VIEW"
 grep -F 'mode: data.mpMode' "$HUD_VIEW"
-grep -F 'centeredText:' "$HUD_VIEW"
-grep -F 'data.mpMode == .unlimited ? "MAX" : nil' "$HUD_VIEW"
+grep -F 'centeredText: data.hpText' "$HUD_VIEW"
+grep -F 'centeredText: data.mpText' "$HUD_VIEW"
+if grep -Fq 'trailing:' "$HUD_VIEW"; then
+  printf 'Meter rows must not reserve a trailing value column.\n' >&2
+  exit 1
+fi
+if grep -Fq 'data.resetText.uppercased()' "$HUD_VIEW"; then
+  printf 'SP reset time must not render visibly.\n' >&2
+  exit 1
+fi
+grep -F '.frame(maxWidth: .infinity, alignment: .center)' "$HUD_VIEW"
+grep -F '.accessibilityValue(accessibilityValue)' "$HUD_VIEW"
 grep -F 'let palette: QuotaMeterPalette' "$METER_VIEW"
 grep -F 'let mode: MPPresentationMode' "$METER_VIEW"
 grep -F 'accessibilityReduceMotion' "$METER_VIEW"
@@ -145,11 +154,7 @@ grep -F '.accessibilityHidden(true)' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'of 7 elapsed; reset in' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
-grep -F 'accessibilityValue: String?' \
-  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'accessibilityValue: spAccessibilityValue' \
-  "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
-grep -F '.accessibilityValue(accessibilityValue ?? trailing)' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDView.swift"
 grep -F 'NSWindow.Level.floating.rawValue + 1' \
   "$ROOT/Sources/CodexPetHUD/TacticalHUDPanelController.swift"

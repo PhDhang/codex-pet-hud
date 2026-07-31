@@ -16,8 +16,8 @@ struct TacticalHUDView: View {
             VStack(spacing: metrics.rowSpacing) {
                 meterRow(
                     label: "HP",
-                    trailing: data.hpText,
-                    rowHeight: metrics.hpRowHeight
+                    rowHeight: metrics.hpRowHeight,
+                    accessibilityValue: data.hpText
                 ) {
                     QuotaMeterFillView(
                         fraction: data.hpFraction,
@@ -27,14 +27,12 @@ struct TacticalHUDView: View {
                             ? .unavailable
                             : .measured,
                         dangerLevel: data.hpDangerLevel,
-                        centeredText: nil
+                        centeredText: data.hpText
                     )
                     .frame(height: metrics.hpBarHeight)
                 }
                 meterRow(
                     label: "MP",
-                    trailing:
-                        data.mpMode == .unlimited ? "" : data.mpText,
                     rowHeight: metrics.hpRowHeight,
                     accessibilityValue: mpAccessibilityValue
                 ) {
@@ -43,14 +41,12 @@ struct TacticalHUDView: View {
                         palette: Self.mpPalette,
                         mode: data.mpMode,
                         dangerLevel: data.mpDangerLevel,
-                        centeredText:
-                            data.mpMode == .unlimited ? "MAX" : nil
+                        centeredText: data.mpText
                     )
                     .frame(height: metrics.hpBarHeight)
                 }
                 meterRow(
                     label: "SP",
-                    trailing: data.resetText.uppercased(),
                     rowHeight: metrics.flameHeight,
                     accessibilityValue: spAccessibilityValue
                 ) {
@@ -66,6 +62,7 @@ struct TacticalHUDView: View {
                             .accessibilityHidden(true)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .frame(height: metrics.flameHeight)
                 }
                 Text(data.statusLabel)
@@ -122,9 +119,8 @@ struct TacticalHUDView: View {
 
     private func meterRow<Content: View>(
         label: String,
-        trailing: String,
         rowHeight: CGFloat,
-        accessibilityValue: String? = nil,
+        accessibilityValue: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
         let metrics = TacticalHUDLayoutMetrics(
@@ -136,9 +132,6 @@ struct TacticalHUDView: View {
                 .foregroundStyle(tacticalAccentColor)
             content()
                 .frame(maxWidth: .infinity)
-            Text(trailing)
-                .frame(width: metrics.trailingWidth, alignment: .trailing)
-                .foregroundStyle(Color.white)
         }
         .font(
             .system(
@@ -149,7 +142,7 @@ struct TacticalHUDView: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(label)
-        .accessibilityValue(accessibilityValue ?? trailing)
+        .accessibilityValue(accessibilityValue)
         .frame(height: rowHeight)
     }
 
