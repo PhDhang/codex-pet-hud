@@ -211,7 +211,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                     ),
                     now: start.addingTimeInterval(offset)
                 ),
-                initial
+                fallback
             )
         }
     }
@@ -253,7 +253,7 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
-    func testShellThenFallbackRetainsHighConfidenceGeometry() {
+    func testLiveShellThenFallbackTracksMovingPet() {
         var tracker = PetPresenceTracker()
         let shell = shellGeometry(
             id: 11,
@@ -285,7 +285,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                 ),
                 now: start.addingTimeInterval(0.25)
             ),
-            shell
+            fallback
         )
     }
 

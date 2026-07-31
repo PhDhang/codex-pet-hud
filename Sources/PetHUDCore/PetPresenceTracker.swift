@@ -4,6 +4,7 @@ public struct PetPresenceTracker: Sendable {
     private let requiredAbsentObservations: Int
     private let requiredAbsentDuration: TimeInterval
     private var lastGeometry: PetVisualGeometry?
+    private var hasLiveGeometry = false
     private var hasConfirmedPresence = false
     private var absenceStartedAt: Date?
     private var absentObservationCount = 0
@@ -34,17 +35,20 @@ public struct PetPresenceTracker: Sendable {
             retainedPID != observedPID
         {
             lastGeometry = nil
+            hasLiveGeometry = false
         }
 
         if
             !observation.hasExactWindowAmbiguity,
             let candidate = observation.visualGeometry
         {
-            let retainsShell =
+            let protectsColdRestore =
+                !hasLiveGeometry &&
                 lastGeometry?.source == .shellDerived &&
                 candidate.source == .mascotFallback
-            if !retainsShell {
+            if !protectsColdRestore {
                 lastGeometry = candidate
+                hasLiveGeometry = true
             }
         }
         if
@@ -78,6 +82,7 @@ public struct PetPresenceTracker: Sendable {
             absenceStartedAt = nil
             absentObservationCount = 0
             lastGeometry = nil
+            hasLiveGeometry = false
             hasConfirmedPresence = false
             return nil
         }
