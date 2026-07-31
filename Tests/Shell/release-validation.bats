@@ -76,12 +76,16 @@ version_line="$(workflow_line '        run: swift --version')"
 swift_test_line="$(
   workflow_line '        run: swift test --disable-sandbox'
 )"
+ripgrep_install_line="$(
+  workflow_line '        run: brew install ripgrep'
+)"
 shell_test_line="$(
   workflow_line '          for test_script in Tests/Shell/*.bats; do'
 )"
 test "$setup_line" -lt "$version_line"
 test "$version_line" -lt "$swift_test_line"
-test "$swift_test_line" -lt "$shell_test_line"
+test "$swift_test_line" -lt "$ripgrep_install_line"
+test "$ripgrep_install_line" -lt "$shell_test_line"
 REPORT=Sources/PetHUDCore/RedactedDiagnosticReport.swift
 grep -F 'fiveHourRemainingPercent' "$REPORT"
 grep -F 'fiveHourStatus' "$REPORT"

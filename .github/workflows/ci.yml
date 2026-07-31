@@ -26,6 +26,11 @@ jobs:
       - name: Run Swift tests
         run: swift test --disable-sandbox
 
+      - name: Install shell test dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        run: brew install ripgrep
+
       - name: Run shell tests
         env:
           CODEX_PET_HUD_TESTING: "1"
