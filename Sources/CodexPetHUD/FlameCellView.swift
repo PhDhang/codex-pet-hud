@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct FlameCellView: View {
     let isLit: Bool
     @Environment(\.accessibilityReduceMotion)
