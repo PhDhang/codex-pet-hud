@@ -335,11 +335,21 @@ final class PetPresenceTrackerTests: XCTestCase {
         XCTAssertNil(
             tracker.update(
                 observation: .init(
+                    exactWindow: foreignFallback.window,
+                    visualGeometry: foreignFallback,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(0.5)
+            )
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
                     exactWindow: nil,
                     hasStablePresence: true,
                     stablePresencePID: 2
                 ),
-                now: start.addingTimeInterval(0.5)
+                now: start.addingTimeInterval(0.75)
             )
         )
         XCTAssertEqual(
@@ -349,7 +359,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                     visualGeometry: newShell,
                     hasStablePresence: true
                 ),
-                now: start.addingTimeInterval(0.75)
+                now: start.addingTimeInterval(1)
             ),
             newShell
         )
@@ -378,6 +388,173 @@ final class PetPresenceTrackerTests: XCTestCase {
                 now: Date(timeIntervalSince1970: 100)
             ),
             restored
+        )
+    }
+
+    func testRestoredFallbackPromotesAfterSecondSameWindowAndTracksMovement() {
+        let restored = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        var tracker = PetPresenceTracker(restoredGeometry: restored)
+        let start = Date(timeIntervalSince1970: 100)
+        let first = fallbackGeometry(id: 12, x: 300)
+        let second = fallbackGeometry(id: 12, x: 360)
+        let moved = fallbackGeometry(id: 12, x: 420)
+
+        XCTAssertEqual(
+            tracker.update(observation: fallbackObservation(first), now: start),
+            restored
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(second),
+                now: start.addingTimeInterval(0.25)
+            ),
+            second
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(moved),
+                now: start.addingTimeInterval(0.5)
+            ),
+            moved
+        )
+    }
+
+    func testRestoredFallbackDifferentWindowRestartsConfirmation() {
+        let restored = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        var tracker = PetPresenceTracker(restoredGeometry: restored)
+        let start = Date(timeIntervalSince1970: 100)
+        let first = fallbackGeometry(id: 12, x: 300)
+        let replacement = fallbackGeometry(id: 13, x: 360)
+
+        XCTAssertEqual(
+            tracker.update(observation: fallbackObservation(first), now: start),
+            restored
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(replacement),
+                now: start.addingTimeInterval(0.25)
+            ),
+            restored
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(replacement),
+                now: start.addingTimeInterval(0.5)
+            ),
+            replacement
+        )
+    }
+
+    func testAmbiguityClearsRestoredFallbackConfirmation() {
+        let restored = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        var tracker = PetPresenceTracker(restoredGeometry: restored)
+        let start = Date(timeIntervalSince1970: 100)
+        let fallback = fallbackGeometry(id: 12, x: 300)
+
+        XCTAssertEqual(
+            tracker.update(observation: fallbackObservation(fallback), now: start),
+            restored
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: ambiguousExactObservation(ownerPID: 1),
+                now: start.addingTimeInterval(0.25)
+            ),
+            restored
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(fallback),
+                now: start.addingTimeInterval(0.5)
+            ),
+            restored
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(fallback),
+                now: start.addingTimeInterval(0.75)
+            ),
+            fallback
+        )
+    }
+
+    func testAbsenceExpiryClearsPendingFallbackConfirmation() {
+        let restored = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126)
+        )
+        var tracker = PetPresenceTracker(restoredGeometry: restored)
+        let start = Date(timeIntervalSince1970: 100)
+        let fallback = fallbackGeometry(id: 12, x: 300)
+
+        XCTAssertEqual(
+            tracker.update(observation: fallbackObservation(fallback), now: start),
+            restored
+        )
+        for offset in [0.5, 1.5, 2.5] {
+            _ = tracker.update(
+                observation: .init(exactWindow: nil, hasStablePresence: false),
+                now: start.addingTimeInterval(offset)
+            )
+        }
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(fallback),
+                now: start.addingTimeInterval(3)
+            ),
+            fallback
+        )
+    }
+
+    func testAbsenceExpiryClearsCrossPIDFallbackBarrier() {
+        var tracker = PetPresenceTracker()
+        let start = Date(timeIntervalSince1970: 100)
+        let shell = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126),
+            ownerPID: 1
+        )
+        let foreignFallback = PetVisualGeometry(
+            window: fallbackWindow(id: 12, x: 300, ownerPID: 2),
+            source: .mascotFallback
+        )
+
+        _ = tracker.update(
+            observation: .init(
+                exactWindow: exactWindow(id: 10, ownerPID: 1),
+                visualGeometry: shell,
+                hasStablePresence: true
+            ),
+            now: start
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: fallbackObservation(foreignFallback),
+                now: start.addingTimeInterval(0.25)
+            )
+        )
+        for offset in [0.5, 1.5, 2.5] {
+            _ = tracker.update(
+                observation: .init(exactWindow: nil, hasStablePresence: false),
+                now: start.addingTimeInterval(offset)
+            )
+        }
+        XCTAssertEqual(
+            tracker.update(
+                observation: fallbackObservation(foreignFallback),
+                now: start.addingTimeInterval(3)
+            ),
+            foreignFallback
         )
     }
 
@@ -632,6 +809,16 @@ final class PetPresenceTrackerTests: XCTestCase {
         PetVisualGeometry(
             window: fallbackWindow(id: id, x: x),
             source: .mascotFallback
+        )
+    }
+
+    private func fallbackObservation(
+        _ geometry: PetVisualGeometry
+    ) -> PetWindowObservation {
+        .init(
+            exactWindow: geometry.window,
+            visualGeometry: geometry,
+            hasStablePresence: true
         )
     }
 

@@ -30,6 +30,8 @@ done
 
 grep -F 'macOS 14' README.md
 grep -F 'Version 0.4.0' README.md
+grep -F '![Warning tactical HUD showing 33% HP](docs/screenshots/tactical-hud.png)' \
+  README.md
 grep -F 'tactical dual-bar HUD' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml

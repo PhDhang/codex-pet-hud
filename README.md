@@ -5,7 +5,7 @@ compact tactical dual-bar HUD above the pet, including when Codex has no active
 task. HP shows weekly quota remaining, MP shows an optional five-hour quota,
 and seven SP flames show weekly reset progress.
 
-![Healthy tactical HUD](docs/screenshots/tactical-hud.png)
+![Warning tactical HUD showing 33% HP](docs/screenshots/tactical-hud.png)
 
 ## Tactical HUD
 
