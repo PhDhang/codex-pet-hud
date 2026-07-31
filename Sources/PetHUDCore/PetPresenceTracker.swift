@@ -36,6 +36,7 @@ public struct PetPresenceTracker: Sendable {
         {
             lastGeometry = nil
             hasLiveGeometry = false
+            return nil
         }
 
         if

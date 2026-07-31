@@ -289,6 +289,72 @@ final class PetPresenceTrackerTests: XCTestCase {
         )
     }
 
+    func testCrossPIDFallbackFailsClosedBeforeNewProcessGeometry() {
+        var tracker = PetPresenceTracker()
+        let shell = shellGeometry(
+            id: 11,
+            bounds: CGRect(x: 180, y: 749, width: 116, height: 126),
+            ownerPID: 1
+        )
+        let foreignFallback = PetVisualGeometry(
+            window: fallbackWindow(
+                id: 12,
+                x: 300,
+                ownerPID: 2
+            ),
+            source: .mascotFallback
+        )
+        let newShell = shellGeometry(
+            id: 13,
+            bounds: CGRect(x: 420, y: 600, width: 116, height: 126),
+            ownerPID: 2
+        )
+        let start = Date(timeIntervalSince1970: 100)
+
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exactWindow(id: 10, ownerPID: 1),
+                    visualGeometry: shell,
+                    hasStablePresence: true
+                ),
+                now: start
+            ),
+            shell
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: foreignFallback.window,
+                    visualGeometry: foreignFallback,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(0.25)
+            )
+        )
+        XCTAssertNil(
+            tracker.update(
+                observation: .init(
+                    exactWindow: nil,
+                    hasStablePresence: true,
+                    stablePresencePID: 2
+                ),
+                now: start.addingTimeInterval(0.5)
+            )
+        )
+        XCTAssertEqual(
+            tracker.update(
+                observation: .init(
+                    exactWindow: exactWindow(id: 14, ownerPID: 2),
+                    visualGeometry: newShell,
+                    hasStablePresence: true
+                ),
+                now: start.addingTimeInterval(0.75)
+            ),
+            newShell
+        )
+    }
+
     func testRestoredShellGeometrySurvivesColdFallback() {
         let restored = shellGeometry(
             id: 11,
@@ -541,7 +607,8 @@ final class PetPresenceTrackerTests: XCTestCase {
 
     private func fallbackWindow(
         id: Int,
-        x: CGFloat
+        x: CGFloat,
+        ownerPID: Int = 1
     ) -> WindowDescriptor {
         WindowDescriptor(
             owner: "ChatGPT",
@@ -553,7 +620,7 @@ final class PetPresenceTrackerTests: XCTestCase {
                 width: 243,
                 height: 252
             ),
-            ownerPID: 1,
+            ownerPID: ownerPID,
             windowID: id
         )
     }
