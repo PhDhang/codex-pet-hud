@@ -57,10 +57,10 @@ public enum PanelGeometry {
         let appKitPet = appKitPetFrame(pet: pet, on: display)
 
         let width = min(
-            360,
-            max(210, appKitPet.width * 1.05)
+            320,
+            max(190, appKitPet.width * 1.05)
         ) * scale
-        let height = 75 * scale
+        let height = 72 * scale
         let gap = max(8, appKitPet.height * 0.04)
         let frame = CGRect(
             x: appKitPet.midX - width / 2 + offset.x,
