@@ -350,7 +350,7 @@ public enum PetWindowLocator {
         _ window: WindowDescriptor
     ) -> Bool {
         (20...32).contains(window.bounds.width) &&
-            (6...32).contains(window.bounds.height)
+            (6...80).contains(window.bounds.height)
     }
 
     private static func isCompositionSurface(
