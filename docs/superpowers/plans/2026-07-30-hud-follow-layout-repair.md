@@ -196,9 +196,11 @@ In `Tests/PetHUDCoreTests/PanelGeometryTests.swift`, update
 `testTacticalHUDScalesAbovePetCenter`:
 
 ```swift
+let pet = CGRect(x: 24, y: 775, width: 150, height: 250)
+
 XCTAssertEqual(frame.width, 190, accuracy: 0.001)
 XCTAssertEqual(frame.height, 72, accuracy: 0.001)
-XCTAssertEqual(frame.midX, 124, accuracy: 0.001)
+XCTAssertEqual(frame.midX, 99, accuracy: 0.001)
 XCTAssertGreaterThan(frame.minY, 305)
 ```
 
@@ -286,7 +288,10 @@ Keep centering, gap, offset, display selection, and clamping unchanged.
 
 In `Sources/PetHUDCore/TacticalHUDLayoutMetrics.swift`:
 
-- Delete `public let trailingWidth: CGFloat`.
+- Remove the stored `trailingWidth` metric and its interpolation. Keep only a
+  temporary computed `trailingWidth` returning `0` so the existing SwiftUI
+  view compiles between Task 2 and Task 3; Task 3 deletes this compatibility
+  accessor together with the visible trailing column.
 - Change the fit reference to:
 
 ```swift
@@ -341,6 +346,7 @@ git commit -m "feat: compact tactical HUD geometry"
 **Files:**
 - Modify: `Tests/Shell/tactical-ui.bats`
 - Modify: `Sources/CodexPetHUD/TacticalHUDView.swift`
+- Modify: `Sources/PetHUDCore/TacticalHUDLayoutMetrics.swift`
 
 **Interfaces:**
 - Consumes: `HUDPresentationData.hpText`, `mpText`, `mpMode`, `resetText`, meter fractions, danger levels, and layout metrics.
@@ -500,6 +506,15 @@ private func meterRow<Content: View>(
     .accessibilityLabel(label)
     .accessibilityValue(accessibilityValue)
     .frame(height: rowHeight)
+}
+```
+
+Delete the temporary compatibility accessor from
+`Sources/PetHUDCore/TacticalHUDLayoutMetrics.swift`:
+
+```swift
+public var trailingWidth: CGFloat {
+    0
 }
 ```
 
@@ -791,4 +806,3 @@ Use the GitHub app to confirm PR `#2` is open, draft, targets `main`, and its
 
 Expected: local and remote SHAs match, the PR remains unmerged, and the worktree
 is preserved for review feedback.
-
