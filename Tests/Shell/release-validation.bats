@@ -50,9 +50,8 @@ grep -F \
 grep -F \
   'Live same-PID fallback geometry follows dragging after current-process geometry confirmation.' \
   docs/architecture.md
-grep -F \
-  'Restored shell geometry does not gain live confidence until a current-process' \
-  docs/architecture.md
+tr '\n' ' ' < docs/architecture.md | grep -F \
+  'Restored shell geometry does not gain live confidence until a current-process geometry observation is accepted.'
 grep -F '0.4.0' CHANGELOG.md
 grep -F 'five-hour' docs/architecture.md
 
