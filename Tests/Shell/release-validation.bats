@@ -36,6 +36,52 @@ grep -F 'tactical dual-bar HUD' CHANGELOG.md
 grep -F 'read-only' docs/privacy.md
 grep -F 'swift test' .github/workflows/ci.yml
 grep -F 'Tests/Shell/' .github/workflows/ci.yml
+CI_WORKFLOW=.github/workflows/ci.yml
+SETUP_SWIFT_SHA=7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a
+awk -v setup_sha="$SETUP_SWIFT_SHA" '
+  $0 == "        uses: swift-actions/setup-swift@" setup_sha " # v2.4.0" {
+    if ((getline) <= 0 || $0 != "        with:") {
+      exit 1
+    }
+    if ((getline) <= 0 || $0 != "          swift-version: \"6.2\"") {
+      exit 1
+    }
+    found = 1
+  }
+  END {
+    if (!found) {
+      exit 1
+    }
+  }
+' "$CI_WORKFLOW"
+workflow_line() {
+  awk -v expected="$1" '
+    $0 == expected {
+      print NR
+      found = 1
+      exit
+    }
+    END {
+      if (!found) {
+        exit 1
+      }
+    }
+  ' "$CI_WORKFLOW"
+}
+setup_line="$(
+  workflow_line \
+    "        uses: swift-actions/setup-swift@$SETUP_SWIFT_SHA # v2.4.0"
+)"
+version_line="$(workflow_line '        run: swift --version')"
+swift_test_line="$(
+  workflow_line '        run: swift test --disable-sandbox'
+)"
+shell_test_line="$(
+  workflow_line '          for test_script in Tests/Shell/*.bats; do'
+)"
+test "$setup_line" -lt "$version_line"
+test "$version_line" -lt "$swift_test_line"
+test "$swift_test_line" -lt "$shell_test_line"
 REPORT=Sources/PetHUDCore/RedactedDiagnosticReport.swift
 grep -F 'fiveHourRemainingPercent' "$REPORT"
 grep -F 'fiveHourStatus' "$REPORT"
