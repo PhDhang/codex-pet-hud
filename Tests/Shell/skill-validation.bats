@@ -41,6 +41,12 @@ grep -F 'PANIC · QUOTA LOW' "$SKILL/SKILL.md" >/dev/null
 grep -F 'EXHAUSTED · SIGNAL CRITICAL' "$SKILL/SKILL.md" >/dev/null
 grep -F 'MP is the measured five-hour percentage or sky-blue `MAX`.' \
   "$SKILL/SKILL.md" >/dev/null
+grep -F \
+  'HP and MP values are centered inside the bars.' \
+  "$SKILL/SKILL.md" >/dev/null
+grep -F \
+  'SP reset time is accessibility-only and has no visible suffix.' \
+  "$SKILL/SKILL.md" >/dev/null
 grep -F 'Safe measured values below `100%` carry a subtle same-color flow.' \
   "$SKILL/SKILL.md" >/dev/null
 grep -F 'Danger pulses HP or MP independently to white at `0.9s` or `0.45s`.' \

@@ -20,6 +20,7 @@ MP is the measured five-hour percentage when the usage source provides that
 window. Otherwise it shows sky-blue `MAX`; it never infers a value or reset
 time. HP uses a blood-red `#680B18` → `#C51F35` → `#FF5268` gradient, and MP
 uses a sky-blue `#0758A8` → `#179DFF` → `#77D9FF` gradient.
+HP and MP values are centered inside their bars.
 
 Safe measured values below exactly `100%` carry a subtle same-color highlight
 flow clipped to the filled capsule. Exactly `100%`, `MAX`, unavailable, and
@@ -33,6 +34,7 @@ red/orange/yellow; unlit flames are blue/cyan/ice-blue. Each flame represents
 one elapsed seventh of the weekly reset window, from zero lit at a new window to
 seven at reset. Lit flames use a `1.10` base scale, with bottom-anchored flicker
 disabled by Reduce Motion.
+The weekly reset countdown remains available to accessibility tools but is not shown visually.
 
 For fresh `4–9%` quota, the HUD shows `PANIC · QUOTA LOW` in red. For fresh
 `≤3%` quota, it shows `EXHAUSTED · SIGNAL CRITICAL` in bright red. These are
@@ -50,9 +52,14 @@ transient. Cached geometry restores only for matching stable presence on a
 connected display. The tactical panel hides only after three missing observations
 spanning at least two seconds.
 
+Current-process-confirmed same-PID fallback geometry follows movement while
+restored geometry remains protected until a current-process observation confirms
+it.
+
 The HUD centers above the pet. `podScale`, `podOffsetX`, and `podOffsetY`
-remain compatible; `podScale` is clamped to `0.65...1.6`. Positive X moves
-right and positive Y moves up.
+remain compatible; the default HUD is `190 × 72` points before `podScale` is
+applied, and `podScale` is clamped to `0.65...1.6`. Positive X moves right and
+positive Y moves up.
 
 ## Install From Source
 

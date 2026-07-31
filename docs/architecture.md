@@ -62,6 +62,9 @@ Only high-confidence shell-derived geometry is cached.
 Mascot fallback geometry is transient and is never persisted.
 Cached geometry restores only when stable presence identifies the matching PID
 and bounds intersect a current display.
+Live same-PID fallback geometry follows dragging after current-process geometry confirmation.
+Restored shell geometry does not gain live confidence until a current-process
+geometry observation is accepted.
 `PetPresenceTracker` retains geometry through idle and resize transitions and
 hides panels only after three absent observations spanning two seconds. It fails
 closed when no safe current or cached geometry is available.

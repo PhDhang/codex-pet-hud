@@ -94,6 +94,8 @@ Missing keys use defaults; legacy `nameplateOffset` does not move the tactical H
 ## HP, MP, Flame, and Low-Quota States
 
 HP is weekly quota with a blood-red gradient. MP is the measured five-hour percentage or sky-blue `MAX`.
+HP and MP values are centered inside the bars.
+SP reset time is accessibility-only and has no visible suffix.
 Safe measured values below `100%` carry a subtle same-color flow.
 Exactly `100%`, `MAX`, unavailable data, danger states, and Reduce Motion have
 no meter flow. Danger pulses HP or MP independently to white at `0.9s` or `0.45s`.
