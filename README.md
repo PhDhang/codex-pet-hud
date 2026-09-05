@@ -43,6 +43,15 @@ pet animation, and performs no pet replacement.
 
 ## Idle Presence and Alignment
 
+September 2026 Codex/ChatGPT builds use a single oversized native pet container.
+The HUD supports the verified `com.openai.codex` container layout, follows its
+live position, and reads only the local pet open/visibility/size settings. It
+rejects ambiguous windows and unsupported layouts instead of using fixed
+coordinates. See [native pet compatibility](docs/native-pet-compatibility.md)
+for the tested app build, geometry contract, and bounded settings syntax.
+
+For older app builds, the existing matching and cache rules remain:
+
 Exact mascot observations refresh pet geometry. Stable Codex companion windows
 keep the HUD present while the task is idle. Title-redacted presence requires one
 complete same-PID companion cluster and fails closed when multiple complete
@@ -135,7 +144,8 @@ scripts/uninstall.sh --purge
 
 The app makes one read-only quota request and never logs credentials, account
 IDs, emails, cookies, or raw provider responses. It uses public window metadata
-only and requests neither Accessibility nor Screen Recording. See
+and selectively decodes local pet settings, and requests neither Accessibility
+nor Screen Recording. See
 `docs/privacy.md` for the full boundary and release scan command.
 
 `scripts/capture-hud.sh` resolves exactly one on-screen `Codex Pet HUD Tactical`
