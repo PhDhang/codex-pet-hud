@@ -9,6 +9,13 @@ Codex Pet HUD is designed around a narrow, local credential boundary.
   and optional account identifier required by the quota request.
 - The public macOS window list for geometry and title matching.
 - HUD configuration, normalized snapshot cache, and local geometry cache.
+- For the September 2026 native floating pet, the local Codex global-state file
+  is read to decode only `electron-avatar-overlay-open`. Codex `config.toml` is
+  read for only the two desktop pet size/visibility settings. Other fields are
+  discarded, never logged or transmitted. Only these three values are retained
+  in memory; unchanged files are not repeatedly decoded by the window poller.
+- The running application's bundle identifier and public screen geometry verify
+  the native container. These inputs are read-only; Codex settings are not changed.
 
 ## Network Request
 
@@ -28,7 +35,8 @@ data, or send pet artwork.
 ## Data Not Accessed
 
 The app does not read browser cookies, browser profiles, macOS Keychain,
-conversation content, source repositories, prompts, or unrelated Codex state.
+or source repositories. It does not decode, retain, log, or transmit conversation
+content, prompts, or unrelated fields from the Codex state/settings files.
 It does not request Accessibility, Screen Recording, camera, microphone, or
 location permission.
 

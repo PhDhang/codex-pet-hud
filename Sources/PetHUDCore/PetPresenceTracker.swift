@@ -48,7 +48,7 @@ public struct PetPresenceTracker: Sendable {
             lastGeometry = nil
             hasLiveGeometry = false
             pendingFallbackIdentity = nil
-            if candidate?.source != .shellDerived {
+            if candidate?.source.isDirectObservation != true {
                 fallbackBlockedPID = observedPID
                 return nil
             }
@@ -61,7 +61,7 @@ public struct PetPresenceTracker: Sendable {
             !observation.hasExactWindowAmbiguity,
             let candidate
         {
-            if candidate.source == .shellDerived {
+            if candidate.source.isDirectObservation {
                 lastGeometry = candidate
                 hasLiveGeometry = true
                 pendingFallbackIdentity = nil

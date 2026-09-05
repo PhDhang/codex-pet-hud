@@ -3,6 +3,7 @@ import Foundation
 import PetHUDCore
 
 enum Diagnostics {
+    @MainActor
     static func run(
         includeQuota: Bool
     ) async -> Int32 {

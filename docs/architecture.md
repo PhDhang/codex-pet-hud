@@ -51,6 +51,17 @@ account data, emails, or cookies.
 
 ## Presence and Geometry
 
+New native floating-pet builds are handled by `NativePetWindowLocator` before
+the legacy result is returned. `NativePetWindowContext` verifies the running
+bundle/PID and current screens, while `NativePetSettingsReader` selectively
+loads the pet open flag and desktop size/visibility settings. The adapter
+requires one exact container signature and rejects any conflicting legacy
+evidence. Its `nativeContainer` geometry follows the live window, can supersede
+a stale-PID cache, and is never persisted as legacy shell geometry. See
+[native pet compatibility](native-pet-compatibility.md) for the tested contract.
+
+The following rules describe the unchanged legacy path:
+
 `PetWindowLocator` uses the native mascot window for exact geometry. During idle
 periods, `Codex Pet Composition Surface`, `Codex Pet Voice Controls
 Backing`, and `Codex Pet Activity Stack Backing` confirm stable presence. A
