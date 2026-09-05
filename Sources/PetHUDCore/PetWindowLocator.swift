@@ -43,11 +43,6 @@ public enum PetVisualGeometrySource:
 {
     case shellDerived
     case mascotFallback
-    case nativeContainer
-
-    var isDirectObservation: Bool {
-        self == .shellDerived || self == .nativeContainer
-    }
 }
 
 public struct PetVisualGeometry:
@@ -108,12 +103,10 @@ public enum PetWindowLocator {
         "Codex Pet Activity Stack Backing",
     ]
 
-    @MainActor
     public static func currentWindow() -> WindowDescriptor? {
         currentObservation().visualWindow
     }
 
-    @MainActor
     public static func currentObservation() -> PetWindowObservation {
         let options: CGWindowListOption = [
             .optionOnScreenOnly,
@@ -130,13 +123,11 @@ public enum PetWindowLocator {
                 hasStablePresence: false
             )
         }
-        let windows = rows.compactMap(descriptor(from:))
-        return observe(from: windows, nativeContext: NativePetWindowContext.current(for: windows))
+        return observe(from: rows.compactMap(descriptor(from:)))
     }
 
     public static func observe(
-        from windows: [WindowDescriptor],
-        nativeContext: NativePetWindowContext? = nil
+        from windows: [WindowDescriptor]
     ) -> PetWindowObservation {
         let exactWindowCount = windows.filter(
             \.isExactMascotWindow
@@ -145,19 +136,6 @@ public enum PetWindowLocator {
         let stablePresence = stablePresence(
             in: windows
         )
-        if let nativeContext {
-            let native = NativePetWindowLocator.observe(from: windows, context: nativeContext)
-            let hasLegacyEvidence = exactWindowCount > 0 || exactWindow != nil ||
-                !redactedMascotCandidates(from: windows).isEmpty ||
-                windows.contains(where: isNamedCompanionWindow) ||
-                !titleRedactedIdleShellPIDs(in: windows).isEmpty
-            if native.hasExactWindowAmbiguity ||
-                (native.visualGeometry != nil && hasLegacyEvidence) {
-                return PetWindowObservation(exactWindow: nil, hasStablePresence: false,
-                                            hasExactWindowAmbiguity: true)
-            }
-            if native.visualGeometry != nil { return native }
-        }
         return PetWindowObservation(
             exactWindow: exactWindow,
             visualGeometry: exactWindow.map {
@@ -188,20 +166,12 @@ public enum PetWindowLocator {
             return nil
         }
 
-        let fallback = redactedMascotCandidates(from: windows)
-        guard fallback.count == 1 else { return nil }
-        return fallback[0]
-    }
-
-    private static func redactedMascotCandidates(
-        from windows: [WindowDescriptor]
-    ) -> [WindowDescriptor] {
         let voiceControls = windows.filter {
             $0.owner == "ChatGPT" &&
                 $0.layer == 3 &&
                 isVoiceControl($0)
         }
-        return windows.filter { candidate in
+        let fallback = windows.filter { candidate in
             guard
                 candidate.owner == "ChatGPT",
                 candidate.name.isEmpty,
@@ -224,6 +194,10 @@ public enum PetWindowLocator {
                     candidate.bounds.contains(control.bounds)
             }
         }
+        guard fallback.count == 1 else {
+            return nil
+        }
+        return fallback[0]
     }
 
     private static func visualWindow(

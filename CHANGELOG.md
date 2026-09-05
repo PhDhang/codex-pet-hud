@@ -6,12 +6,6 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
-- Restore the HP/MP/SP HUD for the native floating pet container in
-  Codex/ChatGPT 26.901.31953. Verify the owning application, live geometry and
-  pet visibility; preserve legacy matching and fail-closed ambiguity handling.
-- Read pet settings without mistaking quoted `#` characters or unrelated nested
-  TOML arrays for comments or table headers. Cache only selected settings and
-  retry transient read failures without changing Codex configuration.
 - HUD positioning now follows same-PID fallback geometry during live pet dragging
   without weakening cold-cache or ambiguity protection.
 
