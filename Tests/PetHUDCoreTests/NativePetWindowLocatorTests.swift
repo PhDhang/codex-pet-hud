@@ -4,6 +4,186 @@ import XCTest
 @testable import PetHUDCore
 
 final class NativePetWindowLocatorTests: XCTestCase {
+    // Codex 26.1013.40934, one display: native pet with Quick Chat controls.
+    // The 80x87 draw anchor shares the visible pet's top, not its center.
+    func testOctoberControlsLayoutUsesTopAlignedAnchor() throws {
+        let observation = observe([container(x: -571, y: -227, width: 1138)], width: 153)
+        let geometry = try XCTUnwrap(observation.visualGeometry)
+        XCTAssertEqual(geometry.window.bounds, CGRect(x: 88, y: 794, width: 153, height: 166))
+        XCTAssertEqual(geometry.source, .nativeContainer)
+        XCTAssertEqual(PetWindowDiagnosticStatus.resolve(
+            observation: observation, cachedGeometry: nil, now: Date()
+        ), .found)
+    }
+
+    func testOctoberMovementUsesCurrentWindowNotSavedAnchor() throws {
+        let geometry = try XCTUnwrap(observe(
+            [container(x: -271, y: -327, width: 1138)], width: 153
+        ).visualGeometry)
+        XCTAssertEqual(geometry.window.bounds, CGRect(x: 388, y: 694, width: 153, height: 166))
+    }
+
+    func testOctoberControlsResizePreservesTopAndRoundedHorizontalAnchor() throws {
+        for width: CGFloat in [80, 97, 153, 160, 224] {
+            let rect = try XCTUnwrap(observe(
+                [container(x: -571, y: -227, width: 1138)], width: width
+            ).visualGeometry).window.bounds
+            XCTAssertEqual(rect.minX, 165 - (width / 2).rounded())
+            XCTAssertEqual(rect.minY, 794)
+            XCTAssertEqual(rect.height, ceil(width / (192.0 / 208.0)))
+        }
+    }
+
+    func testOctoberWithoutControlsRetainsCenteredAnchor() throws {
+        let rect = try XCTUnwrap(observe(
+            [container(x: -571, y: -227, width: 1132)], width: 153
+        ).visualGeometry).window.bounds
+        XCTAssertEqual(rect, CGRect(x: 84.5, y: 754.5, width: 153, height: 166))
+    }
+
+    func testOctoberUsesSingleDisplayMenuBarAdjustedHeight() throws {
+        let rect = try XCTUnwrap(observe(
+            [container(x: 100, y: -500, width: 1138, height: 2799)], width: 153,
+            displays: [CGRect(x: 0, y: 25, width: 2560, height: 1415)]
+        ).visualGeometry).window.bounds
+        XCTAssertEqual(rect, CGRect(x: 759, y: 856, width: 153, height: 166))
+    }
+
+    func testOctoberTopAlignedVisualCenterMustBeOnDisplay() {
+        // Surface center is on screen; visible pet center is below the screen.
+        XCTAssertNil(observe([container(x: 0, y: 0, width: 1138)], width: 153).visualGeometry)
+    }
+
+    func testOctoberMultiDisplayLayoutIsNotGuessedFromOverscan() {
+        let displays = [CGRect(x: 0, y: 0, width: 1920, height: 1080),
+                        CGRect(x: 1920, y: 0, width: 1920, height: 1080)]
+        for width: CGFloat in [1132, 1138, 1920] {
+            XCTAssertNil(observe([container(width: width)], displays: displays).visualGeometry)
+        }
+    }
+
+    func testOctoberRejectsUnverifiedAndMalformedCandidates() {
+        for width: CGFloat in [1132, 1138] {
+            for window in [container(width: width, pid: 8), container(width: width, layer: 0),
+                           container(width: width, name: "Unrelated"),
+                           container(width: width, height: 2127)] {
+                XCTAssertNil(observe([window]).visualGeometry)
+            }
+            XCTAssertNil(observe([container(width: width)], open: false).visualGeometry)
+            XCTAssertNil(observe([container(width: width)], visible: false).visualGeometry)
+        }
+        for width: CGFloat in [1130.5, 1133.5, 1136.5, 1139.5, 1148] {
+            XCTAssertNil(observe([container(width: width)]).visualGeometry)
+        }
+    }
+
+    func testOctoberRedactedTitleKeepsExactShapeTolerance() {
+        for width: CGFloat in [1131, 1132, 1133, 1137, 1138, 1139] {
+            XCTAssertNotNil(observe([container(width: width, name: "")]).visualGeometry)
+        }
+    }
+
+    func testOctoberMixedAndDuplicateNativeSignaturesFailClosed() {
+        for first: CGFloat in [772, 1128, 1132, 1138] {
+            for second: CGFloat in [1132, 1138] {
+                let observation = observe([container(width: first), container(width: second, id: 2)])
+                XCTAssertTrue(observation.hasExactWindowAmbiguity)
+                XCTAssertNil(observation.visualGeometry)
+                XCTAssertEqual(PetWindowDiagnosticStatus.resolve(
+                    observation: observation, cachedGeometry: oldGeometry(), now: Date()
+                ), .missing)
+            }
+        }
+    }
+
+    func testOctoberLegacyEvidenceStillRejectsNativeCandidate() {
+        let legacy = WindowDescriptor(owner: "ChatGPT", name: PetWindowLocator.exactWindowName,
+            layer: 2, bounds: CGRect(x: 0, y: 0, width: 243, height: 252), ownerPID: 8, windowID: 3)
+        for width: CGFloat in [1132, 1138] {
+            let observation = observe([container(width: width), legacy])
+            XCTAssertTrue(observation.hasExactWindowAmbiguity)
+            XCTAssertNil(observation.visualGeometry)
+        }
+    }
+
+    // ChatGPT/Codex 26.917.51856 expanded horizontal animation overscan.
+    // Its fixed 80x87 drawing anchor sits at x=688 inside the 1128pt surface.
+    func testSeptember917ContainerFindsVisualPetWithNewAnchorOffset() throws {
+        let observation = observe([container(x: 842, y: -645, width: 1128)], width: 153)
+        let geometry = try XCTUnwrap(observation.visualGeometry)
+        XCTAssertEqual(geometry.source, .nativeContainer)
+        XCTAssertEqual(geometry.window.bounds, CGRect(x: 1493.5, y: 336.5, width: 153, height: 166))
+        XCTAssertEqual(observation.stablePresencePID, 7)
+        XCTAssertEqual(PetWindowDiagnosticStatus.resolve(
+            observation: observation, cachedGeometry: nil, now: Date()
+        ), .found)
+    }
+
+    func testSeptember917MovementFollowsLiveContainer() throws {
+        let geometry = try XCTUnwrap(observe(
+            [container(x: 642, y: -545, width: 1128)], width: 153
+        ).visualGeometry)
+        XCTAssertEqual(geometry.window.bounds, CGRect(x: 1293.5, y: 436.5, width: 153, height: 166))
+    }
+
+    func testSeptember917ResizeKeepsDrawingAnchorCenter() throws {
+        for width: CGFloat in [80, 97, 160, 224] {
+            let geometry = try XCTUnwrap(observe(
+                [container(x: 842, y: -645, width: 1128)], width: width
+            ).visualGeometry)
+            XCTAssertEqual(geometry.window.bounds.midX, 1570)
+            XCTAssertEqual(geometry.window.bounds.midY, 419.5)
+            XCTAssertEqual(geometry.window.bounds.width, width)
+            XCTAssertEqual(geometry.window.bounds.height, ceil(width / (192.0 / 208.0)))
+        }
+    }
+
+    func testSeptember917MultiDisplayUsesMaximumNativeHeight() throws {
+        let displays = [CGRect(x: 0, y: 25, width: 1920, height: 1055),
+                        CGRect(x: 1920, y: 25, width: 2560, height: 1415)]
+        let geometry = try XCTUnwrap(observe(
+            [container(x: 2000, y: -700, width: 1128, height: 2799)], displays: displays
+        ).visualGeometry)
+        XCTAssertEqual(geometry.window.bounds.midX, 2728)
+        XCTAssertEqual(geometry.window.bounds.midY, 699.5)
+    }
+
+    func testSeptember917ValidatesPetCenterRatherThanSurfaceCenter() throws {
+        let geometry = try XCTUnwrap(observe([container(x: -650, width: 1128)]).visualGeometry)
+        XCTAssertEqual(geometry.window.bounds.midX, 78)
+        // Surface center is on screen, but the actual pet center is not.
+        XCTAssertNil(observe([container(x: 1300, width: 1128)]).visualGeometry)
+    }
+
+    func testSeptember917RequiresAllExistingSafetyGates() {
+        for window in [container(width: 1128, pid: 8), container(width: 1128, layer: 0),
+                       container(width: 1128, name: "Unrelated"), container(width: 1128, height: 2127),
+                       container(width: 1126), container(width: 1130), container(width: 950)] {
+            XCTAssertNil(observe([window]).visualGeometry)
+        }
+        XCTAssertNil(observe([container(width: 1128)], open: false).visualGeometry)
+        XCTAssertNil(observe([container(width: 1128)], visible: false).visualGeometry)
+    }
+
+    func testSeptember917SupportsRedactedTitlesWithinExactShapeTolerance() throws {
+        for width: CGFloat in [1127, 1128, 1129] {
+            XCTAssertNotNil(observe([container(width: width, name: "")]).visualGeometry)
+        }
+        XCTAssertNil(observe([container(width: 1129.5, name: "")]).visualGeometry)
+    }
+
+    func testSeptember917DuplicateOrMixedNativeSignaturesAreAmbiguous() {
+        for windows in [[container(width: 1128), container(width: 1128, id: 2)],
+                        [container(), container(width: 1128, id: 2)]] {
+            let observation = observe(windows)
+            XCTAssertTrue(observation.hasExactWindowAmbiguity)
+            XCTAssertNil(observation.visualGeometry)
+            XCTAssertEqual(PetWindowDiagnosticStatus.resolve(
+                observation: observation, cachedGeometry: oldGeometry(), now: Date()
+            ), .missing)
+        }
+    }
+
     // Live, redacted CGWindow metadata from ChatGPT 26.901.31953.
     func testSeptemberNativeContainerFindsVisualPet() throws {
         let observation = observe([container()])
@@ -40,11 +220,22 @@ final class NativePetWindowLocatorTests: XCTestCase {
         XCTAssertNil(observe([container(pid: 8)]).visualGeometry)
     }
 
-    func testMainWindowOrQuickChatCannotImpersonatePet() {
+    func testMainWindowOrStandaloneQuickChatCannotMatchNativeOverlay() {
         for window in [container(layer: 0), container(width: 384, height: 400),
                        container(width: 852), container(name: "Unrelated") ] {
             XCTAssertNil(observe([window]).visualGeometry)
         }
+    }
+
+    func testOctoberSharedMiniSurfaceUsesDocumentedQuotaOverlayCompatibility() throws {
+        // Native pet (88,794,153,166) and Mini (0,794,330,40) can produce
+        // this identical surface. The persisted pet settings can stay true.
+        // This is accepted shared-overlay behavior, not proof of a visible pet.
+        let shared = container(x: -571, y: -227, width: 1138)
+        let geometry = try XCTUnwrap(observe([shared], width: 153).visualGeometry)
+        XCTAssertEqual(geometry.window.bounds, CGRect(x: 88, y: 794, width: 153, height: 166))
+        XCTAssertNil(observe([shared], width: 153, open: false).visualGeometry)
+        XCTAssertNil(observe([shared], width: 153, visible: false).visualGeometry)
     }
 
     func testDuplicateNativeWindowsFailClosedEvenWithOldCache() {

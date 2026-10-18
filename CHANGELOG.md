@@ -6,6 +6,16 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- Restore the quota HUD for Codex/ChatGPT 26.1013.40934 on a single display:
+  recognize the exact 1132/1138-point native surfaces and correctly use a
+  top-aligned drawing anchor for the pet-with-controls layout. Preserve older
+  layouts and reject unsupported screen-sized multi-display containers.
+  This is shared-overlay compatibility: the quota HUD may remain visible over
+  Mini / Quick Chat because transient presentation is not exposed in settings.
+- Restore HUD tracking after the Codex/ChatGPT 26.917.51856 update widened
+  the native pet surface to 1128 points. Pair each known surface width with
+  its verified pet-center offset; preserve the 772-point layout and reject
+  duplicate or mixed native candidates.
 - Restore the HP/MP/SP HUD for the native floating pet container in
   Codex/ChatGPT 26.901.31953. Verify the owning application, live geometry and
   pet visibility; preserve legacy matching and fail-closed ambiguity handling.
