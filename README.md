@@ -43,12 +43,22 @@ pet animation, and performs no pet replacement.
 
 ## Idle Presence and Alignment
 
-September 2026 Codex/ChatGPT builds use a single oversized native pet container.
-The HUD supports the verified `com.openai.codex` container layout, follows its
+September and October 2026 Codex/ChatGPT builds use oversized native pet containers.
+The HUD supports verified `com.openai.codex` container layouts, follows their
 live position, and reads only the local pet open/visibility/size settings. It
 rejects ambiguous windows and unsupported layouts instead of using fixed
 coordinates. See [native pet compatibility](docs/native-pet-compatibility.md)
-for the tested app build, geometry contract, and bounded settings syntax.
+for the tested app builds, geometry contracts, and bounded settings syntax.
+The 26.1013.40934 adapter supports a single display; its new screen-sized
+multi-display layout is intentionally unsupported and hides the HUD safely.
+
+**October compatibility limitation:** the pet-with-controls and Mini / Quick
+Chat presentations share the same native surface. Codex can temporarily hide
+the pet without changing its saved visibility setting. The quota HUD may
+therefore remain visible over Mini. This adapter tracks the shared overlay;
+it does not guarantee pet-only visibility. It does not change Codex settings
+or replace/animate the pet. Closing the overlay or setting pet visibility off
+still hides the HUD after the existing absence grace.
 
 For older app builds, the existing matching and cache rules remain:
 
